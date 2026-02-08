@@ -1,47 +1,61 @@
 ---
 name: git-suggest-branch-and-commit
-description: Suggest a branch name and commit message from git status/diff
+description: Suggest branch name and commit message from staged changes (monorepo support)
 ---
 
 ## Purpose
+Summarize **staged changes only** and suggest branch name + commit message.
+**Never commit directly to `main`** — always use a feature branch.
 
-Automatically summarize **staged** repository changes and suggest a branch name and commit message.
-
-※ Unstaged changes in the working tree are **not** included.
-
-※ **Direct commits to the `main` branch are strictly prohibited.**
-All commits must be made on a newly created or existing feature branch suggested by this agent.
-
-## How to use
-
-1. Run this agent.
-   - It inspects `git status` and `git diff --staged`.
-2. Review the proposed **branch name** and **commit message**.
-3. **Switch to the proposed branch (or create it if it does not exist).**
-4. Commit the staged changes **only after confirming you are not on `main`**.
-5. If needed, the agent may request additional context.
-
-⚠️ If the current branch is `main`, you must switch branches before committing.
+## Usage
+1. Analyze `git status` and `git diff --staged`
+2. Review suggested branch/commit
+3. Switch to suggested branch (create if needed)
+4. Commit (verify not on `main`)
 
 ## Inputs
-
-- Repository state (`git status`, only items under “Changes to be committed” are considered)
-- (optional) `git diff --staged` / `git diff --cached`
-- (optional) Goal or intent
+- `git status` (staged only)
+- `git diff --staged`
+- Git root: `git rev-parse --show-toplevel`
+- Current dir: `pwd`
+- (optional) User intent
 
 ## Outputs
+- **Branch:** `prefix/short-slug`
+- **Commit:** `prefix[(project)]: imperative message`
+- Summary of staged changes
 
-- Change summary (staged changes only)
-- **Branch (required):** `prefix/short-slug`
-- **Commit (required):** `prefix: imperative message`
-- Notes: split suggestions if multiple independent staged changes exist
-
-## Branch & Commit Rules
-
-- Commits on `main` are **not allowed**
-- Always create or switch to the suggested branch **before** committing
+## Rules
+- **No commits on `main`**
+- Prefix: `feat` | `update` | `refactor`
 - One logical change per commit
+- Monorepo: include project scope in commit message
+- Non-monorepo: omit project scope, use prefix only
 
-## Prefix rules
+## Project Detection
+1. **From path:** Use last dir name in relative path from Git root
+   - `packages/api` → `api`
+   - `apps/web` → `web`
+   - `libs/shared/utils` → `utils`
 
-Choose one of: `feat`, `update`, `refactor`
+2. **From staged files:** Group by path segments if at Git root
+   - `packages/api/src/index.ts` → `api`
+
+3. **Fallback:** 
+   - Check if monorepo (has `workspaces` in root `package.json`)
+   - If monorepo: use `package.json` name or `root`
+   - If non-monorepo: omit project scope (empty string)
+
+## Examples
+
+| Relative path | Monorepo Project | Non-monorepo Project |
+|---------------|------------------|----------------------|
+| `packages/api` | `api` | N/A |
+| `apps/web` | `web` | N/A |
+| `.` (root-level files) | `root` | (empty) |
+
+**Commit format:**
+- Monorepo: `feat(api): add user authentication`
+- Non-monorepo: `feat: add user authentication`
+- `update(web): upgrade dependencies`
+- `refactor(utils): extract common logic`
