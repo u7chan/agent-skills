@@ -12,7 +12,7 @@ git status --short
 git branch --show-current
 ```
 
-### 2. Branch Name (only if on `main` or `develop-*`)
+### 2. Branch Name (only if on `main` or `develop*`)
 **Format:** `<type>/<description>`
 
 **Types:** `feature/` `fix/` `docs/` `refactor/` `test/` `chore/`
@@ -34,7 +34,7 @@ git branch --show-current
 
 ### 4. Output Format
 
-**On main/develop-* branch:**
+**On main/develop* branch:**
 ```
 ## Recommended Branch
 git checkout -b <type>/<description>
