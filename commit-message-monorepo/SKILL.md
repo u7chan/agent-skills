@@ -19,7 +19,7 @@ Get the current directory name to use as the scope:
 basename "$(pwd)"
 ```
 
-### 3. Branch Name (only if on `main` or `develop-*`)
+### 3. Branch Name (only if on `main` or `develop*`)
 **Format:** `<type>/<$dir-prefix>-<description>`
 
 **Types:** `feature/` `fix/` `docs/` `refactor/` `test/` `chore/`
@@ -42,7 +42,7 @@ basename "$(pwd)"
 
 ### 5. Output Format
 
-**On main/develop-* branch:**
+**On main/develop* branch:**
 ```
 ## Recommended Branch
 git checkout -b <type>/<scope>/<description>
