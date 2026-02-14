@@ -21,7 +21,8 @@ mkdir -p "$HOME/.claude/skills"
 ln -sf "$(pwd)" "$HOME/.claude/skills"
 ```
 
-> **Note:** `$HOME/.claude/skills` ディレクトリが既に存在する場合は、上記コマンドをそのまま実行してください。
+> [!NOTE]
+> `$HOME/.claude/skills` ディレクトリが既に存在する場合は、上記コマンドをそのまま実行してください。
 
 シンボリックリンクを解除する場合:
 
@@ -29,7 +30,8 @@ ln -sf "$(pwd)" "$HOME/.claude/skills"
 rm "$HOME/.claude/skills"
 ```
 
-> **Note:** Claude Code 以外のエージェントでは、設定ディレクトリのパスが異なる場合があります。
+> [!NOTE]
+> Claude Code 以外のエージェントでは、設定ディレクトリのパスが異なる場合があります。
 
 ## Usage
 
