@@ -64,6 +64,22 @@ git add <file>
 git commit -m "type(scope): title" -m "body"
 ```
 
+### 7. User Confirmation
+If the user says "OK" after the suggestion, execute the following automatically:
+
+**On main/develop* branch:**
+```bash
+git switch -c <type>/<$dir-prefix>-<description>
+git add .  # only if files are not staged
+git commit -m "<type>(<scope>): <title>" -m "<body>"
+```
+
+**On other branches:**
+```bash
+git add .  # only if files are not staged
+git commit -m "<type>(<scope>): <title>" -m "<body>"
+```
+
 ## Examples
 
 **If in `/projects/monorepo/packages/auth`:**
