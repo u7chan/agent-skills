@@ -1,5 +1,5 @@
 ---
-name: commit-messages
+name: commit
 description: Suggest commit messages and branch names
 ---
 

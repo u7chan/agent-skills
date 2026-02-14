@@ -1,5 +1,5 @@
 ---
-name: commit-messages-monorepo
+name: commit-monorepo
 description: Suggest commit messages and branch names for monorepo projects
 ---
 
