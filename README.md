@@ -8,6 +8,7 @@ AI エージェント用のカスタムスキル集です。
 |-------|-------------|
 | [commit](commit/) | コミットメッセージとブランチ名を提案 |
 | [commit-monorepo](commit-monorepo/) | モノレポ向けのコミットメッセージとブランチ名を提案 |
+| [pr](pr/) | PR 本文をマークダウン形式で提案 |
 
 ## Setup
 
@@ -42,6 +43,8 @@ agent-skills/
 ├── commit/
 │   └── SKILL.md
 ├── commit-monorepo/
+│   └── SKILL.md
+├── pr/
 │   └── SKILL.md
 └── .samples/
     └── ...
