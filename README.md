@@ -6,8 +6,8 @@ AI エージェント用のカスタムスキル集です。
 
 | Skill | Description |
 |-------|-------------|
-| [commit-message](commit-message/) | コミットメッセージとブランチ名を提案 |
-| [commit-message-monorepo](commit-message-monorepo/) | モノレポ向けのコミットメッセージとブランチ名を提案 |
+| [commit](commit/) | コミットメッセージとブランチ名を提案 |
+| [commit-monorepo](commit-monorepo/) | モノレポ向けのコミットメッセージとブランチ名を提案 |
 
 ## Setup
 
@@ -39,9 +39,9 @@ rm "$HOME/.claude/skills"
 ```
 agent-skills/
 ├── README.md
-├── commit-message/
+├── commit/
 │   └── SKILL.md
-├── commit-message-monorepo/
+├── commit-monorepo/
 │   └── SKILL.md
 └── .samples/
     └── ...
