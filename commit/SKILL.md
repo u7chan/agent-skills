@@ -54,3 +54,20 @@ git commit -m "<prefix>: <title>" -m "<body>"
 git add <file>
 # or use `git hunks` for specific changes
 git commit -m "title" -m "body"
+```
+
+### 6. User Confirmation
+If the user says "OK" after the suggestion, execute the following automatically:
+
+**On main/develop* branch:**
+```bash
+git switch -c <type>/<description>
+git add .  # only if files are not staged
+git commit -m "<prefix>: <title>" -m "<body>"
+```
+
+**On other branches:**
+```bash
+git add .  # only if files are not staged
+git commit -m "<prefix>: <title>" -m "<body>"
+```
