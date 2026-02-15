@@ -1,5 +1,5 @@
 ---
-name: plan
+name: plan-creator
 description: Skills related to plan files generated within the plans/ directory
 ---
 
