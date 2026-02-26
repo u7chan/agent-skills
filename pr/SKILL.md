@@ -6,9 +6,21 @@ description: Suggest PR body in markdown format
 ## Workflow
 
 ### 1. Check Context
-- Current branch name
-- Commit history (git log --oneline main..HEAD)
-- Files changed (git diff --name-status main)
+
+**IMPORTANT: Do NOT run any git commands yet.**
+
+First, check if sufficient context is already available in the conversation (branch name, commit history, or changed files).
+
+**If context IS available:**
+1. Present what you know (branch name, commits, files changed)
+2. Ask the user: "Is this information sufficient? If yes, I'll proceed to Step 2."
+3. Wait for user confirmation
+4. If user responds with "OK" or confirmation, **skip directly to Step 2**
+
+**If context is NOT available, run these git commands:**
+- `git branch --show-current`
+- `git log --oneline main..HEAD`
+- `git diff --name-status main`
 
 ### 2. PR Body Format
 Output in a markdown code block.
