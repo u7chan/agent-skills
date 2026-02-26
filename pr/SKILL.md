@@ -44,7 +44,7 @@ First, check if sufficient context is already available in the conversation (bra
 
 **If context IS available:**
 1. Show the branch name only
-2. Ask the user: "Is this information sufficient? If yes, I'll proceed to Step 3."
+2. Ask the user: "Is this sufficient? Reply \"OK\" and I'll proceed to create the PR body."
 3. Wait for user confirmation
 4. If user responds with "OK" or confirmation, **skip directly to Step 3** and draft the PR body immediately
 5. If user needs more info (NOT "OK"), run these git commands:
@@ -59,8 +59,11 @@ Branch: <branch-name>
 Is this sufficient? Reply "OK" and I'll proceed to create the PR body.
 ```
 
-**If context is NOT available, run this git command:**
+**If context is NOT available:**
+Immediately run these git commands to gather context (no user confirmation needed):
 - `git branch --show-current`
+- `git log --oneline main..HEAD`
+- `git diff --name-status main`
 
 ### 3. Draft PR Body
 
