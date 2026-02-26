@@ -12,16 +12,28 @@ description: Suggest commit messages and branch names for monorepo projects
 First, check if sufficient context is already available in the conversation (changed files, current branch, staged changes, or current directory).
 
 **If context IS available:**
-1. Present what you know (files changed, current branch, staged files, current directory)
-2. Ask the user: "Is this information sufficient? If yes, I'll proceed to Step 2."
+1. Show the branch name and draft commit message
+2. Ask the user: "Is this information sufficient? If yes, I'll proceed."
 3. Wait for user confirmation
-4. If user responds with "OK" or confirmation, **skip directly to Step 2**
+4. If user responds with "OK" or confirmation, **output the final result**
+5. If user needs more info (NOT "OK"), run these git commands:
+   - `git diff HEAD`
+   - `git status --short`
+   - `pwd`
 
-**If context is NOT available, run these git commands:**
-- `git diff HEAD`
-- `git status --short`
+**Preview format:**
+```
+Context is available.
+Branch: <branch-name>
+
+Proposed commit message:
+<type>(<scope>): <title>
+
+Is this sufficient? Reply "OK" to confirm this commit message.
+```
+
+**If context is NOT available, run this git command:**
 - `git branch --show-current`
-- `pwd`
 
 ### 2. Determine Scope
 Get the current directory name to use as the scope:
