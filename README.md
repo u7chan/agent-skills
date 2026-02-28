@@ -6,10 +6,12 @@ AI エージェント用のカスタムスキル集です。
 
 | Skill | Description |
 |-------|-------------|
-| [commit](commit/) | コミットメッセージを提案 |
-| [commit-monorepo](commit-monorepo/) | モノレポ向けのコミットメッセージを提案 |
-| [branch](branch/) | ブランチ名を提案し、ブランチを作成 |
-| [pr](pr/) | PR 本文をマークダウン形式で提案 |
+| [branch](branch/) | 会話コンテキストからブランチ名を提案し、ブランチを作成 |
+| [branch-diff](branch-diff/) | git差分からブランチ名を提案し、ブランチを作成 |
+| [commit](commit/) | git差分からコミットメッセージを提案 |
+| [commit-monorepo](commit-monorepo/) | モノレポ向けにgit差分からコミットメッセージを提案 |
+| [pr](pr/) | コンテキストからPR本文をマークダウン形式で提案 |
+| [pr-github](pr-github/) | PR本文作成後にGitHubにPRを作成 |
 | [plan-creator](plan-creator/) | 実装計画の作成と管理 |
 | [skill-creator](skill-creator/) | SKILL.md ファイルの作成と改善 |
 
@@ -40,18 +42,31 @@ rm "$HOME/.claude/skills"
 
 エージェントにスキルが認識されると、`/skill-name` または `@skill-name` と入力して呼び出せます。
 
+## Naming Convention
+
+スキル名には以下のサフィックスを使用して、入力ソースを示します:
+
+| サフィックス | 説明 | 例 |
+|-------------|------|-----|
+| (なし) | 会話コンテキストから生成 | `branch`, `commit`, `pr` |
+| `-diff` | git diff/staged changes から生成 | `branch-diff`, `commit-diff` |
+
 ## Project Structure
 
 ```
 agent-skills/
 ├── README.md
+├── branch/
+│   └── SKILL.md
+├── branch-diff/
+│   └── SKILL.md
 ├── commit/
 │   └── SKILL.md
 ├── commit-monorepo/
 │   └── SKILL.md
-├── branch/
-│   └── SKILL.md
 ├── pr/
+│   └── SKILL.md
+├── pr-github/
 │   └── SKILL.md
 ├── plan-creator/
 │   └── SKILL.md
