@@ -1,152 +1,152 @@
 ---
 name: skill-creator
 description: >
-  Use this skill when creating or improving a SKILL.md file.
-  Activate when told "create a skill", "write a SKILL.md", or "turn this workflow into a skill",
-  or when asked to review or improve an existing skill.
+  SKILL.mdファイルの作成や改善時に使用。
+  "create a skill"、"write a SKILL.md"、"turn this workflow into a skill" と言われた時、
+  または既存のスキルのレビューや改善を求められた時に起動。
 ---
 
-# Overview
+# 概要
 
-This skill is for designing, creating, and improving other skills (SKILL.md files).
-Identify which stage the user is at and begin assistance from the appropriate step.
-
----
-
-# When to Use This Skill
-
-- When told "I want to create a skill" or "please write a SKILL.md"
-- When told "turn this workflow into a skill" (extract the workflow from conversation history)
-- When asked to review or improve an existing SKILL.md
+このスキルは他のスキル（SKILL.mdファイル）の設計、作成、改善のためのもの。
+ユーザーがどの段階にいるかを特定し、適切なステップから支援を開始する。
 
 ---
 
-# What the Agent Does
+# このスキルを使用するタイミング
 
-1. Listen to the user's intent and goals
-2. Generate a draft SKILL.md following the "Creation Steps" below
-3. Self-verify using the quality checklist
-4. Output the result as a file
+- "I want to create a skill" または "please write a SKILL.md" と言われた時
+- "turn this workflow into a skill" と言われた時（会話履歴からワークフローを抽出）
+- 既存のSKILL.mdのレビューや改善を求められた時
 
 ---
 
-# Directory Structure
+# Agentが行うこと
 
-Create skills with the following structure. Only SKILL.md is required; add others as needed.
+1. ユーザーの意図と目標を聞く
+2. 以下の「作成ステップ」に従ってSKILL.mdのドラフトを生成
+3. 品質チェックリストを使用して自己検証
+4. 結果をファイルとして出力
+
+---
+
+# ディレクトリ構造
+
+以下の構造でスキルを作成。SKILL.mdのみ必須、その他は必要に応じて追加。
 
     my-skill/
-    ├── SKILL.md          # Main instruction file (required)
-    ├── reference.md      # Large specs, schemas, or glossaries (split out if content gets long)
-    ├── examples.md       # Concrete input/output examples (split out if 3+ examples)
-    └── scripts/          # Validation or transformation scripts (only if external tools are needed)
+    ├── SKILL.md          # メインの指示ファイル（必須）
+    ├── reference.md      # 大きな仕様、スキーマ、用語集（内容が長くなる場合は分割）
+    ├── examples.md       # 具体的な入出力例（例が3つ以上ある場合は分割）
+    └── scripts/          # 検証または変換スクリプト（外部ツールが必要な場合のみ）
         └── validate.py
 
-## File Split Criteria
+## ファイル分割の基準
 
-- If the main content exceeds 200 lines, move details to `reference.md`
-- If there are 3 or more input/output examples, split them into `examples.md`
-- If the process uses external APIs or libraries, place scripts under `scripts/`
+- メインコンテンツが200行を超える場合、詳細を `reference.md` に移動
+- 入出力例が3つ以上ある場合、`examples.md` に分割
+- 外部APIやライブラリを使用する場合、スクリプトを `scripts/` 配下に配置
 
 ---
 
-# SKILL.md Format
+# SKILL.mdの形式
 
 ## Front Matter
 
-Include the following at the top of the file.
+ファイルの先頭に以下を含める。
 
     ---
-    name: unique identifier for the skill (e.g., pdf-summarizer)
+    name: スキルの一意の識別子（例: pdf-summarizer）
     description: >
-      Describe what this skill does and when it should activate in 1–3 sentences.
-      Write trigger conditions specifically, such as "when told X" or "when given a Y file".
+      このスキルが何をするか、いつ起動すべきかを1〜3文で記述。
+      トリガー条件を具体的に記述（例: "when told X" または "when given a Y file"）。
     ---
 
-**Rules for `name`:**
-- Maximum 64 characters
-- Only lowercase letters, numbers, and hyphens
-- Do not use strings reserved for XML tags
-- Do not use reserved words (e.g., `anthropic`, `claude`, or other engine-specific terms)
-- Name using a verb or noun phrase (e.g., `invoice-parser`, `slide-creator`)
+**`name` のルール:**
+- 最大64文字
+- 小文字、数字、ハイフンのみ使用可能
+- XMLタグで予約されている文字列は使用不可
+- 予約語は使用不可（例: `anthropic`, `claude`、その他エンジン固有の用語）
+- 動詞または名詞句で命名（例: `invoice-parser`, `slide-creator`）
 
-**Rules for `description`:**
-- Required — do not omit
-- Maximum 1024 characters
-- Do not use strings reserved for XML tags
-- Must include both what the skill does (function) and when to use it (trigger)
-- Do not use vague language ("appropriately", "properly", "as needed")
+**`description` のルール:**
+- 必須 — 省略不可
+- 最大1024文字
+- XMLタグで予約されている文字列は使用不可
+- スキルの機能（何をするか）と使用タイミング（トリガー）の両方を含める
+- 曖昧な表現（"適切に"、"必要に応じて"など）は使用しない
 
-## Body Structure
+## 本文の構造
 
-Write the body in the following section order. Omit sections that are not needed.
+以下のセクション順序で本文を記述。不要なセクションは省略可能。
 
-1. **Overview** — Describe the problem this skill solves in 1–2 sentences
-2. **When to Use This Skill** — List trigger conditions as bullet points
-3. **What the Agent Does** — List execution steps as numbered items (avoid vague verbs)
-4. **Input and Output** — Explicitly state what is received and what is produced
-5. **Step Details** — Describe concrete operations for each step
-6. **Quality Check** — List completion criteria and verification points
-7. **References** — List paths to related files (if any)
-
----
-
-# Creation Steps
-
-## Step 1: Gather Intent
-
-If the conversation history contains a workflow, extract the following from it.
-If not, ask the user directly.
-
-- The problem or goal the skill should solve
-- Typical input (files, text, URLs, etc.)
-- Expected output (file format, content)
-- Main processing steps
-
-## Step 2: Generate Draft
-
-Using the gathered information, generate a SKILL.md following the format above.
-Follow these rules when writing steps:
-
-- Use imperative form consistently ("do X", "write Y", "ensure Z")
-- 1 step = 1 action — do not pack multiple operations into one line
-- Add warnings for steps that are prone to errors
-
-## Step 3: Quality Check
-
-Self-verify the generated SKILL.md on the following points.
-
-- [ ] Can you tell when to use it just by reading `description`?
-- [ ] Can you produce the output by following the steps from top to bottom?
-- [ ] Are there no vague expressions ("appropriately", "properly", "as needed") in the steps?
-- [ ] Are input and output explicitly stated?
-- [ ] Are there no nested code blocks? (Use indentation as an alternative for format examples)
-
-## Step 4: Output
-
-Save the completed SKILL.md to the specified path and present it to the user.
-If no path is specified, save it under `outputs/`.
+1. **概要** — このスキルが解決する問題を1〜2文で説明
+2. **このスキルを使用するタイミング** — トリガー条件を箇条書きで列挙
+3. **Agentが行うこと** — 実行ステップを番号付きリストで記述（曖昧な動詞は避ける）
+4. **入力と出力** — 受け取るものと生成するものを明確に記述
+5. **ステップの詳細** — 各ステップの具体的な操作を説明
+6. **品質チェック** — 完了基準と検証ポイントを列挙
+7. **参考資料** — 関連ファイルのパスを列挙（存在する場合）
 
 ---
 
-# Common Failure Patterns
+# 作成ステップ
 
-Avoid the following anti-patterns.
+## ステップ1: 意図の収集
 
-**Description is too abstract**
-- Bad: `This skill processes documents`
-- Good: `Activates when a PDF is provided or when told "summarize this", and generates a summary in English`
+会話履歴にワークフローが含まれる場合、そこから以下を抽出。
+含まれない場合はユーザーに直接尋ねる。
 
-**Steps are vague**
-- Bad: `Format it appropriately`
-- Good: `Use H2 (##) for headings and limit bullet point nesting to 2 levels`
+- スキルが解決すべき問題または目標
+- 典型的な入力（ファイル、テキスト、URLなど）
+- 期待される出力（ファイル形式、内容）
+- 主な処理ステップ
 
-**Nested code blocks**
-- Writing code blocks (triple backticks) inside SKILL.md will conflict with outer code blocks
-- Instead, use indentation (4 spaces) to show code examples
+## ステップ2: ドラフトの生成
+
+収集した情報を使用して、上記の形式に従ってSKILL.mdを生成。
+ステップを記述する際は以下のルールに従う:
+
+- 命令形を一貫して使用（"Xを行う"、"Yを書く"、"Zを確認する"）
+- 1ステップ = 1アクション — 複数の操作を1行に詰め込まない
+- エラーが発生しやすいステップには警告を追加
+
+## ステップ3: 品質チェック
+
+以下のポイントで生成したSKILL.mdを自己検証。
+
+- [ ] `description` を読むだけで使用タイミングがわかるか？
+- [ ] 上から下にステップを追うだけで出力を生成できるか？
+- [ ] ステップに曖昧な表現（"適切に"、"必要に応じて"など）はないか？
+- [ ] 入力と出力が明確に記述されているか？
+- [ ] ネストされたコードブロックはないか？（形式例にはインデントを使用）
+
+## ステップ4: 出力
+
+完成したSKILL.mdを指定されたパスに保存し、ユーザーに提示。
+パスが指定されていない場合は `outputs/` 配下に保存。
 
 ---
 
-# References
+# よくある失敗パターン
 
-- `examples.md` — Good and bad examples of SKILL.md (if available)
-- `reference.md` — Detailed front matter specification (if available)
+以下のアンチパターンを避ける。
+
+**説明が抽象的すぎる**
+- 悪い例: `This skill processes documents`
+- 良い例: `PDFが提供された時、または "summarize this" と言われた時に起動し、英語で要約を生成`
+
+**ステップが曖昧**
+- 悪い例: `Format it appropriately`
+- 良い例: `見出しにはH2（##）を使用し、箇条書きのネストは2レベルまでに制限`
+
+**ネストされたコードブロック**
+- SKILL.md内にコードブロック（トリプルバッククォート）を書くと、外側のコードブロックと競合する
+- 代わりに、コード例の表示にはインデント（4スペース）を使用
+
+---
+
+# 参考資料
+
+- `examples.md` — SKILL.mdの良い例と悪い例（存在する場合）
+- `reference.md` — Front Matterの詳細仕様（存在する場合）

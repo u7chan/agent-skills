@@ -1,62 +1,62 @@
 ---
 name: branch
-description: Suggest branch names and create branches
+description: ブランチ名の提案と作成ワークフロー
 ---
 
-## Workflow
+## ワークフロー
 
-### 1. Check Current Branch
+### 1. 現在のブランチを確認
 
-Run this git command to check the current branch:
+現在のブランチを確認するためのgitコマンドを実行:
 - `git branch --show-current`
 
-### 2. Determine Scope (for monorepo)
+### 2. スコープの決定（モノレポの場合）
 
-If the project appears to be a monorepo (multiple packages/apps), get the current directory name:
+プロジェクトがモノレポ（複数パッケージ/アプリ）の場合、現在のディレクトリ名を取得:
 ```bash
 basename "$(pwd)"
 ```
 
-### 3. Branch Name
+### 3. ブランチ名
 
-**Standard format:** `<type>/<description>`
+**標準形式:** `<type>/<description>`
 
-**Monorepo format:** `<type>/<scope>-<description>` or `<type>/<scope>/<description>`
+**モノレポ形式:** `<type>/<scope>-<description>` または `<type>/<scope>/<description>`
 
 **Types:** `feature/` `fix/` `docs/` `refactor/` `test/` `chore/`
 
-**Rules:**
-- Lowercase with hyphens (e.g., `feature/add-user-auth`)
-- 3-5 words, concise
-- Include issue# if applicable (e.g., `fix/issue-123-login-error`)
-- For monorepo: include scope as prefix (e.g., `feature/auth-add-oauth`)
+**ルール:**
+- 小文字でハイフン区切り（例: `feature/add-user-auth`）
+- 3〜5語で簡潔に
+- issue番号がある場合は含める（例: `fix/issue-123-login-error`）
+- モノレポの場合: スコープをプレフィックスとして含める（例: `feature/auth-add-oauth`）
 
-### 4. Output Format
+### 4. 出力形式
 
-**On main/develop* branch:**
+**main/develop*ブランチの場合:**
 ```
-## Recommended Branch
+## 推奨ブランチ
 
 git checkout -b <type>/<description>
 ```
 
-**On other branches:**
+**その他のブランチの場合:**
 ```
-## Current Status
-Already on branch: <branch-name>
+## 現在の状態
+現在のブランチ: <branch-name>
 
-## Suggested Branch (if needed)
+## 推奨ブランチ（必要な場合）
 git checkout -b <type>/<description>
 ```
 
-### 5. User Confirmation
+### 5. ユーザー確認
 
-If the user says "OK" after the suggestion, execute the following automatically:
+提案後にユーザーが「OK」と言った場合、以下を自動実行:
 
-**On main/develop* branch:**
+**main/develop*ブランチの場合:**
 ```bash
 git switch -c <type>/<description>
 ```
 
-**On other branches:**
-Ask the user whether to create a new branch from current branch or checkout to main/develop first.
+**その他のブランチの場合:**
+現在のブランチから新しいブランチを作成するか、先にmain/developにチェックアウトするかをユーザーに確認。
