@@ -1,75 +1,75 @@
 ---
 name: pr
-description: Suggest PR body in markdown format
+description: PR本文の作成ワークフロー
 ---
 
-## Workflow
+## ワークフロー
 
-### 1. PR Body Structure
+### 1. PR本文の構造
 
-Understand the output format first.
+まず出力形式を理解する。
 
-**Structure:**
+**構造:**
 ```markdown
 ## Summary
 
-Brief description of what this PR does.
+このPRで行う変更の簡潔な説明。
 
 ## Changes
 
-- Change 1
-- Change 2
+- 変更1
+- 変更2
 
 ## Details
 
-Optional: technical details, implementation notes, etc.
+任意: 技術的な詳細、実装メモなど
 
 ## Checklist
 
-- [ ] Item 1
-- [ ] Item 2
+- [ ] 項目1
+- [ ] 項目2
 ```
 
-**Guidelines:**
-- Use clear, concise language
-- Focus on *what* and *why*
-- Keep summary under 2-3 sentences
-- Checklist should reflect actual changes
+**ガイドライン:**
+- 明確で簡潔な言葉を使用
+- *何を* および *なぜ* に焦点を当てる
+- サマリーは2〜3文以内に収める
+- チェックリストは実際の変更を反映させる
 
-### 2. Check Context
+### 2. コンテキストを確認
 
-**IMPORTANT: Do NOT run any git commands yet.**
+**重要: まだgitコマンドは実行しない。**
 
-First, check if sufficient context is already available in the conversation (branch name, commit history, or changed files).
+まず、会話内に十分なコンテキスト（ブランチ名、コミット履歴、変更ファイル）が既に利用可能か確認する。
 
-**If context IS available:**
-1. Show the branch name only
-2. Ask the user: "Is this sufficient? Reply \"OK\" and I'll proceed to create the PR body."
-3. Wait for user confirmation
-4. If user responds with "OK" or confirmation, **skip directly to Step 3** and draft the PR body immediately
-5. If user needs more info (NOT "OK"), run these git commands:
+**コンテキストが利用可能な場合:**
+1. ブランチ名のみを表示
+2. ユーザーに尋ねる: "この情報で十分ですか？ \"OK\" と返信いただければPR本文の作成に進みます。"
+3. ユーザー確認を待つ
+4. ユーザーが「OK」または確認を返信した場合、**ステップ3に直接スキップ**して即座にPR本文を作成
+5. ユーザーがより多くの情報を必要とする場合（「OK」以外）:
    - `git log --oneline main..HEAD`
    - `git diff --name-status main`
 
-**Preview format:**
+**プレビュー形式:**
 ```
-Context is available.
-Branch: <branch-name>
+コンテキストが利用可能です。
+ブランチ: <branch-name>
 
-Is this sufficient? Reply "OK" and I'll proceed to create the PR body.
+この情報で十分ですか？ "OK" と返信いただければPR本文の作成に進みます。
 ```
 
-**If context is NOT available:**
-Immediately run these git commands to gather context (no user confirmation needed):
+**コンテキストが利用できない場合:**
+即座に以下のgitコマンドを実行してコンテキストを収集（ユーザー確認不要）:
 - `git branch --show-current`
 - `git log --oneline main..HEAD`
 - `git diff --name-status main`
 
-### 3. Draft PR Body
+### 3. PR本文の作成
 
-Create the PR body following the structure from Step 1, using the context gathered in Step 2.
+ステップ1の構造に従い、ステップ2で収集したコンテキストを使用してPR本文を作成。
 
-**Wrap the entire PR body in a markdown code block:**
+**PR本文全体をマークダウンのコードブロックで囲む:**
 
 ~~~
 ```markdown

@@ -1,43 +1,46 @@
 ---
 name: plan-creator
-description: Skills related to plan files generated within the plans/ directory
+description: plans/ディレクトリ内に生成されるプラン関連のスキル
 ---
 
-## Workflow
+## ワークフロー
 
-### 1. Check Existing Plans
+### 1. 既存のプランを確認
+
 ```bash
 ls plans/ 2>/dev/null || echo "Directory does not exist"
 ls plans/ | grep "{project-name}_{task-description}" | sort -V | tail -1
 ```
 
-### 2. Generate Filename
-**Format:** `plans/{YYYY-MM-DD}_{project-name}_{task-description}_v{version}.md`
+### 2. ファイル名を生成
 
-**Components:**
-- `YYYY-MM-DD`: Current date (ISO 8601)
-- `project-name`: Directory name under `apps/` or `packages/` in kebab-case
-- `task-description`: 3-5 words summarizing the task in kebab-case
-- `version`: Integer starting from v1, increment for updates
+**形式:** `plans/{YYYY-MM-DD}_{project-name}_{task-description}_v{version}.md`
 
-### 3. Naming Rules
-- **Flat structure**: All files directly under `plans/`, no subdirectories
-- **No spaces**: Use hyphens `-` for word separation
-- **Version increment**: Always increment version when updating, keep history
+**構成要素:**
+- `YYYY-MM-DD`: 現在の日付（ISO 8601形式）
+- `project-name`: `apps/` または `packages/` 配下のディレクトリ名をkebab-caseで
+- `task-description`: タスクを要約した3〜5語をkebab-caseで
+- `version`: v1から始まる整数、更新時にインクリメント
 
-### 4. Special Cases
+### 3. 命名ルール
 
-**Cross-project tasks:**
-- Primary project first: `2024-01-15_web-shop_cross-mobile-sync_v1.md`
-- Or use `cross`: `2024-01-15_cross_auth-system-unification_v2.md`
+- **フラット構造**: すべてのファイルを `plans/` 直下に配置、サブディレクトリなし
+- **スペースなし**: 単語区切りにはハイフン `-` を使用
+- **バージョンインクリメント**: 更新時は必ずバージョンをインクリメントし、履歴を保持
 
-**Infrastructure/Tooling:**
-- Use `infra-` or `repo-` prefix: `2024-01-15_infra-terraform_eks-migration_v1.md`
+### 4. 特別なケース
 
-**Research/Investigation:**
-- Include `research`: `2024-01-15_api-gateway_research-grpc-migration_v1.md`
+**クロスプロジェクトタスク:**
+- 主要プロジェクトを先に: `2024-01-15_web-shop_cross-mobile-sync_v1.md`
+- または `cross` を使用: `2024-01-15_cross_auth-system-unification_v2.md`
 
-### 5. File Content Template
+**インフラストラクチャ/ツール:**
+- `infra-` または `repo-` プレフィックスを使用: `2024-01-15_infra-terraform_eks-migration_v1.md`
+
+**調査/リサーチ:**
+- `research` を含める: `2024-01-15_api-gateway_research-grpc-migration_v1.md`
+
+### 5. ファイル内容のテンプレート
 
 ```yaml
 ---
@@ -49,16 +52,16 @@ status: draft | ready | archived
 ---
 ```
 
-### 6. Output Format
+### 6. 出力形式
 
-When generating a plan file, output:
+プランを生成する際は以下を出力:
 
 ```
-## Plan File
+## プラン
 
-**Path:** `plans/YYYY-MM-DD_project-name_task-description_v1.md`
+**パス:** `plans/YYYY-MM-DD_project-name_task-description_v1.md`
 
-**Content:**
+**内容:**
 ```yaml
 ---
 created: YYYY-MM-DD
@@ -68,19 +71,19 @@ previous_version: null
 status: draft
 ---
 
-[Plan content here]
+[プラン内容をここに記述]
 ```
 ```
 
-### 7. Search Patterns
+### 7. 検索パターン
 
 ```bash
-# Specific project plans
+# 特定のプロジェクトのプラン
 ls plans | grep "_web-shop_"
 
-# Date range
+# 日付範囲
 ls plans | grep "^2024-01-15"
 
-# Latest versions only
+# 最新バージョンのみ
 ls plans | awk -F'_v' '{print $1}' | sort | uniq
 ```

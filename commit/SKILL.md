@@ -1,47 +1,47 @@
 ---
 name: commit
-description: Suggest commit messages
+description: コミットメッセージの提案ワークフロー
 ---
 
-## Workflow
+## ワークフロー
 
-### 1. Check Current Branch
+### 1. 現在のブランチを確認
 
-Run this git command to check the current branch:
+現在のブランチを確認するためのgitコマンドを実行:
 - `git branch --show-current`
 
-### 2. Commit Message Format
+### 2. コミットメッセージ形式
 
-**Title (≤60 chars):**
-- Imperative mood ("add" not "adds")
-- Lowercase (except symbols/acronyms)
-- Prefix: `feat:` `fix:` `docs:` `style:` `refactor:` `test:` `chore:`
+**タイトル（≤60文字）:**
+- 命令形（"add"而非"adds"）
+- 小文字（記号・頭字語を除く）
+- プレフィックス: `feat:` `fix:` `docs:` `style:` `refactor:` `test:` `chore:`
 
-**Body:**
-- Explain *what* and *why*
-- Imperative mood
+**本文:**
+- *何を* および *なぜ* を説明
+- 命令形
 
-### 3. Output Format
+### 3. 出力形式
 
 ```
-## Commit Message
+## コミットメッセージ
 
 git commit -m "<prefix>: <title>" -m "<body>"
 ```
 
-### 4. Staging
+### 4. ステージング
 
 ```bash
 git add <file>
-# or use `git hunks` for specific changes
+# または特定の変更には `git hunks` を使用
 git commit -m "title" -m "body"
 ```
 
-### 5. User Confirmation
+### 5. ユーザー確認
 
-If the user says "OK" after the suggestion, execute the following automatically:
+提案後にユーザーが「OK」と言った場合、以下を自動実行:
 
 ```bash
-git add .  # only if files are not staged
+git add .  # ファイルがステージされていない場合のみ
 git commit -m "<prefix>: <title>" -m "<body>"
 ```
