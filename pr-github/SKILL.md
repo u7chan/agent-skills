@@ -1,9 +1,9 @@
 ---
 name: pr-github
 description: >
-  PR本文作成後にGitHubにPRを作成するワークフロー。
-  "PRを作成" または "GitHubにPRを作成" と言われた時、またはprスキル後にそのままPR作成を進めたい時に起動。
-  リモートブランチへのプッシュとghコマンドによるPR作成を行う。
+  Create GitHub PR after PR description is written.
+  Triggered by "create a PR" or "create a PR on GitHub", or when continuing after the pr skill.
+  Pushes to remote branch and creates PR via gh command.
 ---
 
 ## 概要

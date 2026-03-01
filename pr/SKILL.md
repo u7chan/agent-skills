@@ -1,6 +1,6 @@
 ---
 name: pr
-description: PR本文の作成ワークフロー
+description: PR description creation workflow
 ---
 
 ## ワークフロー

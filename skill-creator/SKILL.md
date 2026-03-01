@@ -1,9 +1,9 @@
 ---
 name: skill-creator
 description: >
-  SKILL.mdファイルの作成や改善時に使用。
-  "create a skill"、"write a SKILL.md"、"turn this workflow into a skill" と言われた時、
-  または既存のスキルのレビューや改善を求められた時に起動。
+  Used when creating or improving SKILL.md files.
+  Triggered by "create a skill", "write a SKILL.md", "turn this workflow into a skill",
+  or when reviewing/improving existing skills.
 ---
 
 # 概要

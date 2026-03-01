@@ -1,6 +1,6 @@
 ---
 name: plan-creator
-description: plans/ディレクトリ内に生成されるプラン関連のスキル
+description: Plan-related skill for files generated in the plans/ directory
 ---
 
 ## ワークフロー
