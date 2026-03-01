@@ -1,6 +1,6 @@
 ---
 name: branch
-description: ブランチ名の提案と作成ワークフロー
+description: Branch naming and creation workflow
 ---
 
 ## ワークフロー

@@ -1,6 +1,6 @@
 ---
 name: commit-monorepo
-description: モノレプロジェクト向けコミットメッセージの提案ワークフロー
+description: Monorepo commit message suggestion workflow
 ---
 
 ## ワークフロー

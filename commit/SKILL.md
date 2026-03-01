@@ -1,6 +1,6 @@
 ---
 name: commit
-description: コミットメッセージの提案ワークフロー
+description: Commit message suggestion workflow
 ---
 
 ## ワークフロー
