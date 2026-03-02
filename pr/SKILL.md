@@ -24,6 +24,10 @@ description: PR description creation workflow
 
 任意: 技術的な詳細、実装メモなど
 
+## Issues
+
+- 関連するissue番号やリンク
+
 ## Checklist
 
 - [ ] 項目1
@@ -53,10 +57,10 @@ description: PR description creation workflow
 
 **プレビュー形式:**
 ```
-コンテキストが利用可能です。
+これまでの会話履歴からPR本文を作成できます。
 ブランチ: <branch-name>
 
-この情報で十分ですか？ "OK" と返信いただければPR本文の作成に進みます。
+"OK" と返信いただければPR本文の作成に進みます。
 ```
 
 **コンテキストが利用できない場合:**

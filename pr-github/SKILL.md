@@ -25,6 +25,9 @@ ${PR_BODY}
 EOF
 
 gh pr create --base "$BASE" --body-file "$FILE" --title "${PR_TITLE}" ${WEB:+--web}
+
+# 一時ファイル削除
+rm -f "$FILE"
 ```
 
 ## 入力
