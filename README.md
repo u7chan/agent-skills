@@ -8,7 +8,6 @@ AI エージェント用のカスタムスキル集です。
 |-------|-------------|
 | [branch](branch/) | ブランチ名を提案し、ブランチを作成 |
 | [commit](commit/) | コミットメッセージを提案 |
-| [commit-monorepo](commit-monorepo/) | モノレポ向けにコミットメッセージを提案 |
 | [pr](pr/) | コンテキストからPR本文をマークダウン形式で提案 |
 | [pr-github](pr-github/) | PR本文作成後にGitHubにPRを作成 |
 | [plan-creator](plan-creator/) | 実装計画の作成と管理 |
@@ -49,8 +48,6 @@ agent-skills/
 ├── branch/
 │   └── SKILL.md
 ├── commit/
-│   └── SKILL.md
-├── commit-monorepo/
 │   └── SKILL.md
 ├── pr/
 │   └── SKILL.md
