@@ -1,139 +1,38 @@
 ---
 name: pr-github
-description: >
-  Create GitHub PR after PR description is written.
-  Triggered by "create a PR" or "create a PR on GitHub", or when continuing after the pr skill.
-  Pushes to remote branch and creates PR via gh command.
+description: When instructed to create a PR for GitHub.
 ---
 
 ## 概要
+既存のPR本文を使ってGitHubにPRを作成。`pr`スキル実行後や本文作成済み状態で使用。リモートにブランチがなければ自動pushしてから`gh pr create`を実行。
 
-このスキルは、作成済みのPR本文を使ってGitHubにプルリクエストを作成する。`pr`スキルで本文を作成後、そのまま対話を続けるとghコマンドは利用可能だがリモートにpushしていないためエラーが発生する問題を解決する。
-
-## このスキルを使用するタイミング
-
-- "PRを作成" または "GitHubにPRを作成" と言われた時
-- `pr`スキル実行後にそのままPR作成を進めたい時
-- 作成済みのPR本文がある状態でGitHubにPRを作成したい時
-
-## Agentが行うこと
-
-1. 必要なコンテキストを確認（PR本文、ブランチ名、ベースブランチ）
-2. 現在のブランチ名を取得
-3. リモートにブランチが存在するか確認
-4. リモートにブランチが存在しない場合、プッシュを実行
-5. `gh pr create` コマンドでPRを作成
-6. 作成されたPRのURLを表示
-
-## 入力と出力
-
-**入力:**
-- PR本文（マークダウン形式、会話履歴またはコンテキストから取得）
-- ブランチ名（自動検出、または明示的に指定）
-- ベースブランチ（デフォルト: main）
-
-**出力:**
-- GitHub上に作成されたPR
-- PRのURL
-
-## ステップの詳細
-
-### 1. コンテキストを確認
-
-会話履歴またはコンテキストから以下を確認する。
-
-**確認項目:**
-- PR本文が利用可能か
-- ブランチ名（`git branch --show-current`で確認）
-- ベースブランチ（指定がない場合はmainを使用）
-
-**PR本文が見つからない場合:**
-ユーザーにPR本文を提供するように依頼する。
-
-### 2. リモートブランチの確認
-
-以下のコマンドでリモートにブランチが存在するか確認する。
+## 実行手順
 
 ```bash
-git ls-remote --heads origin $(git branch --show-current)
+# 変数設定
+BRANCH=$(git branch --show-current)
+BASE="${BASE_BRANCH:-main}"
+
+# リモート確認＆プッシュ（必要時）
+if [ -z "$(git ls-remote --heads origin $BRANCH)" ]; then
+  git push -u origin $BRANCH
+fi
+
+# PR作成（PR_BODYはコンテキストから取得）
+FILE=$(mktemp)
+cat > "$FILE" << 'EOF'
+${PR_BODY}
+EOF
+
+gh pr create --base "$BASE" --body-file "$FILE" --title "${PR_TITLE}" ${WEB:+--web}
 ```
 
-**結果の判定:**
-- 出力がある場合 → リモートにブランチが存在する（ステップ4へ）
-- 出力がない場合 → リモートにブランチが存在しない（ステップ3へ）
+## 入力
+- **PR_BODY**: 会話履歴/コンテキストから取得（必須。ない場合はユーザーに依頼）
+- **PR_TITLE**: タイトル（未指定時は推定またはユーザー確認）
+- **BASE_BRANCH**: ベースブランチ（default: main）
+- **WEB**: ブラウザで開く場合は`--web`を追加
 
-### 3. リモートへのプッシュ
-
-リモートにブランチが存在しない場合、以下のコマンドでプッシュする。
-
-```bash
-git push -u origin $(git branch --show-current)
-```
-
-**注意:** プッシュ前にユーザーに確認を求める必要はない（このスキルの目的はPR作成の自動化）。
-
-### 4. PRの作成
-
-`gh pr create` コマンドを使用してPRを作成する。
-
-**一時ファイルへの書き出し:**
-PR本文を一時ファイルに書き出す。
-
-```bash
-# 一時ファイル作成
-PR_BODY_FILE=$(mktemp)
-echo "$PR_BODY" > "$PR_BODY_FILE"
-```
-
-**PR作成コマンド:**
-
-```bash
-gh pr create \
-  --base "$BASE_BRANCH" \
-  --body-file "$PR_BODY_FILE" \
-  --web
-```
-
-**パラメータ:**
-- `--base`: ベースブランチ（デフォルト: main）
-- `--body-file`: PR本文を含むファイルパス
-- `--web`: ブラウザでPRページを開く（オプション、ユーザーの好みに応じて）
-
-**代替: `--fill` の使用:**
-PR本文が長い場合や特殊文字を含む場合は、`--fill` オプションを使用してコミットメッセージから自動生成させ、後で編集してもらう方法もある。
-
-### 5. 結果の表示
-
-PR作成後、以下を表示する。
-
-- 作成されたPRのURL
-- 成功メッセージ
-
-## 品質チェック
-
-- [ ] PR本文がコンテキストから正しく取得できているか
-- [ ] 現在のブランチ名が正しく取得できているか
-- [ ] リモートへのプッシュが成功しているか
-- [ ] `gh pr create` コマンドが正しく実行されているか
-- [ ] エラー時に適切なメッセージを表示しているか
-
-## エラーハンドリング
-
-**よくあるエラーと対応:**
-
-1. **ghコマンドがインストールされていない**
-   - メッセージ: "ghコマンドが見つかりません。GitHub CLIをインストールしてください。"
-
-2. **認証されていない**
-   - メッセージ: "GitHub CLIの認証が必要です。`gh auth login` を実行してください。"
-
-3. **プッシュに失敗した**
-   - エラー内容を表示し、手動でのプッシュを促す
-
-4. **PR作成に失敗した**
-   - エラー内容を表示し、原因を特定する
-
-## 参考資料
-
-- `pr/SKILL.md` — PR本文作成スキル
-- GitHub CLIドキュメント: https://cli.github.com/manual/gh_pr_create
+## エラー対応
+- **gh未インストール/未認証**: `gh auth login` を促す
+- **Push失敗**: エラー内容を表示して手動対応を促す
