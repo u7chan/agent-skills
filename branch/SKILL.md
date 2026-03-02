@@ -65,7 +65,7 @@ basename "$(pwd)"
 ```
 ## 推奨ブランチ
 
-git checkout -b <type>/<description>
+git switch -c <type>/<description>
 ```
 
 **その他のブランチの場合:**
@@ -74,7 +74,7 @@ git checkout -b <type>/<description>
 現在のブランチ: <branch-name>
 
 ## 推奨ブランチ（必要な場合）
-git checkout -b <type>/<description>
+git switch -c <type>/<description>
 ```
 
 ### 6. ユーザー確認
