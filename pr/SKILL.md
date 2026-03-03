@@ -11,6 +11,14 @@ description: PR description creation workflow
 
 **構造:**
 ```markdown
+## Issues
+
+- 関連するissue番号やリンク
+
+## Why
+
+この変更が必要な背景・目的・モチベーション。
+
 ## Summary
 
 このPRで行う変更の簡潔な説明。
@@ -20,18 +28,14 @@ description: PR description creation workflow
 - 変更1
 - 変更2
 
-## Details
-
-任意: 技術的な詳細、実装メモなど
-
-## Issues
-
-- 関連するissue番号やリンク
-
 ## Checklist
 
 - [ ] 項目1
 - [ ] 項目2
+
+## Details（任意）
+
+技術的な詳細、実装メモなど
 ```
 
 **ガイドライン:**
@@ -77,6 +81,12 @@ description: PR description creation workflow
 
 ~~~
 ```markdown
+## Issues
+...
+
+## Why
+...
+
 ## Summary
 ...
 ```
