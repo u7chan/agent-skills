@@ -10,7 +10,7 @@ AI エージェント用のカスタムスキル集です。
 | [commit](commit/) | コミットメッセージを提案 |
 | [pr](pr/) | コンテキストからPR本文をマークダウン形式で提案 |
 | [pr-github](pr-github/) | PR本文作成後にGitHubにPRを作成 |
-| [plan-creator](plan-creator/) | 実装計画の作成と管理 |
+| [plan-to-issue-skill](plan-to-issue-skill/) | 設計プラン合意後に Issue を作成 |
 | [skill-creator](skill-creator/) | SKILL.md ファイルの作成と改善 |
 
 ## Setup
@@ -66,7 +66,7 @@ agent-skills/
 │   └── SKILL.md
 ├── pr-github/
 │   └── SKILL.md
-├── plan-creator/
+├── plan-to-issue-skill/
 │   └── SKILL.md
 ├── skill-creator/
 │   └── SKILL.md
