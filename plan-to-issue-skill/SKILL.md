@@ -73,6 +73,14 @@ description: >
 ## 5. Issue を作成する
 
 - 直前に確定したプランだけを元に Issue を書く。
+- Issue タイトルは内容が一目で分かる具体的な文にする。
+- モノレポ運用で対象アプリやパッケージが明確な場合、Issue タイトルの先頭に Prefix を付ける。
+- Prefix 形式は `[example-app] title example` のように `[scope] summary` を使う。
+- 単一リポジトリ、または対象スコープが1つに定まらない場合は Prefix を付けない。
+- Issue 作成時は、対象リポジトリで現在設定されている Label 一覧を確認する。
+- Label は確認できた候補の中から、Issue 内容に最も合うものだけを選んで付与する。
+- 適切な Label が存在しない場合は、存在しない Label 名を新規に仮定して付けない。
+- ただし、既存 Label では運用上どうしても不足し、新規作成が妥当な場合は候補 Label 名と用途をユーザーに一度提案してから作成する。
 - Issue 本文は必ず次のテンプレートを使う。
 
     ## Overview
@@ -112,6 +120,8 @@ description: >
 - ユーザーが README や `AGENTS.md` の更新を要求している場合は、そのタスクを本文に明記する。
 - `### Documentation` には README.md や `AGENTS.md` の更新要否を必ず書く。
 - `gh issue create` を使い、必要なら対象リポジトリを `--repo` で明示する。
+- Label を付ける場合は、事前に確認した既存 Label 名だけを `--label` で明示する。
+- 新規 Label が必要な場合は、ユーザー合意前に Label を作成しない。
 - `gh issue create` は次の形を優先して使う。
 
     gh issue create \
@@ -131,6 +141,9 @@ description: >
 - [ ] スキルの説明だけで、プラン作成後に Issue 作成へ進む用途だと分かる
 - [ ] `OK` が来る前に `gh issue create` を実行しない
 - [ ] プランは `<proposed_plan>` ブロックで提示する
+- [ ] モノレポ時の Issue タイトル Prefix ルールが明記されている
+- [ ] Issue 作成時に既存 Label から選んで付与するルールが明記されている
+- [ ] 新規 Label が必要な場合にユーザー提案と合意を先に取るルールが明記されている
 - [ ] Issue 本文が指定テンプレートどおりである
 - [ ] ユーザー要求があれば README と `AGENTS.md` 更新が Issue に含まれる
 - [ ] Edit モード非対応環境でも破綻しない手順になっている
