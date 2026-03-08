@@ -11,6 +11,7 @@ AI エージェント用のカスタムスキル集です。
 | [bun-nonmajor-updater](bun-nonmajor-updater/) | Bun アプリの依存関係を非メジャー更新する際の安全な更新手順 |
 | [claude-to-codex-skills-link](claude-to-codex-skills-link/) | `.claude/skills` を `.codex/skills` から使えるようにリンクする |
 | [commit](commit/) | コミットメッセージを提案 |
+| [github-pr-reviewer](github-pr-reviewer/) | 指定した GitHub PR をレビューし、PR 上にコメントを投稿する |
 | [pr](pr/) | コンテキストからPR本文をマークダウン形式で提案 |
 | [pr-github](pr-github/) | PR本文作成後にGitHubにPRを作成 |
 | [plan-to-issue-skill](plan-to-issue-skill/) | 設計プラン合意後に Issue を作成 |
@@ -70,6 +71,8 @@ agent-skills/
 ├── claude-to-codex-skills-link/
 │   └── SKILL.md
 ├── commit/
+│   └── SKILL.md
+├── github-pr-reviewer/
 │   └── SKILL.md
 ├── pr/
 │   └── SKILL.md
