@@ -8,7 +8,7 @@ description: >
   project checks. Do not use it for major-version upgrades.
 ---
 
-# Bun Package Updater
+# Bun Nonmajor Updater
 
 ## Overview
 
