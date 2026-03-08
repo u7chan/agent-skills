@@ -7,6 +7,7 @@ AI エージェント用のカスタムスキル集です。
 | Skill | Description |
 |-------|-------------|
 | [branch](branch/) | ブランチ名を提案し、ブランチを作成 |
+| [claude-to-codex-skills-link](claude-to-codex-skills-link/) | `.claude/skills` を `.codex/skills` から使えるようにリンクする |
 | [commit](commit/) | コミットメッセージを提案 |
 | [pr](pr/) | コンテキストからPR本文をマークダウン形式で提案 |
 | [pr-github](pr-github/) | PR本文作成後にGitHubにPRを作成 |
@@ -59,6 +60,8 @@ rm "$HOME/.codex/skills"
 agent-skills/
 ├── README.md
 ├── branch/
+│   └── SKILL.md
+├── claude-to-codex-skills-link/
 │   └── SKILL.md
 ├── commit/
 │   └── SKILL.md
