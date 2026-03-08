@@ -7,6 +7,8 @@ AI エージェント用のカスタムスキル集です。
 | Skill | Description |
 |-------|-------------|
 | [branch](branch/) | ブランチ名を提案し、ブランチを作成 |
+| [bun-major-upgrader](bun-major-upgrader/) | Bun アプリの依存関係をメジャーバージョン更新する際の調査・確認・適用手順 |
+| [bun-nonmajor-updater](bun-nonmajor-updater/) | Bun アプリの依存関係を非メジャー更新する際の安全な更新手順 |
 | [claude-to-codex-skills-link](claude-to-codex-skills-link/) | `.claude/skills` を `.codex/skills` から使えるようにリンクする |
 | [commit](commit/) | コミットメッセージを提案 |
 | [pr](pr/) | コンテキストからPR本文をマークダウン形式で提案 |
@@ -60,6 +62,10 @@ rm "$HOME/.codex/skills"
 agent-skills/
 ├── README.md
 ├── branch/
+│   └── SKILL.md
+├── bun-major-upgrader/
+│   └── SKILL.md
+├── bun-nonmajor-updater/
 │   └── SKILL.md
 ├── claude-to-codex-skills-link/
 │   └── SKILL.md
