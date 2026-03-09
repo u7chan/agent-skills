@@ -6,16 +6,26 @@ AI エージェント用のカスタムスキル集です。
 
 | Skill | Description |
 |-------|-------------|
-| [branch](branch/) | ブランチ名を提案し、ブランチを作成 |
-| [bun-major-upgrader](bun-major-upgrader/) | Bun アプリの依存関係をメジャーバージョン更新する際の調査・確認・適用手順 |
-| [bun-nonmajor-updater](bun-nonmajor-updater/) | Bun アプリの依存関係を非メジャー更新する際の安全な更新手順 |
-| [claude-to-codex-skills-link](claude-to-codex-skills-link/) | `.claude/skills` を `.codex/skills` から使えるようにリンクする |
-| [commit](commit/) | コミットメッセージを提案 |
-| [github-pr-reviewer](github-pr-reviewer/) | 指定した GitHub PR をレビューし、PR 上にコメントを投稿する |
-| [pr](pr/) | コンテキストからPR本文をマークダウン形式で提案 |
-| [pr-github](pr-github/) | PR本文作成後にGitHubにPRを作成 |
-| [plan-to-issue-skill](plan-to-issue-skill/) | 設計プラン合意後に Issue を作成 |
-| [my-skill-author](my-skill-author/) | SKILL.md ファイルの作成と改善 |
+| [bun-dependency-major-upgrade](bun-dependency-major-upgrade/) | Bun アプリの依存関係をメジャーバージョン更新する際の調査・確認・適用手順 |
+| [bun-dependency-update](bun-dependency-update/) | Bun アプリの依存関係を非メジャー更新する際の安全な更新手順 |
+| [codex-skills-link-from-claude](codex-skills-link-from-claude/) | `.claude/skills` を `.codex/skills` から再利用できるようにリンクする |
+| [git-branch-create](git-branch-create/) | ブランチ名を提案し、ブランチを作成する |
+| [git-commit-message](git-commit-message/) | コミットメッセージを提案する |
+| [git-pr-description](git-pr-description/) | コンテキストから PR 本文をマークダウン形式で提案する |
+| [github-issue-create-from-plan](github-issue-create-from-plan/) | 設計プラン合意後に GitHub Issue を作成する |
+| [github-pr-create](github-pr-create/) | PR 本文作成後に GitHub に PR を作成する |
+| [github-pr-review](github-pr-review/) | 指定した GitHub PR をレビューし、PR 上にコメントを投稿する |
+| [skill-author](skill-author/) | SKILL.md ファイルの作成と改善を行う |
+
+## Naming Convention
+
+スキル名は原則として `service-target-action` の順で付けます。
+
+- `service`: `git` `github` `bun` `codex` `skill` のような対象領域
+- `target`: `branch` `pr` `issue` `dependency` `skills` のような主対象
+- `action`: `create` `review` `update` `description` のような操作内容
+
+これにより、一覧を見た時に「どこで」「何に対して」「何をする」スキルかを判断しやすくします。
 
 ## Setup
 
@@ -62,25 +72,25 @@ rm "$HOME/.codex/skills"
 ```
 agent-skills/
 ├── README.md
-├── branch/
+├── bun-dependency-major-upgrade/
 │   └── SKILL.md
-├── bun-major-upgrader/
+├── bun-dependency-update/
 │   └── SKILL.md
-├── bun-nonmajor-updater/
+├── codex-skills-link-from-claude/
 │   └── SKILL.md
-├── claude-to-codex-skills-link/
+├── git-branch-create/
 │   └── SKILL.md
-├── commit/
+├── git-commit-message/
 │   └── SKILL.md
-├── github-pr-reviewer/
+├── git-pr-description/
 │   └── SKILL.md
-├── pr/
+├── github-issue-create-from-plan/
 │   └── SKILL.md
-├── pr-github/
+├── github-pr-create/
 │   └── SKILL.md
-├── plan-to-issue-skill/
+├── github-pr-review/
 │   └── SKILL.md
-├── my-skill-author/
+├── skill-author/
 │   └── SKILL.md
 └── .samples/
     └── ...

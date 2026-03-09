@@ -1,5 +1,5 @@
 ---
-name: pr
+name: git-pr-description
 description: PR description creation workflow
 ---
 

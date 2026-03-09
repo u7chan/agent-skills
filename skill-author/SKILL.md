@@ -1,12 +1,10 @@
 ---
-name: my-skill-author
+name: skill-author
 description: >
   Used when creating or improving SKILL.md files.
   Triggered by "create a skill", "write a SKILL.md", "turn this workflow into a skill",
   or when reviewing/improving existing skills.
 ---
-
-> **Custom Skill Active**: `agent-skills/my-skill-author/SKILL.md` が使用されています🧰
 
 # 概要
 
@@ -69,7 +67,26 @@ description: >
 - 小文字、数字、ハイフンのみ使用可能
 - XMLタグで予約されている文字列は使用不可
 - 予約語は使用不可（例: `anthropic`, `claude`、その他エンジン固有の用語）
-- 動詞または名詞句で命名（例: `invoice-parser`, `slide-creator`）
+- 可能な限り `service-target-action` の順で命名する
+
+**推奨する命名パターン:**
+- `service`: `git` `github` `bun` `codex` `skill` のような対象領域やサービス名
+- `target`: `branch` `pr` `issue` `dependency` `skills` のような主対象
+- `action`: `create` `review` `update` `description` `author` のような操作内容
+
+**命名の判断基準:**
+- 一覧を見た時に「どこで」「何に対して」「何をする」かが読める名前にする
+- `pr` や `commit` のような短すぎる単語だけで終わらせない
+- `my-` や `misc-` のような個人依存・曖昧な prefix は避ける
+- ディレクトリ名と `name` は同じ文字列に揃える
+
+**例:**
+- 良い例: `github-pr-review`
+- 良い例: `git-commit-message`
+- 良い例: `bun-dependency-update`
+- 悪い例: `pr`
+- 悪い例: `my-skill-author`
+- 悪い例: `plan-to-issue-skill`
 
 **`description` のルール:**
 - 必須 — 省略不可
@@ -112,12 +129,15 @@ description: >
 - 命令形を一貫して使用（"Xを行う"、"Yを書く"、"Zを確認する"）
 - 1ステップ = 1アクション — 複数の操作を1行に詰め込まない
 - エラーが発生しやすいステップには警告を追加
+- `name` はまず `service-target-action` に分解して候補を作る
+- ディレクトリ名、`name`、README 上の表記を同じ文字列で揃える
 
 ## ステップ3: 品質チェック
 
 以下のポイントで生成したSKILL.mdを自己検証。
 
 - [ ] `description` を読むだけで使用タイミングがわかるか？
+- [ ] `name` が `service-target-action` の規則に沿っているか？
 - [ ] 上から下にステップを追うだけで出力を生成できるか？
 - [ ] ステップに曖昧な表現（"適切に"、"必要に応じて"など）はないか？
 - [ ] 入力と出力が明確に記述されているか？

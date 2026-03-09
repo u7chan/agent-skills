@@ -1,5 +1,5 @@
 ---
-name: plan-to-issue
+name: github-issue-create-from-plan
 description: >
   ユーザーから設計やプラン作成を求められ、その合意後にGitHub Issueを作成する時に使う。
   まずプランを作成して提示し、その直後にIssue作成へ進む旨を伝え、Editモード切替後にユーザーが "OK" と返したら `gh issue create` を実行する。

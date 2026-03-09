@@ -1,10 +1,10 @@
 ---
-name: pr-github
+name: github-pr-create
 description: When instructed to create a PR for GitHub.
 ---
 
 ## 概要
-既存のPR本文を使ってGitHubにPRを作成。`pr`スキル実行後や本文作成済み状態で使用。リモートにブランチがなければ自動pushしてから`gh pr create`を実行。
+既存のPR本文を使ってGitHubにPRを作成。`git-pr-description` スキル実行後や本文作成済み状態で使用。リモートにブランチがなければ自動pushしてから `gh pr create` を実行。
 
 ## 実行手順
 

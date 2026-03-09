@@ -1,5 +1,5 @@
 ---
-name: commit
+name: git-commit-message
 description: Commit message suggestion workflow
 ---
 
