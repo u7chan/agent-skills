@@ -1,5 +1,5 @@
 ---
-name: bun-major-upgrader
+name: bun-dependency-major-upgrade
 description: >
   Use this when asked to upgrade a Bun application's dependency across a major version.
   This skill handles one package at a time, researches breaking changes with web search and

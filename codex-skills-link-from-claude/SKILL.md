@@ -1,5 +1,5 @@
 ---
-name: claude-to-codex-skills-link
+name: codex-skills-link-from-claude
 description: >
   Use this when asked to make Claude Code skills available to Codex by creating a
   `.codex/skills` symlink that points to `.claude/skills`. It captures the exact

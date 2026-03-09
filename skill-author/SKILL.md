@@ -1,12 +1,12 @@
 ---
-name: my-skill-author
+name: skill-author
 description: >
   Used when creating or improving SKILL.md files.
   Triggered by "create a skill", "write a SKILL.md", "turn this workflow into a skill",
   or when reviewing/improving existing skills.
 ---
 
-> **Custom Skill Active**: `agent-skills/my-skill-author/SKILL.md` が使用されています🧰
+> **Custom Skill Active**: `agent-skills/skill-author/SKILL.md` が使用されています🧰
 
 # 概要
 

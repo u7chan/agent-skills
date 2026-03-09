@@ -1,5 +1,5 @@
 ---
-name: github-pr-reviewer
+name: github-pr-review
 description: >
   Use this when asked to review a specific GitHub Pull Request and leave review comments on the PR itself.
   Trigger this skill when the user provides a PR number or URL, or explicitly asks you to review and comment on a GitHub PR instead of only summarizing findings in chat.

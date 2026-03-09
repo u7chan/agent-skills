@@ -1,5 +1,5 @@
 ---
-name: branch
+name: git-branch-create
 description: Branch naming and creation workflow
 ---
 

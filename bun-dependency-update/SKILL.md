@@ -1,5 +1,5 @@
 ---
-name: bun-nonmajor-updater
+name: bun-dependency-update
 description: >
   Use this when asked to update dependencies in a Bun application, especially when the
   request involves `package.json`, `bun.lock`, a specific npm package, or refreshing packages
