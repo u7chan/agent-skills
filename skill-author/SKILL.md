@@ -6,8 +6,6 @@ description: >
   or when reviewing/improving existing skills.
 ---
 
-> **Custom Skill Active**: `agent-skills/skill-author/SKILL.md` が使用されています🧰
-
 # 概要
 
 このスキルは他のスキル（SKILL.mdファイル）の設計、作成、改善のためのもの。
