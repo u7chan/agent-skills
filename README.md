@@ -16,6 +16,9 @@ AI エージェント用のカスタムスキル集です。
 | [github-pr-create](github-pr-create/) | PR 本文作成後に GitHub に PR を作成する |
 | [github-pr-review](github-pr-review/) | 指定した GitHub PR をレビューし、PR 上にコメントを投稿する |
 | [skill-author](skill-author/) | SKILL.md ファイルの作成と改善を行う |
+| [skills-readme-sync](.claude/skills/skills-readme-sync/) | README のスキル一覧と構成例を現在のスキル構成へ同期する |
+| [uv-dependency-major-upgrade](uv-dependency-major-upgrade/) | uv 管理の Python 依存関係をメジャーバージョン更新する際の調査・確認・適用手順 |
+| [uv-dependency-update](uv-dependency-update/) | uv 管理の Python 依存関係を非メジャー更新する際の安全な更新手順 |
 
 ## Naming Convention
 
@@ -71,6 +74,10 @@ rm "$HOME/.codex/skills"
 
 ```
 agent-skills/
+├── .claude/
+│   └── skills/
+│       └── skills-readme-sync/
+│           └── SKILL.md
 ├── README.md
 ├── bun-dependency-major-upgrade/
 │   └── SKILL.md
@@ -91,6 +98,10 @@ agent-skills/
 ├── github-pr-review/
 │   └── SKILL.md
 ├── skill-author/
+│   └── SKILL.md
+├── uv-dependency-major-upgrade/
+│   └── SKILL.md
+├── uv-dependency-update/
 │   └── SKILL.md
 └── .samples/
     └── ...
