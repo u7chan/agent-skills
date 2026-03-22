@@ -15,9 +15,11 @@ AI エージェント用のカスタムスキル集です。
 | [github-issue-create-from-plan](github-issue-create-from-plan/) | 設計プラン合意後に GitHub Issue を作成する |
 | [github-pr-create](github-pr-create/) | PR 本文作成後に GitHub に PR を作成する |
 | [github-pr-review](github-pr-review/) | 指定した GitHub PR をレビューし、PR 上にコメントを投稿する |
+| [npm-dependency-major-upgrade](npm-dependency-major-upgrade/) | npm アプリの依存関係をメジャーバージョン更新する際の調査・確認・適用手順 |
+| [npm-dependency-update](npm-dependency-update/) | npm アプリの依存関係を非メジャーで安全に更新する際の手順 |
 | [skill-author](skill-author/) | SKILL.md ファイルの作成と改善を行う |
 | [start-implementation](start-implementation/) | Issue 確認から実装、検証、コミット、PR 準備までを進行管理する |
-| [skills-readme-sync](.claude/skills/skills-readme-sync/) | README のスキル一覧と構成例を現在のスキル構成へ同期する |
+| [skills-readme-sync](.claude/skills/skills-readme-sync/) | README のスキル一覧を現在のスキル構成へ同期する |
 | [uv-dependency-major-upgrade](uv-dependency-major-upgrade/) | uv 管理の Python 依存関係をメジャーバージョン更新する際の調査・確認・適用手順 |
 | [uv-dependency-update](uv-dependency-update/) | uv 管理の Python 依存関係を非メジャーで広めにまとめて更新する際の手順 |
 
@@ -70,40 +72,3 @@ rm "$HOME/.codex/skills"
 ## Usage
 
 エージェントにスキルが認識されると、`/skill-name` または `@skill-name` と入力して呼び出せます。
-
-## Project Structure
-
-```
-agent-skills/
-├── .claude/
-│   └── skills/
-│       └── skills-readme-sync/
-│           └── SKILL.md
-├── README.md
-├── bun-dependency-major-upgrade/
-│   └── SKILL.md
-├── bun-dependency-update/
-│   └── SKILL.md
-├── codex-skills-link-from-claude/
-│   └── SKILL.md
-├── git-branch-create/
-│   └── SKILL.md
-├── git-commit-message/
-│   └── SKILL.md
-├── git-pr-description/
-│   └── SKILL.md
-├── github-issue-create-from-plan/
-│   └── SKILL.md
-├── github-pr-create/
-│   └── SKILL.md
-├── github-pr-review/
-│   └── SKILL.md
-├── skill-author/
-│   └── SKILL.md
-├── start-implementation/
-│   └── SKILL.md
-├── uv-dependency-major-upgrade/
-│   └── SKILL.md
-├── uv-dependency-update/
-│   └── SKILL.md
-```
