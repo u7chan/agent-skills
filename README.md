@@ -106,6 +106,4 @@ agent-skills/
 │   └── SKILL.md
 ├── uv-dependency-update/
 │   └── SKILL.md
-└── .samples/
-    └── ...
 ```
