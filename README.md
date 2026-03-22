@@ -15,6 +15,8 @@ AI エージェント用のカスタムスキル集です。
 | [github-issue-create-from-plan](github-issue-create-from-plan/) | 設計プラン合意後に GitHub Issue を作成する |
 | [github-pr-create](github-pr-create/) | PR 本文作成後に GitHub に PR を作成する |
 | [github-pr-review](github-pr-review/) | 指定した GitHub PR をレビューし、PR 上にコメントを投稿する |
+| [npm-dependency-major-upgrade](npm-dependency-major-upgrade/) | npm アプリの依存関係をメジャーバージョン更新する際の調査・確認・適用手順 |
+| [npm-dependency-update](npm-dependency-update/) | npm アプリの依存関係を非メジャーで安全に更新する際の手順 |
 | [skill-author](skill-author/) | SKILL.md ファイルの作成と改善を行う |
 | [start-implementation](start-implementation/) | Issue 確認から実装、検証、コミット、PR 準備までを進行管理する |
 | [skills-readme-sync](.claude/skills/skills-readme-sync/) | README のスキル一覧と構成例を現在のスキル構成へ同期する |
@@ -97,6 +99,10 @@ agent-skills/
 ├── github-pr-create/
 │   └── SKILL.md
 ├── github-pr-review/
+│   └── SKILL.md
+├── npm-dependency-major-upgrade/
+│   └── SKILL.md
+├── npm-dependency-update/
 │   └── SKILL.md
 ├── skill-author/
 │   └── SKILL.md
