@@ -3,9 +3,10 @@ name: bun-dependency-update
 description: >
   Use this when asked to update dependencies in a Bun application, especially when the
   request involves `package.json`, `bun.lock`, a specific npm package, or refreshing packages
-  to newer non-major versions. It captures a safe workflow for choosing the update scope,
-  applying the Bun command that matches that scope, and verifying the app still passes its
-  project checks. Do not use it for major-version upgrades.
+  to newer non-major versions. It captures a safe workflow for preferring broad non-major
+  refreshes unless the user asks for a narrower scope, applying the Bun command that matches
+  that scope, and verifying the app still passes its project checks. Do not use it for
+  major-version upgrades.
 ---
 
 # Bun Nonmajor Updater
@@ -14,6 +15,7 @@ description: >
 
 Use this skill when working on dependency updates in a Bun app.
 It keeps package updates deliberate instead of blindly bumping versions or rewriting semver ranges.
+For non-major work, prefer bundling compatible updates together unless the user asked for a narrower change.
 This skill is limited to non-major updates.
 
 ## When to Use This Skill
@@ -30,7 +32,7 @@ Handle those with a separate skill and workflow.
 
 1. Read the local project instructions and package scripts before changing dependencies.
 2. Inspect the current dependency entry and determine whether the request is range-preserving or latest-version within the same major series.
-3. Choose the Bun command that matches that intent instead of defaulting to a full upgrade.
+3. Choose the broadest safe Bun command that matches that intent instead of defaulting to a narrowly targeted update.
 4. Reject or defer the work if it would require a major-version bump.
 5. Update application code or tests if the new package behavior requires it.
 6. Run the project's validation commands and confirm the result.
@@ -67,17 +69,20 @@ Decide which of these applies:
 
 Treat `latest` in this skill as `latest-within-major`.
 Do not assume a major-version bump unless the user explicitly asks for a separate major-upgrade workflow.
+If the user did not ask for a narrow scope, prefer `broad` for non-major updates so compatible changes can land together.
 
-### Step 3: Apply the Smallest Correct Bun Command
+### Step 3: Apply the Broadest Safe Bun Command
 
-Prefer commands that match the requested scope:
+Prefer commands that match the requested scope while avoiding unnecessary PR fragmentation:
 
-- `bun update <pkg>` for a targeted update within the existing declared range
+- `bun update --latest` only when the resulting updates stay within the current major series
 - `bun update` for broader range-preserving refreshes
 - `bun update --latest <pkg>` only when it still resolves within the current major series
-- `bun update --latest` only when the resulting updates stay within the current major series
+- `bun update <pkg>` for a targeted update within the existing declared range
 
-If only one package is changing, avoid unrelated dependency churn.
+When the user gives a general non-major refresh request, prefer `bun update` or `bun update --latest` over splitting the work into many targeted updates.
+Use a targeted command only when the user named a package, asked for a narrow change, or when a broader update would exceed this skill's non-major boundary.
+If only one package is supposed to change, avoid unrelated dependency churn.
 
 If `bun update --latest` would cross a major boundary, stop and treat that as out of scope for this skill.
 
@@ -109,7 +114,7 @@ If a command cannot run, state why and what remains unverified.
 
 ## Quality Check
 
-- [ ] The chosen Bun command matches the user's requested scope
+- [ ] The chosen Bun command matches the user's requested scope and defaults to a broad non-major refresh when no narrow scope was requested
 - [ ] No dependency was upgraded across a major boundary
 - [ ] `package.json` changed only when the requested update required it
 - [ ] `bun.lock` reflects the dependency update

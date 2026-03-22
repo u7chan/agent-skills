@@ -3,9 +3,10 @@ name: uv-dependency-update
 description: >
   Use this when asked to update dependencies in a uv-managed Python project, especially when the
   request mentions `pyproject.toml`, `uv.lock`, a specific Python package, or refreshing packages
-  without taking a major-version upgrade. It captures a safe workflow for choosing whether to
-  update only the lockfile or also the declared requirement, applying the matching uv command,
-  and validating the project afterward. Do not use it for major-version upgrades.
+  without taking a major-version upgrade. It captures a safe workflow for preferring broad
+  non-major refreshes unless the user asks for a narrower scope, choosing whether to update
+  only the lockfile or also the declared requirement, applying the matching uv command, and
+  validating the project afterward. Do not use it for major-version upgrades.
 ---
 
 # uv Nonmajor Updater
@@ -14,6 +15,7 @@ description: >
 
 Use this skill when working on dependency updates in a uv-managed Python project.
 It keeps dependency changes deliberate instead of blindly refreshing `uv.lock` or rewriting version specifiers.
+For non-major work, prefer bundling compatible updates together unless the user asked for a narrower change.
 This skill is limited to non-major updates.
 
 ## When to Use This Skill
@@ -30,7 +32,7 @@ Handle those with a separate major-upgrade workflow.
 
 1. Read the local project instructions and inspect the dependency declarations before changing anything.
 2. Determine whether the request is a lockfile refresh, a declared-requirement change, a targeted package update, or a broader refresh.
-3. Choose the smallest uv command that matches that intent.
+3. Choose the broadest safe uv command that matches that intent.
 4. Reject or defer the work if it would require a major-version bump.
 5. Update code or tests only if the non-major release changed behavior in practice.
 6. Run the project's validation commands and report the result.
@@ -72,18 +74,21 @@ Decide which of these applies:
 
 Do not assume that the current declared requirement prevents a major bump.
 In uv projects, many dependencies are recorded with only a lower bound such as `pkg>=1.2.3`, which can still allow a new major release.
+If the user did not ask for a narrow scope, prefer `broad-refresh` for non-major updates so compatible changes can land together.
 
-### Step 3: Apply the Smallest Correct uv Command
+### Step 3: Apply the Broadest Safe uv Command
 
-Prefer commands that match the requested scope:
+Prefer commands that match the requested scope while avoiding unnecessary PR fragmentation:
 
-- `uv lock --upgrade-package <pkg>` for a targeted lockfile refresh when the declared requirement should not change
 - `uv lock --upgrade` for a broader lockfile refresh when the declared requirements should not change
+- `uv lock --upgrade-package <pkg>` for a targeted lockfile refresh when the declared requirement should not change
 - `uv add '<pkg><specifier>'` for updates that must rewrite the declared requirement in `pyproject.toml`
 - `uv add --group <group> '<pkg><specifier>'` when the package lives in a dependency group such as `dev`
 
+When the user gives a general non-major refresh request, prefer `uv lock --upgrade` over splitting the work into many targeted updates.
 Use `uv add` only when the requested change requires a new declared specifier.
-If only one package is changing, avoid unrelated dependency churn.
+Use a targeted command only when the user named a package, asked for a narrow change, or when a broader refresh cannot stay within this skill's non-major boundary.
+If only one package is supposed to change, avoid unrelated dependency churn.
 
 ### Step 4: Guard Against Major Upgrades
 
@@ -114,7 +119,7 @@ If a command cannot run, state why and what remains unverified.
 
 ## Quality Check
 
-- [ ] The chosen uv command matches the user's requested scope
+- [ ] The chosen uv command matches the user's requested scope and defaults to a broad non-major refresh when no narrow scope was requested
 - [ ] No dependency was upgraded across a major boundary
 - [ ] `pyproject.toml` changed only when the request required a declared-specifier update
 - [ ] `uv.lock` reflects the dependency update
@@ -126,4 +131,3 @@ If a command cannot run, state why and what remains unverified.
 - `AGENTS.md`
 - `pyproject.toml`
 - `uv.lock`
-
