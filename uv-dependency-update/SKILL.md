@@ -1,22 +1,22 @@
 ---
 name: uv-dependency-update
 description: >
-  Use this when asked to update dependencies in a uv-managed Python project, especially when the
-  request mentions `pyproject.toml`, `uv.lock`, a specific Python package, or refreshing packages
-  without taking a major-version upgrade. It captures a safe workflow for preferring broad
-  non-major refreshes unless the user asks for a narrower scope, choosing whether to update
-  only the lockfile or also the declared requirement, applying the matching uv command, and
-  validating the project afterward. Do not use it for major-version upgrades.
+  Use this when asked to update dependencies in a uv-managed Python project, whether the
+  request is a broad non-major refresh or a major-version upgrade for a specific package.
+  It captures the branching workflow for deciding between safe uv updates within the current
+  major series and an interactive major-upgrade flow with upstream research, user confirmation,
+  one-package-at-a-time changes, and project validation.
 ---
 
-# uv Nonmajor Updater
+# uv Dependency Updater
 
 ## Overview
 
 Use this skill when working on dependency updates in a uv-managed Python project.
 It keeps dependency changes deliberate instead of blindly refreshing `uv.lock` or rewriting version specifiers.
+Start by deciding whether the request stays within the current major series or crosses into a new one.
 For non-major work, prefer bundling compatible updates together unless the user asked for a narrower change.
-This skill is limited to non-major updates.
+For major work, research first, confirm the plan with the user, then upgrade one package at a time.
 
 ## When to Use This Skill
 
@@ -24,18 +24,17 @@ This skill is limited to non-major updates.
 - When asked to refresh multiple dependencies or the whole lockfile without a major bump
 - When `pyproject.toml` and `uv.lock` need to stay in sync
 - When a dependency bump may require source or test updates
-
-Do not use this skill for major-version upgrades.
-Handle those with a separate major-upgrade workflow.
+- When the request may cross a major version boundary and needs researched migration guidance
 
 ## What the Agent Does
 
 1. Read the local project instructions and inspect the dependency declarations before changing anything.
-2. Determine whether the request is a lockfile refresh, a declared-requirement change, a targeted package update, or a broader refresh.
-3. Choose the broadest safe uv command that matches that intent.
-4. Reject or defer the work if it would require a major-version bump.
-5. Update code or tests only if the non-major release changed behavior in practice.
-6. Run the project's validation commands and report the result.
+2. Determine whether the request is non-major or major.
+3. For non-major work, choose the broadest safe uv command that matches the requested scope.
+4. For major work, research upstream breaking changes before editing anything.
+5. Stop for user confirmation before applying a major-version upgrade.
+6. Update code or tests only if the dependency change requires it.
+7. Run the project's validation commands and report the result.
 
 ## Input and Output
 
@@ -63,22 +62,25 @@ Read `pyproject.toml` and identify:
 
 Inspect package usage with `rg` before changing a dependency that may affect code behavior.
 
-### Step 2: Determine the Update Intent
+### Step 2: Determine Whether This Is a Major Upgrade
 
-Decide which of these applies:
+Classify the request before editing files:
 
 - `lockfile-refresh`: refresh resolved versions without changing the declared requirement
 - `targeted-within-series`: update one named package within the current intended release series
 - `broad-refresh`: refresh many packages while staying off major upgrades
 - `specifier-change`: update the declared requirement in `pyproject.toml` because the user asked for a newer allowed series
+- `major`: move a package to a new major series
 
 Do not assume that the current declared requirement prevents a major bump.
 In uv projects, many dependencies are recorded with only a lower bound such as `pkg>=1.2.3`, which can still allow a new major release.
 If the user did not ask for a narrow scope, prefer `broad-refresh` for non-major updates so compatible changes can land together.
 
-### Step 3: Apply the Broadest Safe uv Command
+If the request is `major`, do not edit yet. Move to the major-upgrade branch of this workflow.
 
-Prefer commands that match the requested scope while avoiding unnecessary PR fragmentation:
+### Step 3A: Non-Major Flow
+
+Apply the broadest safe uv command that matches the requested scope:
 
 - `uv lock --upgrade` for a broader lockfile refresh when the declared requirements should not change
 - `uv lock --upgrade-package <pkg>` for a targeted lockfile refresh when the declared requirement should not change
@@ -90,15 +92,12 @@ Use `uv add` only when the requested change requires a new declared specifier.
 Use a targeted command only when the user named a package, asked for a narrow change, or when a broader refresh cannot stay within this skill's non-major boundary.
 If only one package is supposed to change, avoid unrelated dependency churn.
 
-### Step 4: Guard Against Major Upgrades
-
 Before finishing, inspect the resulting versions in both `pyproject.toml` and `uv.lock`.
-
 If any updated package crossed a major version boundary:
 
-- do not continue under this skill
+- do not continue under the non-major flow
 - report which package crossed the boundary
-- hand off to a separate major-upgrade workflow
+- switch to the major-upgrade branch for that package
 
 For non-major updates that still affect behavior:
 
@@ -106,7 +105,36 @@ For non-major updates that still affect behavior:
 - update code only where the new release changed behavior in practice
 - update tests that assert the old behavior
 
-### Step 5: Validate the Result
+### Step 3B: Major-Upgrade Flow
+
+Treat a major bump as an interactive workflow.
+Before editing `pyproject.toml` or `uv.lock`:
+
+- inspect where the package is used with `rg`
+- confirm the current version and the target major version
+- determine which declaration in `pyproject.toml` or `[dependency-groups]` must change
+- use web search and prioritize official migration guides, changelogs, release notes, and API docs
+- collect only the breaking changes that are relevant to this repository
+
+Before making changes, present a short checkpoint to the user that includes:
+
+- the package to upgrade
+- the current and target major versions
+- the declaration that will change in `pyproject.toml`
+- the main relevant breaking changes
+- the expected code areas to touch
+- the validation commands that will be run
+
+Stop here until the user confirms.
+After confirmation:
+
+- upgrade only one package at a time
+- prefer `uv add` with an explicit specifier for the confirmed target series
+- update the lockfile with uv after the declaration change
+- apply only the compatibility fixes supported by local usage and the researched sources
+- avoid bundling unrelated dependency churn into the same change
+
+### Step 4: Validate the Result
 
 Run the narrowest meaningful checks first, then the required project checks.
 For this repository, prioritize:
@@ -119,11 +147,14 @@ If a command cannot run, state why and what remains unverified.
 
 ## Quality Check
 
-- [ ] The chosen uv command matches the user's requested scope and defaults to a broad non-major refresh when no narrow scope was requested
-- [ ] No dependency was upgraded across a major boundary
-- [ ] `pyproject.toml` changed only when the request required a declared-specifier update
+- [ ] The workflow explicitly decides between non-major and major before editing
+- [ ] Non-major requests use the broadest safe uv command when no narrow scope was requested
+- [ ] Major requests require upstream research before editing files
+- [ ] Major requests stop for user confirmation before the dependency is changed
+- [ ] Major upgrades are limited to one package at a time
+- [ ] `pyproject.toml` changed only when the selected flow required it
 - [ ] `uv.lock` reflects the dependency update
-- [ ] Any behavior changes from non-major updates were handled in code or tests
+- [ ] Any required behavior changes were handled in code or tests
 - [ ] Required project validation commands were run or the blocker was stated clearly
 
 ## References
