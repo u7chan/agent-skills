@@ -9,6 +9,7 @@ AI エージェント用のカスタムスキル集です。
 | [bun-dependency-major-upgrade](bun-dependency-major-upgrade/) | Bun アプリの依存関係をメジャーバージョン更新する際の調査・確認・適用手順 |
 | [bun-dependency-update](bun-dependency-update/) | Bun アプリの依存関係を非メジャーで広めにまとめて更新する際の手順 |
 | [codex-skills-link-from-claude](codex-skills-link-from-claude/) | `.claude/skills` を `.codex/skills` から再利用できるようにリンクする |
+| [tailwind-ui-compose](tailwind-ui-compose/) | 画面構成から始めて Tailwind UI の設計と実装方針を整える |
 | [git-branch-create](git-branch-create/) | ブランチ名を提案し、ブランチを作成する |
 | [git-commit-message](git-commit-message/) | コミットメッセージを提案する |
 | [git-pr-description](git-pr-description/) | コンテキストから PR 本文をマークダウン形式で提案する |
