@@ -6,6 +6,7 @@ AI エージェント用のカスタムスキル集です。
 
 | Skill | Description |
 |-------|-------------|
+| [browser-check](browser-check/) | `browser-use` で localhost の画面確認を最小構成で進める |
 | [bun-dependency-update](bun-dependency-update/) | Bun アプリの依存更新を非メジャー/major の分岐付きで安全に進める |
 | [codex-skills-link-from-claude](codex-skills-link-from-claude/) | `.claude/skills` を `.codex/skills` から再利用できるようにリンクする |
 | [tailwind-ui-compose](tailwind-ui-compose/) | 画面構成から始めて Tailwind UI の設計と実装方針を整える |
