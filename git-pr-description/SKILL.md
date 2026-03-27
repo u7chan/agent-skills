@@ -13,7 +13,8 @@ description: PR description creation workflow
 ```markdown
 ## Issues
 
-- 関連するissue番号やリンク
+- Close {IssueId}  <!-- Issue をクローズする場合 -->
+- Refs {IssueId}   <!-- 関連付けのみでクローズしない場合 -->
 
 ## Why
 
@@ -41,6 +42,8 @@ description: PR description creation workflow
 **ガイドライン:**
 - 明確で簡潔な言葉を使用
 - *何を* および *なぜ* に焦点を当てる
+- Issue をクローズする場合、`Issues` セクションは `- Close {IssueId}` の形式にする
+- Issue をクローズしない場合、`Issues` セクションは `- Refs {IssueId}` の形式にする
 - サマリーは2〜3文以内に収める
 - チェックリストは実際の変更を反映させる
 
@@ -82,7 +85,8 @@ description: PR description creation workflow
 ~~~
 ```markdown
 ## Issues
-...
+- Close {IssueId}
+- Refs {IssueId}
 
 ## Why
 ...
