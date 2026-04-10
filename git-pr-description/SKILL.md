@@ -10,7 +10,7 @@ description: PR description creation workflow
 まず出力形式を理解する。
 
 **構造:**
-```markdown
+````markdown
 ## Issues
 
 - Close {IssueId}  <!-- Issue をクローズする場合 -->
@@ -37,7 +37,7 @@ description: PR description creation workflow
 ## Details（任意）
 
 技術的な詳細、実装メモなど
-```
+````
 
 **ガイドライン:**
 - 明確で簡潔な言葉を使用
@@ -69,8 +69,7 @@ description: PR description creation workflow
 
 **PR本文全体をマークダウンのコードブロックで囲む:**
 
-~~~
-```markdown
+````markdown
 ## Issues
 - Close {IssueId}
 - Refs {IssueId}
@@ -80,5 +79,4 @@ description: PR description creation workflow
 
 ## Summary
 ...
-```
-~~~
+````
