@@ -61,7 +61,7 @@ description: >
 ## 2. PR 情報を取得する
 
 - 最初に `gh auth status` を実行し、認証と対象権限を確認する。
-- `gh pr view` で PR のタイトル、説明、base/head、変更ファイル一覧を確認する。
+- `gh pr view --json title,body,url,baseRefName,headRefName,files` で PR のタイトル、説明、base/head、変更ファイル一覧を確認する。
 - `gh pr diff` で差分を取得する。
 - `gh api` または `gh pr view --comments` を使い、既存の review comments と overall comments を確認する。
 - 既存コメントに同じ論点がある場合は重複投稿しない。

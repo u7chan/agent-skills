@@ -52,7 +52,7 @@ EOF
 gh pr create --base "$BASE" --body-file "$FILE" --title "${PR_TITLE}" ${WEB:+--web}
 
 # 作成結果の確認
-gh pr view --head "$BRANCH" --json title,body,url
+gh pr view "$BRANCH" --json title,body,url
 ```
 
 ## 入力
@@ -66,7 +66,7 @@ gh pr view --head "$BRANCH" --json title,body,url
 - **main/master/develop 上で作業中**: 先に作業ブランチを作る
 - **コミットが未作成**: 先にコミットを作る
 - **Push失敗**: エラー内容を表示して手動対応を促す
-- **既存PRがある**: `gh pr view --head "$BRANCH"` で既存PRを確認する
+- **既存PRがある**: `gh pr view "$BRANCH" --json title,url` で既存PRを確認する
 - **本文更新が必要**: `gh api repos/<owner>/<repo>/pulls/<number> --method PATCH --field body="$(cat "$FILE")"` を使う
 
 ## 注意
