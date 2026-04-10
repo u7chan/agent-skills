@@ -72,7 +72,6 @@ description: PR description creation workflow
 ````markdown
 ## Issues
 - Close {IssueId}
-- Refs {IssueId}
 
 ## Why
 ...
