@@ -25,6 +25,11 @@ description: >
 - `gh` CLI が利用可能で、対象リポジトリへコメント権限のある認証が済んでいること
 - 必要に応じてユーザーから指定される観点や除外範囲
 
+## 前提
+
+- GitHub 連携は `gh` CLI / `gh api` を優先して使い、GitHub コネクタには依存しない
+- レビュー開始前に `gh auth status` が成功することを確認する
+
 ## 出力
 
 - GitHub PR 上の review comments
@@ -55,7 +60,8 @@ description: >
 
 ## 2. PR 情報を取得する
 
-- `gh pr view` で PR のタイトル、説明、base/head、変更ファイル一覧を確認する。
+- 最初に `gh auth status` を実行し、認証と対象権限を確認する。
+- `gh pr view --json title,body,url,baseRefName,headRefName,files` で PR のタイトル、説明、base/head、変更ファイル一覧を確認する。
 - `gh pr diff` で差分を取得する。
 - `gh api` または `gh pr view --comments` を使い、既存の review comments と overall comments を確認する。
 - 既存コメントに同じ論点がある場合は重複投稿しない。
@@ -89,11 +95,14 @@ description: >
 ## 6. コメントを投稿する
 
 - 複数コメントがある場合は、可能なら pending review としてまとめて送信する。
+- コメント投稿は `gh` CLI / `gh api` を使って行い、GitHub コネクタは使わない。
 - 使うコマンドや API は環境に合わせて選ぶが、行番号・ファイルパス・body を明示して投稿する。
 - 投稿前に、同一内容の既存コメントがないことを再確認する。
 - 投稿前に、すべてのコメント本文へ AI エージェント識別メタ情報が入っていることを確認する。
 - 投稿前に、コメント本文に文字列としての `\n` が残っていないことを確認する。
+- 複数行コメントはシェル引数へ直接埋め込みすぎず、必要なら一時ファイルや JSON 入力を使って本文崩れを避ける。
 - CLI や API の制約で inline comment ができない場合のみ、overall review comment を使う。
+- 投稿後は `gh api` または `gh pr view --comments` で、意図した本文が実際に投稿されていることを確認する。
 
 ## 7. ユーザーへ報告する
 
