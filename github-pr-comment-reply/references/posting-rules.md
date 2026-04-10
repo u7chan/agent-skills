@@ -45,6 +45,11 @@ gh api -X POST "repos/$OWNER/$REPO/pulls/$PR_NUMBER/comments/$COMMENT_ID/replies
 
 - top-level PR comment には threaded reply がないため、新しい PR comment を追加する。
 - その場合は、本文の冒頭に元コメント URL か comment ID を入れて関連を明示する。
+- URL が分かっている場合の推奨フォーマット例:
+
+```text
+> Re: <comment-url>
+```
 
 ```bash
 gh api -X POST "repos/$OWNER/$REPO/issues/$PR_NUMBER/comments" \

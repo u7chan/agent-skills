@@ -18,6 +18,9 @@
 
 ## コメント種別の判定
 
+- コメント URL に `#discussion_r<id>` が含まれている場合は、その時点で review comment とみなす。
+- コメント URL に `#issuecomment-<id>` が含まれている場合は、その時点で top-level PR comment とみなす。
+- URL アンカーがなく、bare comment ID だけで種別が分からない場合のみ API で判定する。
 - まず `gh api repos/{owner}/{repo}/pulls/comments/{comment_id}` を試す。
 - 取得できれば review comment とみなし、`pull_request_review_id` や `in_reply_to_id` を確認する。
 - 404 の場合のみ `gh api repos/{owner}/{repo}/issues/comments/{comment_id}` を試す。
