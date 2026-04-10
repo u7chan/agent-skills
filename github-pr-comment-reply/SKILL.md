@@ -22,15 +22,12 @@ review comment への threaded reply と、トップレベルの PR conversation
 6. `gh api` で返信または follow-up comment を投稿する。
 7. 投稿結果を確認してユーザーへ報告する。
 
-詳細は次の参照ファイルを使う。
+参照マップ:
 
-- `references/target-resolution.md`
-- `references/posting-rules.md`
-- `references/error-handling.md`
+- Step 1, 3: `references/target-resolution.md`
+- Step 2, 7: `references/error-handling.md`
+- Step 4, 5, 6: `references/posting-rules.md`
 
 # 参考資料
 
-- `references/target-resolution.md`
-- `references/posting-rules.md`
-- `references/error-handling.md`
 - `github-pr-review/SKILL.md`
