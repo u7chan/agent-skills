@@ -12,13 +12,6 @@ description: >
 既存の GitHub PR コメントへ返信するためのスキル。
 review comment への threaded reply と、トップレベルの PR conversation comment への follow-up comment 投稿を安全に切り分けて扱う。
 
-# このスキルを使用するタイミング
-
-- ユーザーが GitHub PR の review comment に返信したい時
-- ユーザーが GitHub PR の conversation comment に返答したい時
-- コメント URL や comment ID を渡して「これに返して」と言われた時
-- 現在の PR から返信対象コメントを探して返答したい時
-
 # Agent が行うこと
 
 1. 対象 PR と返信対象コメントを特定する。
