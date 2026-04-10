@@ -10,7 +10,7 @@ description: PR description creation workflow
 まず出力形式を理解する。
 
 **構造:**
-```markdown
+````markdown
 ## Issues
 
 - Close {IssueId}  <!-- Issue をクローズする場合 -->
@@ -37,7 +37,7 @@ description: PR description creation workflow
 ## Details（任意）
 
 技術的な詳細、実装メモなど
-```
+````
 
 **ガイドライン:**
 - 明確で簡潔な言葉を使用
@@ -54,21 +54,8 @@ description: PR description creation workflow
 まず、会話内に十分なコンテキスト（ブランチ名、コミット履歴、変更ファイル）が既に利用可能か確認する。
 
 **コンテキストが利用可能な場合:**
-1. ブランチ名のみを表示
-2. ユーザーに尋ねる: "この情報で十分ですか？ \"OK\" と返信いただければPR本文の作成に進みます。"
-3. ユーザー確認を待つ
-4. ユーザーが「OK」または確認を返信した場合、**ステップ3に直接スキップ**して即座にPR本文を作成
-5. ユーザーがより多くの情報を必要とする場合（「OK」以外）:
-   - `git log --oneline main..HEAD`
-   - `git diff --name-status main`
-
-**プレビュー形式:**
-```
-これまでの会話履歴からPR本文を作成できます。
-ブランチ: <branch-name>
-
-"OK" と返信いただければPR本文の作成に進みます。
-```
+1. 会話履歴から十分な情報（ブランチ名、変更内容、作業の目的など）が得られると判断
+2. **ステップ3に直接スキップ**して即座にPR本文を作成
 
 **コンテキストが利用できない場合:**
 即座に以下のgitコマンドを実行してコンテキストを収集（ユーザー確認不要）:
@@ -82,16 +69,13 @@ description: PR description creation workflow
 
 **PR本文全体をマークダウンのコードブロックで囲む:**
 
-~~~
-```markdown
+````markdown
 ## Issues
 - Close {IssueId}
-- Refs {IssueId}
 
 ## Why
 ...
 
 ## Summary
 ...
-```
-~~~
+````
