@@ -4,7 +4,7 @@ description: When instructed to create a PR for GitHub.
 ---
 
 ## 概要
-`gh` CLI を使って GitHub に PR を作成する。GitHub コネクタは使わない。`git-pr-description` スキル実行後や本文作成済み状態で使用し、必要なら push、PR 作成、作成後の確認まで行う。
+`gh` CLI を使って GitHub に PR を作成する。GitHub コネクタは使わない。会話内に完成済みの `PR_BODY` がない場合でも、このスキル内のテンプレートに従ってその場で本文を生成してから PR を作成する。
 
 ## 事前確認
 
@@ -14,6 +14,51 @@ description: When instructed to create a PR for GitHub.
 - 未追跡ファイルや無関係な変更は勝手に追加・コミットしない
 
 ## 実行手順
+
+### 1. PR 本文を用意する
+
+- 会話内に完成済みの `PR_BODY` がある場合は、それを優先して使う
+- `PR_BODY` がない場合は、現在の変更内容から以下の構造で本文を生成する
+
+````markdown
+## Issues
+
+- Close {IssueId}  <!-- Issue をクローズする場合 -->
+- Refs {IssueId}   <!-- 関連付けのみでクローズしない場合 -->
+
+## Why
+
+この変更が必要な背景・目的・モチベーション。
+
+## Summary
+
+この PR で行う変更の簡潔な説明。
+
+## Changes
+
+- 変更 1
+- 変更 2
+
+## Checklist
+
+- [ ] 項目 1
+- [ ] 項目 2
+
+## Details（任意）
+
+技術的な詳細、実装メモなど
+````
+
+- 本文生成時は次のガイドラインに従う:
+  - 明確で簡潔な言葉を使用する
+  - *何を* と *なぜ* に焦点を当てる
+  - Issue をクローズする場合、`Issues` セクションは `- Close {IssueId}` の形式にする
+  - Issue をクローズしない場合、`Issues` セクションは `- Refs {IssueId}` の形式にする
+  - `Summary` は 2〜3 文以内に収める
+  - `Checklist` は実際の変更内容を反映させる
+  - `Details` は必要な場合のみ追加する
+
+### 2. gh で PR を作成する
 
 ```bash
 # 変数設定
@@ -42,7 +87,7 @@ if [ -z "$(git ls-remote --heads origin $BRANCH)" ]; then
   git push -u origin $BRANCH
 fi
 
-# PR作成（PR_BODYはコンテキストから取得）
+# PR作成（PR_BODY は既存入力またはその場で生成）
 FILE=$(mktemp)
 trap 'rm -f "$FILE"' EXIT
 cat > "$FILE" << 'EOF'
@@ -56,7 +101,7 @@ gh pr view "$BRANCH" --json title,body,url
 ```
 
 ## 入力
-- **PR_BODY**: 会話履歴/コンテキストから取得（必須。ない場合はユーザーに依頼）
+- **PR_BODY**: 会話履歴や事前生成済み本文（任意。未指定時はその場で生成）
 - **PR_TITLE**: タイトル（未指定時は推定またはユーザー確認）
 - **BASE_BRANCH**: ベースブランチ（default: main）
 - **WEB**: ブラウザで開く場合は`--web`を追加

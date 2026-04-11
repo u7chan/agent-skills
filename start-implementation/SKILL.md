@@ -28,8 +28,7 @@ description: >
 6. 各ステップで利用可能な lint、test、formatter を実行して品質確認する。
 7. 区切りの良い単位ごとに `git-commit-message` へ委譲してコミット内容をまとめる。
 8. すべての実装完了後、結果と残課題を整理してユーザー確認を取る。
-9. PR 作成に進む場合は `git-pr-description` へ委譲して本文を作る。
-10. ユーザーが PR 作成を求めたら `github-pr-create` へ委譲する。
+9. ユーザーが PR 作成を求めた場合は、変更概要と検証結果を整理して `github-pr-create` へ委譲する。
 
 # 入力と出力
 
@@ -45,7 +44,7 @@ description: >
 - ステップ分割された実装
 - 品質確認済みの変更
 - コミット候補またはコミット済みの変更
-- PR 本文案、または作成済み PR への引き継ぎ情報
+- 作成済み PR への引き継ぎ情報
 
 # ステップの詳細
 
@@ -83,7 +82,7 @@ description: >
 ## 6. 完了後の引き継ぎを行う
 
 - 変更概要、実行した検証、未解決事項を整理してユーザーに共有する。
-- PR 本文が必要なら `git-pr-description` に委譲する。
+- PR 作成に必要な変更概要と検証結果を整理する。
 - ユーザーが PR 作成まで求めた場合だけ `github-pr-create` に委譲する。
 
 # 委譲先スキル
@@ -91,7 +90,6 @@ description: >
 - `github-issue-create-from-plan`: 実装前に設計プランを Issue 化したい時
 - `git-branch-create`: 作業ブランチ名の提案とブランチ作成が必要な時
 - `git-commit-message`: コミットメッセージを提案する時
-- `git-pr-description`: PR 本文を作成する時
 - `github-pr-create`: PR を GitHub に作成する時
 
 # 制約
@@ -105,6 +103,6 @@ description: >
 
 - [ ] 実装着手時に使う上位スキルだと説明だけで分かる
 - [ ] Issue 確認から PR 作成準備までの流れが記述されている
-- [ ] `github-issue-create-from-plan` `git-branch-create` `git-commit-message` `git-pr-description` `github-pr-create` への委譲が明記されている
+- [ ] `github-issue-create-from-plan` `git-branch-create` `git-commit-message` `github-pr-create` への委譲が明記されている
 - [ ] `main` `master` `develop` への直接 push 禁止が明記されている
 - [ ] ステップ分割と段階的な品質確認の方針が含まれている
