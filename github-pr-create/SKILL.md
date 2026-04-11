@@ -49,14 +49,14 @@ description: When instructed to create a PR for GitHub.
 技術的な詳細、実装メモなど
 ````
 
-- 本文生成時は次のガイドラインに従う
-- 明確で簡潔な言葉を使用する
-- *何を* と *なぜ* に焦点を当てる
-- Issue をクローズする場合、`Issues` セクションは `- Close {IssueId}` の形式にする
-- Issue をクローズしない場合、`Issues` セクションは `- Refs {IssueId}` の形式にする
-- `Summary` は 2〜3 文以内に収める
-- `Checklist` は実際の変更内容を反映させる
-- `Details` は必要な場合のみ追加する
+- 本文生成時は次のガイドラインに従う:
+  - 明確で簡潔な言葉を使用する
+  - *何を* と *なぜ* に焦点を当てる
+  - Issue をクローズする場合、`Issues` セクションは `- Close {IssueId}` の形式にする
+  - Issue をクローズしない場合、`Issues` セクションは `- Refs {IssueId}` の形式にする
+  - `Summary` は 2〜3 文以内に収める
+  - `Checklist` は実際の変更内容を反映させる
+  - `Details` は必要な場合のみ追加する
 
 ### 2. gh で PR を作成する
 
