@@ -4,24 +4,53 @@ AI エージェント用のカスタムスキル集です。
 
 ## Available Skills
 
+スキルは役割ごとにグルーピングしてあります。グループ内の並びは関連の強さや作業フローの順です。
+
+### Git / GitHub 操作
+
 | Skill | Description |
 |-------|-------------|
-| [browser-check](browser-check/) | `browser-use` で localhost の画面確認を最小構成で進める |
-| [bun-dependency-update](bun-dependency-update/) | Bun アプリの依存更新を非メジャー/major の分岐付きで安全に進める |
-| [codex-skills-link-from-claude](codex-skills-link-from-claude/) | `.claude/skills` を `.codex/skills` から再利用できるようにリンクする |
-| [tailwind-ui-compose](tailwind-ui-compose/) | 画面構成から始めて Tailwind UI の設計と実装方針を整える |
 | [git-branch-create](git-branch-create/) | ブランチ名を提案し、ブランチを作成する |
 | [git-commit-message](git-commit-message/) | コミットメッセージを提案する |
 | [github-issue-create-from-plan](github-issue-create-from-plan/) | 設計プラン合意後に GitHub Issue を作成する |
-| [github-pr-comment-reply](github-pr-comment-reply/) | GitHub PR の review comment や conversation comment に返信する |
 | [github-pr-create](github-pr-create/) | PR 本文生成を含めて GitHub に PR を作成する |
 | [github-pr-review](github-pr-review/) | 指定した GitHub PR をレビューし、PR 上にコメントを投稿する |
-| [image-to-svg](image-to-svg/) | 画像（PNG/JPEG）を編集可能な SVG に変換する |
-| [npm-dependency-update](npm-dependency-update/) | npm アプリの依存更新を非メジャー/major の分岐付きで安全に進める |
-| [skill-author](skill-author/) | SKILL.md ファイルの作成と改善を行う |
+| [github-pr-comment-reply](github-pr-comment-reply/) | GitHub PR の review comment や conversation comment に返信する |
+
+### 実装フロー
+
+| Skill | Description |
+|-------|-------------|
 | [start-implementation](start-implementation/) | Issue 確認から実装、検証、コミット、PR 準備までを進行管理する |
-| [skills-readme-sync](.claude/skills/skills-readme-sync/) | README のスキル一覧を現在のスキル構成へ同期する |
+
+### 依存パッケージ更新
+
+| Skill | Description |
+|-------|-------------|
+| [bun-dependency-update](bun-dependency-update/) | Bun アプリの依存更新を非メジャー/major の分岐付きで安全に進める |
+| [npm-dependency-update](npm-dependency-update/) | npm アプリの依存更新を非メジャー/major の分岐付きで安全に進める |
 | [uv-dependency-update](uv-dependency-update/) | uv 管理の Python 依存更新を非メジャー/major の分岐付きで安全に進める |
+
+### UI / フロントエンド
+
+| Skill | Description |
+|-------|-------------|
+| [tailwind-ui-compose](tailwind-ui-compose/) | 画面構成から始めて Tailwind UI の設計と実装方針を整える |
+| [browser-check](browser-check/) | `browser-use` で localhost の画面確認を最小構成で進める |
+
+### アセット変換
+
+| Skill | Description |
+|-------|-------------|
+| [image-to-svg](image-to-svg/) | **experimental** — 画像（PNG/JPEG）を編集可能な SVG に変換する |
+
+### スキル管理 / セットアップ
+
+| Skill | Description |
+|-------|-------------|
+| [skill-author](skill-author/) | SKILL.md ファイルの作成と改善を行う |
+| [skills-readme-sync](.claude/skills/skills-readme-sync/) | **本リポジトリ専用** — README のスキル一覧を現在のスキル構成へ同期する |
+| [codex-skills-link-from-claude](codex-skills-link-from-claude/) | `.claude/skills` を `.codex/skills` から再利用できるようにリンクする |
 
 ## Naming Convention
 
@@ -35,7 +64,7 @@ AI エージェント用のカスタムスキル集です。
 
 ## Setup
 
-Claude Code を使用する場合:
+### Claude Code を使用する場合
 
 ```sh
 git clone git@github.com:u7chan/agent-skills.git
@@ -47,7 +76,7 @@ ln -sf "$(pwd)" "$HOME/.claude/skills"
 > [!NOTE]
 > `$HOME/.claude/skills` ディレクトリが既に存在する場合は、上記コマンドをそのまま実行してください。
 
-Codex を使用する場合:
+### Codex を使用する場合
 
 ```sh
 git clone git@github.com:u7chan/agent-skills.git
@@ -59,7 +88,7 @@ ln -sfn "$(pwd)" "$HOME/.codex/skills"
 > [!NOTE]
 > `"$HOME/.codex/skills"` が既に存在する場合は、上記コマンドをそのまま実行してください。
 
-シンボリックリンクを解除する場合:
+### シンボリックリンクを解除する場合
 
 ```sh
 rm "$HOME/.claude/skills"
