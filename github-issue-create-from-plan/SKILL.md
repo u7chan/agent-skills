@@ -5,17 +5,17 @@ description: >
   まずプランを作成して提示し、現在モードが plan の場合は切替案内を出し、edit または auto の場合はそのまま `gh issue create` を実行する。
 ---
 
-# Overview / 概要
+# 概要
 
 設計を先に固め、その内容をGitHub Issueへ落とし込むためのスキル。現在モードに応じて、plan では実行前の切替案内を出し、edit または auto では余計な案内を挟まず Issue 作成まで進める。
 
-# When to Use / 使用タイミング
+# 使用タイミング
 
 - ユーザーが「まずプランを作って、その後 Issue にしたい」と依頼した時
 - ユーザーがプラン合意後に `gh issue create` で起票する運用を求めた時
 - ユーザーが現在モードに応じた Issue 作成フローを求めた時
 
-# Agent Responsibilities / Agentが行うこと
+# Agentが行うこと
 
 1. リポジトリを探索し、要求に関係する実装と制約を把握する。
 2. 不明点があればプランに影響する事項だけを確認する。
@@ -26,51 +26,51 @@ description: >
 7. edit または auto の場合は、`gh issue create` を実行する。
 8. 作成した Issue URL を返す。
 
-# Inputs and Outputs / 入力と出力
+# 入力 / 出力
 
-## Inputs / 入力
+## 入力
 
 - ユーザーの設計依頼または仕様整理依頼
 - リポジトリ内の関連コード、README、AGENTS.md、既存 Issue 文脈
 - plan モード時のみ、ユーザーの `OK` 合図
 
-## Outputs / 出力
+## 出力
 
 - `<proposed_plan>` ブロックを含む設計プラン
 - plan モード時のみ、Edit/Auto モード切替と Issue 作成待ちを示す短い案内
 - 作成済み GitHub Issue の URL
 
-# Detailed Steps / ステップの詳細
+# ステップの詳細
 
-## 1. Create the Plan / プランを作る
+## 1. プランを作る
 
 - まず関連コード、設定、ドキュメントを読む。
 - プランに影響する事実は探索で確定する。
 - 影響の大きい仕様だけをユーザーに確認する。
 - 実装担当者が追加判断なしで着手できる粒度までプランを固める。
 
-## 2. Present the Plan / プランを提示する
+## 2. プランを提示する
 
 - `<proposed_plan>` ブロックで提示する。
 - プランには少なくとも要約、主要変更点、テスト観点、前提を含める。
 - 設計説明は箇条書きだけで終わらせず、フロー、データ構造、ロジック、DB関係などを最も伝わる具体表現で示す。
 - 実装はまだ行わない。
 
-## 3. Respond After Presenting the Plan / プラン提示後の応答
+## 3. プラン提示後の応答
 
 - `<proposed_plan>` の直後に現在モードを見て分岐する。
 - plan モードの場合は、`Edit または Auto モードに切り替えてください。切替後に OK と送ってください。` と明示し、ここでは `gh issue create` を実行しない。
 - edit または auto モードの場合は、切替案内や `OK` 待ちを挟まず、Issue 作成へ進む。
 - 現在モードを判定できない場合は安全側に倒し、plan モードと同じ案内を出す。
 
-## 4. Wait Conditions / 待機条件
+## 4. 待機条件
 
 - plan モードでは、ユーザーが `OK` と返すまでは Issue を作成しない。
 - plan モードで `OK` を受け取った場合は、切替後の edit または auto モードとして Issue 作成へ進む。
 - edit または auto モードでは、`OK` を待たずに Issue を作成する。
 - plan モードで `OK` 以外の修正依頼が来たら、プラン更新を優先する。
 
-## 5. Choose the Template / テンプレートを選ぶ
+## 5. テンプレートを選ぶ
 
 Issue の規模に応じて、`references/` 配下のテンプレートを **どちらか片方だけ** 読み込む。両方を同時に読まない。Context を節約するため、判定前にテンプレ本文を投機的に読まない。
 
@@ -83,7 +83,7 @@ Issue の規模に応じて、`references/` 配下のテンプレートを **ど
 
 判断に迷う場合は Standard を選ぶ。Light で書き始めて設計説明や Out of Scope が必要だと判明したら、Standard に切り替えて読み直す。
 
-## 6. Create the Issue / Issue を作成する
+## 6. Issue を作成する
 
 - 直前に確定したプランと、選んだテンプレートだけを元に Issue を書く。
 - Issue タイトルは内容が一目で分かる具体的な文にする。
@@ -107,12 +107,12 @@ Issue の規模に応じて、`references/` 配下のテンプレートを **ど
 
 - タイトルと本文をコマンド内で明示し、対話入力モードには入らない。
 
-## 7. Report Completion / 完了報告
+## 7. 完了報告
 
 - Issue URL を返す。
 - タイトルと含めた主要論点を1文か2文で要約する。
 
-# Quality Checklist / 品質チェック
+# 品質チェック
 
 - [ ] スキルの説明だけで、プラン作成後に Issue 作成へ進む用途だと分かる
 - [ ] plan モードでは `OK` が来る前に `gh issue create` を実行しない
