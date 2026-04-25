@@ -16,6 +16,7 @@ AI エージェント用のカスタムスキル集です。
 | [github-pr-comment-reply](github-pr-comment-reply/) | GitHub PR の review comment や conversation comment に返信する |
 | [github-pr-create](github-pr-create/) | PR 本文生成を含めて GitHub に PR を作成する |
 | [github-pr-review](github-pr-review/) | 指定した GitHub PR をレビューし、PR 上にコメントを投稿する |
+| [image-to-svg](image-to-svg/) | 画像（PNG/JPEG）を編集可能な SVG に変換する |
 | [npm-dependency-update](npm-dependency-update/) | npm アプリの依存更新を非メジャー/major の分岐付きで安全に進める |
 | [skill-author](skill-author/) | SKILL.md ファイルの作成と改善を行う |
 | [start-implementation](start-implementation/) | Issue 確認から実装、検証、コミット、PR 準備までを進行管理する |
