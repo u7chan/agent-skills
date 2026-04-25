@@ -70,4 +70,4 @@ rm "$HOME/.codex/skills"
 
 ## Usage
 
-エージェントにスキルが認識されると、`/skill-name` または `@skill-name` と入力して呼び出せます。
+エージェントにスキルが認識されると、`/skill-name` または `$skill-name` と入力して呼び出せます。
