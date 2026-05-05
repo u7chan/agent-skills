@@ -21,7 +21,7 @@ AI エージェント用のカスタムスキル集です。
 
 | Skill | Description |
 |-------|-------------|
-| [start-implementation](start-implementation/) | Issue 確認から実装、検証、コミット、PR 準備までを進行管理する |
+| [github-implement-pr](github-implement-pr/) | Issue 確認から実装、検証、コミット、push、PR 作成まで自動で進める |
 
 ### 依存パッケージ更新
 
