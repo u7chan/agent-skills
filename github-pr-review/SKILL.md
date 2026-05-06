@@ -131,6 +131,9 @@ description: >
 - ユーザーが `OK`、`どうぞ`、`再チェックして` などと送った場合は、FB対応が完了した合図として扱う。
 - 対象 PR は、会話内に残した PR URL/番号を優先し、なければ現在ブランチ名から特定する。
 - 最新状態を確認するため、`gh pr view --json number,url,title,headRefName,baseRefName,commits` と `gh pr diff` を再取得する。
+- 返信・Resolve の対象を特定するため、`gh api graphql` で `pullRequest.reviewThreads` を取得し、各 thread の `id`、`isResolved`、コメントの `databaseId`、`body`、`path`、`url`、`author` を確認する。
+- 前回このスキルが投稿した指摘は、会話内に残した comment URL / comment ID、AI エージェント識別メタ情報、コメント本文、ファイルパスを手がかりに review thread と対応付ける。
+- 既に `isResolved: true` の thread は原則として再コメントや Resolve 対象から外し、未解決 thread だけを再チェック対象にする。
 - 必要に応じて `git fetch` し、ローカル checkout が古い場合はその旨を報告する。ユーザーの未コミット変更を勝手に上書きしない。
 - 各指摘について、次のどれかに分類する。
   - `resolved`: 指摘内容が改善されている
@@ -255,6 +258,7 @@ description: >
 - コメント重複の回避が手順に含まれている
 - 総評だけで終わらず、PR 上へコメントを付けることが成果物として明記されている
 - FB対応後の再チェックで、未改善の指摘へ再コメントし、改善済みの指摘へ返信して Resolve する手順が含まれている
+- 再チェック時に `pullRequest.reviewThreads` を取得し、前回投稿コメントと review thread ID / resolved 状態を対応付ける手順が含まれている
 - 返信や Resolve ができない場合、overall comment で完了状態を伝える手順が含まれている
 - PR approval に相当する操作を決して実行しないルールが含まれている
 - すべてのコメントに AI エージェント識別メタ情報を付けるルールが含まれている
