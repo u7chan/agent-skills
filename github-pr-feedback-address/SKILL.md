@@ -37,7 +37,7 @@ GitHub PR に付いた review comments / conversation comments を確認し、�
 
 # 前提
 
-- GitHub 連携は `gh` CLI / `gh api` を優先して使う。
+- GitHub 連携は `gh` CLI / `gh api` を優先して使い、GitHub コネクタには依存しない。コネクタと `gh` は認証主体や権限が異なるため、PR 取得や更新で 403 になることがある。
 - 作業前に `gh auth status` を確認する。
 - ユーザーの未コミット変更や無関係な変更を勝手に取り込まない。
 - review thread の Resolve、改善済み返信、Approve は行わない。これらは再チェック側の `github-pr-review` に任せる。
@@ -132,6 +132,7 @@ GitHub PR に付いた review comments / conversation comments を確認し、�
 - review feedback の収集、分類、実装、検証、commit、push、報告までの流れがある
 - 無関係な変更を commit しないルールがある
 - Resolve / 改善済み返信 / Approve をこのスキルで行わないルールがある
+- GitHub コネクタに依存せず `gh` / `gh api` の認証で進めるルールがある
 
 # 参考資料
 

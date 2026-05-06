@@ -98,14 +98,23 @@ Issue の規模に応じて、`references/` 配下のテンプレートを **ど
 - `gh issue create` を使い、必要なら対象リポジトリを `--repo` で明示する。
 - Label を付ける場合は、事前に確認した既存 Label 名だけを `--label` で明示する。
 - 新規 Label が必要な場合は、ユーザー合意前に Label を作成しない。
+- Issue 本文は必ず一時ファイルに書き、`--body-file` で渡す。Markdown を `--body "..."` や `$'...\n...'` へ直接埋め込まない。
 - `gh issue create` は次の形を優先して使う。
+
+    FILE=$(mktemp)
+    trap 'rm -f "$FILE"' EXIT
+    cat > "$FILE" << 'EOF'
+    ## Overview / 概要
+    ...
+    EOF
 
     gh issue create \
       --repo owner/repo \
       --title "Issue title" \
-      --body $'## Overview / 概要\n...\n'
+      --body-file "$FILE"
 
 - タイトルと本文をコマンド内で明示し、対話入力モードには入らない。
+- GitHub コネクタは使わず、`gh` の認証で作成する。コネクタと `gh` は認証主体や権限が異なるため、書き込み操作で 403 になることがある。
 
 ## 7. 完了報告
 
@@ -124,3 +133,4 @@ Issue の規模に応じて、`references/` 配下のテンプレートを **ど
 - [ ] 新規 Label が必要な場合にユーザー提案と合意を先に取るルールが明記されている
 - [ ] ユーザー要求があれば README と `AGENTS.md` 更新が Issue に含まれる
 - [ ] 現在モードを判定できない場合は plan モード相当の安全な案内になる
+- [ ] Issue 本文は `--body-file` で渡し、Markdown をシェル引数へ直接埋め込まない
