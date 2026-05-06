@@ -24,6 +24,8 @@ GitHub Issue または実装指示を受け、作業ブランチ作成、実装�
 - `main`、`master`、`develop` では直接実装せず、必ず作業ブランチを作る。
 - 無関係な未コミット変更は勝手に取り込まない。必要な変更だけを stage/commit する。
 - 他のスキルへ委譲しない。このスキル内の手順だけで完結させる。
+- PR 作成・本文更新は `gh` / `gh api` で行い、GitHub コネクタは使わない。コネクタは `gh` のユーザー認証と権限が異なるため、PR 更新で 403 になることがある。
+- PR 本文、Issue 本文、コメント本文などの Markdown 長文は必ずファイル経由で渡す。バッククォートや `$()` を含む本文を `--body "..."` や `--field body="$(cat ...)"` へ直接埋め込まない。
 
 # 停止条件
 
@@ -123,7 +125,8 @@ git commit -m "fix: handle missing login redirect" -m "Update the login flow to 
 ```
 
 - Issue を閉じる意図が明確なら `Close #123`、関連付けのみなら `Refs #123` を使う。
-- Markdown 本文は一時ファイルに書き、`gh pr create --body-file` で渡す。
+- Markdown 本文は一時ファイルに書き、`gh pr create --body-file` で渡す。`gh pr create --body "..."` は使わない。
+- PR 本文を作成後に直す必要がある場合は、同じ本文ファイルを使って `gh pr edit --body-file "$FILE"` を試す。`gh pr edit` が GraphQL の Projects classic など本文更新以外の取得エラーで失敗した場合は、`gh api repos/<owner>/<repo>/pulls/<number> --method PATCH --field body=@"$FILE"` に切り替える。
 - 作成後に `gh pr view --json title,body,url` で結果を確認し、PR URL を最終報告に含める。
 
 # 最終報告
@@ -138,3 +141,4 @@ git commit -m "fix: handle missing login redirect" -m "Update the login flow to 
 - [ ] ブランチ名、コミットメッセージ、PR 本文の生成規則が明記されている
 - [ ] `main`、`master`、`develop` への直接実装と直接 push を避ける
 - [ ] 無関係な変更を stage/commit しない
+- [ ] PR 本文は `--body-file`、本文更新は `--body-file` または `gh api --field body=@file` で安全に渡す

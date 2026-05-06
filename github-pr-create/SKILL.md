@@ -1,10 +1,10 @@
 ---
 name: github-pr-create
-description: When instructed to create a PR for GitHub.
+description: Use when asked to create or open a GitHub PR, including casual requests like "PRまでお願い", "PRまで", "pushしてPR", "PR作って", or "PR open". Handles PR body generation and gh-based PR creation.
 ---
 
 ## 概要
-`gh` CLI を使って GitHub に PR を作成する。GitHub コネクタは使わない。会話内に完成済みの `PR_BODY` がない場合でも、このスキル内のテンプレートに従ってその場で本文を生成してから PR を作成する。
+`gh` CLI を使って GitHub に PR を作成する。PR 作成・本文更新では GitHub コネクタを使わない。会話内に完成済みの `PR_BODY` がない場合でも、このスキル内のテンプレートに従ってその場で本文を生成してから PR を作成する。
 
 ## 事前確認
 
@@ -12,6 +12,7 @@ description: When instructed to create a PR for GitHub.
 - 現在のブランチが `main` `master` `develop` 系なら、そのまま PR を作らず先に作業ブランチを作る
 - `BASE..HEAD` にコミットがない場合は、先にコミットを作る
 - 未追跡ファイルや無関係な変更は勝手に追加・コミットしない
+- PR 本文や更新本文は必ずファイル経由で渡す。Markdown を `--body "..."` や `--field body="$(cat ...)"` のようにシェル引数へ直接埋め込まない
 
 ## 実行手順
 
@@ -112,9 +113,12 @@ gh pr view "$BRANCH" --json title,body,url
 - **コミットが未作成**: 先にコミットを作る
 - **Push失敗**: エラー内容を表示して手動対応を促す
 - **既存PRがある**: `gh pr view "$BRANCH" --json title,url` で既存PRを確認する
-- **本文更新が必要**: `gh api repos/<owner>/<repo>/pulls/<number> --method PATCH --field body="$(cat "$FILE")"` を使う
+- **本文更新が必要**: `gh pr edit --body-file "$FILE"` を試し、GraphQL の Projects classic など `gh pr edit` 側の取得エラーで失敗した場合は `gh api repos/<owner>/<repo>/pulls/<number> --method PATCH --field body=@"$FILE"` を使う
+- **GitHub コネクタが権限不足になる場合**: コネクタと `gh` の認証主体は別物なので、PR 作成・本文更新は `gh` / `gh api` で継続する
 
 ## 注意
 
-- Markdown を含む PR 本文は `gh pr create --body` に直接埋め込まず、原則 `--body-file` を使う
+- Markdown を含む PR 本文は `gh pr create --body` に直接埋め込まず、必ず `--body-file` を使う
+- バッククォート、`$()`、引用符、改行を含む本文はシェルに解釈されるため、`--body "..."`、`--field body="$(cat "$FILE")"`、未クォートの heredoc を使わない
+- `gh api` で本文を渡す場合は `--field body=@"$FILE"` のようにファイル参照で渡す
 - 作成後は `gh pr view --json title,body,url` でタイトル・本文・URL を確認する

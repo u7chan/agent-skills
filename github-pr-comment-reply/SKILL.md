@@ -22,6 +22,8 @@ review comment への threaded reply と、トップレベルの PR conversation
 6. `gh api` で返信または follow-up comment を投稿する。
 7. 投稿結果を確認してユーザーへ報告する。
 
+GitHub コネクタは使わず、`gh` / `gh api` の認証で投稿する。コネクタと `gh` は認証主体や権限が異なるため、書き込み操作で 403 になることがある。
+
 参照マップ:
 
 - Step 1, 3: `references/target-resolution.md`

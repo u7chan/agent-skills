@@ -26,6 +26,7 @@
 ## 本文の渡し方
 
 - 本文は原則として一時ファイル経由で渡す。単純な 1 行本文以外をシェル引数へ直接埋め込まない。
+- バッククォート、`$()`、引用符、改行を含む本文はシェルに解釈されるため、`--body "..."` や `--field body="$(cat ...)"` の形を使わない。
 - 推奨パターンは次のとおり。
 
 ```bash
@@ -55,3 +56,5 @@ gh api -X POST "repos/$OWNER/$REPO/pulls/$PR_NUMBER/comments/$COMMENT_ID/replies
 gh api -X POST "repos/$OWNER/$REPO/issues/$PR_NUMBER/comments" \
   -F "body=@$TMP"
 ```
+
+- `gh api` の実行後は、API 応答または再取得で本文が崩れていないことを確認する。

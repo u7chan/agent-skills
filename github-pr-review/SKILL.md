@@ -2,7 +2,7 @@
 name: github-pr-review
 description: >
   Use this when asked to review a specific GitHub Pull Request and leave review comments on the PR itself.
-  Trigger this skill when the user provides a PR number or URL, or explicitly asks you to review and comment on a GitHub PR instead of only summarizing findings in chat.
+  Trigger this skill when the user provides a PR number or URL, says casual review requests like "レビューして", "PRレビューして", or "このPR見て", or explicitly asks you to review and comment on a GitHub PR instead of only summarizing findings in chat. Also trigger when the user asks to recheck feedback previously posted by this skill.
 ---
 
 # 概要
@@ -13,27 +13,30 @@ description: >
 # このスキルを使用するタイミング
 
 - ユーザーが GitHub PR の URL または PR 番号を指定してレビューを依頼した時
+- PR 文脈で、ユーザーが「レビューして」「このPR見て」など短くレビューを依頼した時
 - ユーザーが「GitHub 上にコメントしてほしい」と明示した時
 - チャット要約だけでなく、PR へ inline comment を残すことが成果物として求められている時
+- このスキルで指摘コメントを投稿した後、ユーザーが FB 対応完了後の再確認を依頼した時
 
 # 入力と出力
 
 ## 入力
 
-- PR 番号、PR URL、または `owner/repo` と PR 番号
+- PR 番号、PR URL、`owner/repo` と PR 番号、または現在ブランチに紐づく PR
 - レビュー対象リポジトリのローカル checkout
 - `gh` CLI が利用可能で、対象リポジトリへコメント権限のある認証が済んでいること
 - 必要に応じてユーザーから指定される観点や除外範囲
 
 ## 前提
 
-- GitHub 連携は `gh` CLI / `gh api` を優先して使い、GitHub コネクタには依存しない
+- GitHub 連携は `gh` CLI / `gh api` を優先して使い、GitHub コネクタには依存しない。コネクタと `gh` は認証主体や権限が異なるため、コメント投稿や PR 更新で 403 になることがある
 - レビュー開始前に `gh auth status` が成功することを確認する
+- レビュー投稿者が自分自身のアカウントになるため、PR を `APPROVE` しない。`gh pr review --approve` や review event `APPROVE` は決して実行しない
 
 ## 出力
 
-- GitHub PR 上の review comments
-- 必要な場合のみ overall review comment
+- GitHub PR 上の inline review comments
+- 差分箇所に紐づけられない指摘がある場合のみ、代替としての overall review comment
 - ユーザーへの簡潔な報告
   - 何件コメントしたか
   - 重大な指摘があるか
@@ -45,10 +48,11 @@ description: >
 1. 対象 PR とレビュー対象リポジトリを特定する。
 2. PR の概要、差分、既存コメントを取得する。
 3. 差分を読み、バグ・仕様逸脱・保守性低下・テスト不足を優先して指摘候補を作る。
-4. 各指摘が inline comment 可能か確認し、可能なら差分上の行へ紐づける。
+4. 各指摘を原則として差分上の行へ inline comment として紐づける。
 5. コメント文を簡潔に整え、重要度ラベルを付ける。
 6. 重複投稿を避けたうえで GitHub PR にコメントを投稿する。
 7. 投稿結果と未解決事項をユーザーへ報告する。
+8. ユーザーが再チェックを促した場合は、元の指摘が改善されたか確認する。
 
 # ステップの詳細
 
@@ -56,6 +60,11 @@ description: >
 
 - ユーザーが PR URL を渡した場合は URL から `owner/repo` と PR 番号を読み取る。
 - ユーザーが PR 番号だけを渡した場合は、現在の git remote から対象リポジトリを推定する。
+- ユーザーが PR URL や番号を渡していない場合は、現在ブランチ名から対象 PR を特定する。
+  - `git branch --show-current` で現在ブランチを取得する。
+  - `gh pr view "$BRANCH" --json number,url,title,headRefName,baseRefName` を試す。
+  - ブランチ名指定で見つからない場合は `gh pr view --json number,url,title,headRefName,baseRefName` を試し、現在 checkout 中のブランチに紐づく PR を取得する。
+  - どちらでも対象 PR が特定できない場合のみ、レビュー対象 PR をユーザーへ確認する。
 - 対象が曖昧な場合のみ、レビュー対象 PR をユーザーへ確認する。
 
 ## 2. PR 情報を取得する
@@ -76,8 +85,10 @@ description: >
 ## 4. コメント位置を決める
 
 - 原則として、該当する差分行に対して inline comment を付ける。
+- 各指摘は、可能な限り個別の差分箇所へコメントする。
 - 直接その行に付けられない場合は、同じ hunk 内で最も近い差分行に付ける。
-- 同じファイル内に適切な差分行がない場合は、overall review comment へ落とす。
+- ファイル全体への指摘、複数ファイルをまたぐ設計指摘、削除済み行や GitHub API 制約で差分箇所に付けられない指摘だけ、overall review comment へ落とす。
+- overall review comment は inline comment の代替手段であり、総評や要約のためには使わない。
 - GitHub のレビューコメントは差分に紐づくため、変更されていないファイル先頭へのコメントを前提にしない。
 
 ## 5. コメント文を作る
@@ -87,8 +98,8 @@ description: >
 - 断定しすぎる必要がない論点は、推奨や質問として表現する。
 - 既存実装やプロジェクト規約を根拠にできる場合は、それを短く添える。
 - すべてのコメントに、AI エージェント名を含む識別用メタ情報を必ず入れる。
-- モデル名は既定では含めず、必要な場合のみ実際に使ったモデル名を併記してよい。
-- 識別用メタ情報は人間レビューと混同されない表現にする。例: `<Agent Name> がレビューしました 🤖`
+- モデル名を確実に特定できる場合は、実際に使ったモデル名を併記する。特定できない場合は含めない。
+- 識別用メタ情報は人間レビューと混同されない表現にする。例: `<Agent Name> がレビューしました 🤖`、`<Agent Name> (<Model Name>) がレビューしました 🤖`
 - メタ情報はコメントごとに欠けなく付ける。overall review comment のみで代用しない。
 - 改行を含む本文は、文字列としての `\n` を埋め込まず、GitHub 上でそのまま複数行表示される実改行のテキストとして組み立てる。
 
@@ -100,8 +111,10 @@ description: >
 - 投稿前に、同一内容の既存コメントがないことを再確認する。
 - 投稿前に、すべてのコメント本文へ AI エージェント識別メタ情報が入っていることを確認する。
 - 投稿前に、コメント本文に文字列としての `\n` が残っていないことを確認する。
-- 複数行コメントはシェル引数へ直接埋め込みすぎず、必要なら一時ファイルや JSON 入力を使って本文崩れを避ける。
-- CLI や API の制約で inline comment ができない場合のみ、overall review comment を使う。
+- 複数行コメントや Markdown コメントは、一時ファイル、JSON ファイル、または `gh api --field body=@file` のようなファイル参照で渡す。バッククォート、`$()`、引用符、改行を含む本文をシェル引数へ直接埋め込まない。
+- `gh pr review` が GraphQL の Projects classic などコメント投稿以外の取得エラーで失敗した場合は、可能な範囲で `gh api` の REST / GraphQL 呼び出しへ切り替える。
+- CLI や API の制約、または指摘の性質上 inline comment ができない場合のみ、overall review comment を使う。
+- overall review comment を使う場合は、どの指摘が inline comment にできなかったか分かる本文にする。
 - 投稿後は `gh api` または `gh pr view --comments` で、意図した本文が実際に投稿されていることを確認する。
 
 ## 7. ユーザーへ報告する
@@ -109,26 +122,54 @@ description: >
 - 投稿したコメント件数を伝える。
 - `[must]` がある場合は、その有無だけ簡潔に伝える。
 - 権限不足、`gh` 未認証、差分取得失敗などで未実施部分があれば明記する。
+- 対象 PR の URL または番号、投稿した指摘の要約を簡潔に残す。
+- overall review comment を使った場合は、inline comment にできなかった理由を伝える。
+- この報告では、ユーザーに PR URL や番号の再入力を求めない。次の再チェックで文脈から対象 PR を引き継ぐ。
+
+## 8. FB対応後に再チェックする
+
+- 直前または会話内でこのスキルが投稿したレビュー指摘を再チェック対象にする。
+- ユーザーが再チェックを依頼した場合は、FB対応が完了した合図として扱う。
+- 対象 PR は、会話内に残した PR URL/番号を優先し、なければ現在ブランチ名から特定する。
+- 最新状態を確認するため、`gh pr view --json number,url,title,headRefName,baseRefName,commits` と `gh pr diff` を再取得する。
+- 返信・Resolve の対象を特定するため、`gh api graphql` で `pullRequest.reviewThreads` を取得し、各 thread の `id`、`isResolved`、コメントの `databaseId`、`body`、`path`、`url`、`author` を確認する。
+- 前回このスキルが投稿した指摘は、会話内に残した comment URL / comment ID、AI エージェント識別メタ情報、コメント本文、ファイルパスを手がかりに review thread と対応付ける。
+- 既に `isResolved: true` の thread は原則として再コメントや Resolve 対象から外し、未解決 thread だけを再チェック対象にする。
+- 必要に応じて `git fetch` し、ローカル checkout が古い場合はその旨を報告する。ユーザーの未コミット変更を勝手に上書きしない。
+- 各指摘について、次のどれかに分類する。
+  - `resolved`: 指摘内容が改善されている
+  - `partial`: 一部改善されたが、まだ問題が残っている
+  - `unresolved`: 改善されていない、または別の問題として残っている
+  - `unknown`: 差分や権限の都合で判断できない
+- 再チェック結果はチャットで簡潔に報告する。必要な場合のみ、PR 上の該当スレッドへ追加コメントする。
+- `partial` または `unresolved` の指摘は、該当スレッドに再度コメントし、何がまだ問題かと次に直すべき内容を短く伝える。
+- `resolved` の指摘は、返信できるスレッドであれば改善済みである旨を短く返信し、その review thread を Resolve する。
+- すべての指摘が `resolved` の場合は、返信できるスレッドをすべて返信済みかつ Resolve 済みにする。
+- コメント返信や Resolve ができない指摘がある場合は、overall comment で再チェック完了と対象指摘の状態を伝える。
+- `unknown` の指摘は、判断できなかった理由をチャットで報告し、必要なら overall comment に含める。判断できないまま Resolve しない。
+- 追加コメントや完了コメントを投稿する場合は、重複を避け、改善済みの指摘へ不要な再指摘をしない。
+- `gh pr review --approve`、`gh api` での `APPROVE` review event、その他 PR approval に相当する操作は絶対に実行しない。自分自身のレビューは Approve できずエラーになるため、完了通知は reply / resolve / overall comment で行う。
+- 最終報告では、再コメントした件数、Resolve した件数、overall comment で代替した件数、未解決の有無を簡潔に伝える。
 
 # コメントの分類
 
-- `[must]`
+- `[must]` ⚠️
   - 修正必須
   - バグ、仕様逸脱、セキュリティ懸念、重大な設計不整合、将来的に高確率で障害につながる問題
 
-- `[should]`
+- `[should]` 💡
   - 強く修正を推奨
   - 可読性・保守性・一貫性・拡張性の観点で問題があり、放置コストが高いもの
 
-- `[nit]`
+- `[nit]` ✏️
   - 軽微な指摘
   - タイポ、文言、コメント表現、細かな命名やフォーマットの違和感
 
-- `[ask]`
+- `[ask]` ❓
   - 質問・確認
   - 意図、仕様、背景、将来想定などの確認が必要な場合
 
-- `[imo]`
+- `[imo]` 💭
   - 提案
   - チーム方針や好みに依存しやすく、採否が分かれうる改善案
 
@@ -187,32 +228,27 @@ description: >
 - 改行が必要な場合は、送信 payload に実改行を含む本文を使い、`\\n` を見た目のまま投稿しない
 - すべてのコメントに AI エージェント識別メタ情報を含める
 - メタ情報には、そのレビューを投稿したエージェント名を含める
-- モデル名は既定では出さず、必要な場合のみ実際に使ったモデル名だけを併記する
+- モデル名を確実に特定できる場合は、実際に使ったモデル名を併記する。特定できない場合は含めない
 - メタ情報は本文の先頭または末尾に固定フォーマットで付与し、コメントごとの表記ゆれを避ける
 
 # コメント文例
 
-- `[must] この分岐だと xxx の場合に null 参照になるため、ガードが必要です。`
-  `<Agent Name> がレビューしました 🤖`
-- `[should] この関数は責務が2つ入っているので、yyy の処理は分離したほうが保守しやすいです。`
-  `<Agent Name> がレビューしました 🤖`
-- `[nit] コメントの文言は「取得する」より「読み込む」のほうが他箇所と揃っています。`
-  `<Agent Name> がレビューしました 🤖`
-- `[ask] このケースを許容している意図はありますか。仕様なら問題ありません。`
-  `<Agent Name> がレビューしました 🤖`
-- `[imo] 個人的にはこのロジックは service 側に寄せたほうが自然に見えます。`
-  `<Agent Name> がレビューしました 🤖`
+- `[must] ⚠️ この分岐だと xxx の場合に null 参照になるため、ガードが必要です。`
+- `[should] 💡 この関数は責務が2つ入っているので、yyy の処理は分離したほうが保守しやすいです。`
+- `[nit] ✏️ コメントの文言は「取得する」より「読み込む」のほうが他箇所と揃っています。`
+- `[ask] ❓ このケースを許容している意図はありますか。仕様なら問題ありません。`
+- `[imo] 💭 個人的にはこのロジックは service 側に寄せたほうが自然に見えます。`
 
 # メタ情報ルール
 
 - AI エージェントが投稿したレビューであることを、各コメント本文だけで判別できるようにする。
 - メタ情報には少なくともエージェント名を含める。
-- モデル名は任意で含めてよいが、既定では含めない。
+- モデル名を確実に特定できる場合は含める。特定できない場合は含めない。
 - エージェント名は実際にレビューを投稿した実行主体に合わせて差し替える。
 - モデル名を含める場合は、実際に使用したモデル名に差し替える。
 - プレースホルダーをそのまま投稿しない。投稿前に実際のエージェント名へ置換する。
-- 推奨フォーマットは ``<Agent Name> がレビューしました 🤖`` とする。
-- モデル名を出す必要がある運用では ``<Agent Name> (<Model Name>) がレビューしました 🤖`` を使う。
+- モデル名を含める場合の推奨フォーマットは ``<Agent Name> (<Model Name>) がレビューしました 🤖`` とする。
+- モデル名を含めない場合は ``<Agent Name> がレビューしました 🤖`` を使う。
 - 既存運用で別フォーマットが必要な場合も、人間レビューと見分けられることを優先する。
 
 # 品質チェック
@@ -221,9 +257,15 @@ description: >
 - PR 情報の取得、差分レビュー、コメント投稿、報告までの手順が上から順に実行できる
 - GitHub の inline comment 制約に合わない指示が入っていない
 - コメント重複の回避が手順に含まれている
-- 総評だけで終わらず、PR 上へコメントを付けることが成果物として明記されている
+- 総評だけで終わらず、差分上の inline comment を基本成果物として明記されている
+- overall review comment は、差分箇所に紐づけられない指摘の代替に限定されている
+- FB対応後の再チェックで、未改善の指摘へ再コメントし、改善済みの指摘へ返信して Resolve する手順が含まれている
+- 再チェック時に `pullRequest.reviewThreads` を取得し、前回投稿コメントと review thread ID / resolved 状態を対応付ける手順が含まれている
+- 返信や Resolve ができない場合、overall comment で完了状態を伝える手順が含まれている
+- PR approval に相当する操作を決して実行しないルールが含まれている
 - すべてのコメントに AI エージェント識別メタ情報を付けるルールが含まれている
 - コメント本文の改行を実改行で扱い、`\\n` をそのまま投稿しないルールが含まれている
+- Markdown コメント本文をシェル引数へ直接埋め込まず、ファイル参照または JSON 入力で渡すルールが含まれている
 
 # 参考資料
 
