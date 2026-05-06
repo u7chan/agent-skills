@@ -1,6 +1,6 @@
 # agent skills
 
-AI エージェント用のカスタムスキル集です。
+コーディングエージェント用のカスタムスキル集です。
 
 ## Available Skills
 
