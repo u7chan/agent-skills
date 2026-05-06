@@ -14,7 +14,8 @@ AI エージェント用のカスタムスキル集です。
 | [git-commit-message](git-commit-message/) | コミットメッセージを提案する |
 | [github-issue-create-from-plan](github-issue-create-from-plan/) | 設計プラン合意後に GitHub Issue を作成する |
 | [github-pr-create](github-pr-create/) | PR 本文生成を含めて GitHub に PR を作成する |
-| [github-pr-review](github-pr-review/) | 指定した GitHub PR をレビューし、PR 上にコメントを投稿する |
+| [github-pr-feedback-address](github-pr-feedback-address/) | GitHub PR のレビュー指摘を確認し、実装対応から push まで行う |
+| [github-pr-review](github-pr-review/) | 指定した GitHub PR をレビューし、FB 対応後の再チェックまで行う |
 | [github-pr-comment-reply](github-pr-comment-reply/) | GitHub PR の review comment や conversation comment に返信する |
 
 ### 実装フロー
