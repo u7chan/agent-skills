@@ -1,13 +1,13 @@
 ---
 name: github-pr-feedback-address
 description: >
-  Use this when asked to address feedback on an existing GitHub Pull Request, including casual requests like "PRのFBおねがい", "PRのコメントみて", "レビューコメント対応して", "FB対応して", or requests made after a PR has been opened and review comments are expected. Finds the current PR from the provided PR URL/number or current branch, inspects unresolved review feedback, implements fixes, validates, commits, pushes, and leaves the PR ready for recheck.
+  Use this when asked to address feedback on an existing GitHub Pull Request, including casual requests like "PRのFBおねがい", "PRのコメントみて", "レビューコメント対応して", "FB対応して", or requests made after a PR has been opened and review comments are expected. Finds the current PR from the provided PR URL/number or current branch, inspects unresolved review feedback, implements fixes, validates, commits, pushes, and replies to the addressed feedback comments.
 ---
 
 # 概要
 
 GitHub PR に付いた review comments / conversation comments を確認し、指摘内容に沿ってコードを修正するためのスキル。
-コメントへの完了返信や Resolve は `github-pr-review` の再チェック側に任せ、このスキルは実装対応、検証、コミット、push、再チェック依頼までを担当する。
+このスキルは実装対応、検証、コミット、push、対応した feedback コメントへの返信までを担当する。
 
 # このスキルを使用するタイミング
 
@@ -29,18 +29,20 @@ GitHub PR に付いた review comments / conversation comments を確認し、�
 - 指摘に対応するコード変更
 - 必要な検証結果
 - 対応コミットと push 済みブランチ
+- 対応した feedback コメントへの返信
 - ユーザーへの簡潔な報告
   - 対応した指摘
   - 対応しなかった指摘と理由
   - 実行した検証
-  - `github-pr-review` で再チェックできる状態であること
+  - 返信したコメント
 
 # 前提
 
 - GitHub 連携は `gh` CLI / `gh api` を優先して使い、GitHub コネクタには依存しない。コネクタと `gh` は認証主体や権限が異なるため、PR 取得や更新で 403 になることがある。
 - 作業前に `gh auth status` を確認する。
 - ユーザーの未コミット変更や無関係な変更を勝手に取り込まない。
-- review thread の Resolve、改善済み返信、Approve は行わない。これらは再チェック側の `github-pr-review` に任せる。
+- review thread の Resolve と Approve は行わない。
+- 対応した feedback コメントには、対応内容や未対応理由が分かる返信を投稿する。
 - PR approval に相当する操作は絶対に実行しない。
 
 # Agentが行うこと
@@ -52,7 +54,8 @@ GitHub PR に付いた review comments / conversation comments を確認し、�
 5. 必要なテスト・lint・型チェックを実行する。
 6. 変更を確認し、対応内容だけを commit する。
 7. ブランチを push する。
-8. 対応結果を報告し、`github-pr-review` で再チェックできる状態にする。
+8. 対応した feedback コメントへ返信する。
+9. 対応結果を報告する。
 
 # ステップの詳細
 
@@ -116,22 +119,32 @@ GitHub PR に付いた review comments / conversation comments を確認し、�
 - upstream がなければ `git push -u origin "$BRANCH"` を使う。
 - push に失敗した場合は理由を報告し、勝手に force push しない。
 
-## 8. 報告する
+## 8. feedback コメントへ返信する
+
+- 対応した review comment には threaded reply を投稿する。
+- 対応した top-level PR conversation comment には follow-up comment を投稿する。
+- 返信本文には、対応内容、関連 commit、検証結果を簡潔に含める。
+- 未対応、判断不能、質問が必要な feedback には、必要に応じて理由や確認事項を返信する。
+- 返信対象と投稿方法は `github-pr-comment-reply/SKILL.md` の方針に従う。
+- review thread の Resolve と Approve は行わない。
+
+## 9. 報告する
 
 - 対応した feedback を簡潔に列挙する。
 - 未対応、判断不能、質問が必要な feedback があれば理由を添える。
 - 実行した検証と結果を伝える。
 - commit hash と PR URL を伝える。
-- 最後に、再チェックは `github-pr-review` 側で行う前提として、ユーザーが `OK` / `どうぞ` / `再チェックして` と送れば確認できる状態であることを伝える。
-- このスキル自身では review thread の Resolve、改善済み返信、Approve を行わない。
+- 返信したコメントを伝える。
+- このスキル自身では review thread の Resolve と Approve を行わない。
 
 # 品質チェック
 
 - `description` を読むだけで、「PRのFBおねがい」「PRのコメントみて」で発火すべきことが分かる
 - PR URL/番号がなくても現在ブランチから PR を特定する手順がある
-- review feedback の収集、分類、実装、検証、commit、push、報告までの流れがある
+- review feedback の収集、分類、実装、検証、commit、push、返信、報告までの流れがある
 - 無関係な変更を commit しないルールがある
-- Resolve / 改善済み返信 / Approve をこのスキルで行わないルールがある
+- 対応した feedback コメントへ返信するルールがある
+- Resolve / Approve をこのスキルで行わないルールがある
 - GitHub コネクタに依存せず `gh` / `gh api` の認証で進めるルールがある
 
 # 参考資料
