@@ -2,7 +2,7 @@
 name: github-pr-review
 description: >
   Use this when asked to review a specific GitHub Pull Request and leave review comments on the PR itself.
-  Trigger this skill when the user provides a PR number or URL, says casual review requests like "レビューして", "PRレビューして", or "このPR見て", or explicitly asks you to review and comment on a GitHub PR instead of only summarizing findings in chat. Also trigger after this skill has posted review feedback and the user replies with "OK", "どうぞ", "再チェックして", or similar to confirm that feedback has been addressed and should be rechecked.
+  Trigger this skill when the user provides a PR number or URL, says casual review requests like "レビューして", "PRレビューして", or "このPR見て", or explicitly asks you to review and comment on a GitHub PR instead of only summarizing findings in chat. Also trigger when the user asks to recheck feedback previously posted by this skill.
 ---
 
 # 概要
@@ -16,7 +16,7 @@ description: >
 - PR 文脈で、ユーザーが「レビューして」「このPR見て」など短くレビューを依頼した時
 - ユーザーが「GitHub 上にコメントしてほしい」と明示した時
 - チャット要約だけでなく、PR へ inline comment を残すことが成果物として求められている時
-- このスキルで指摘コメントを投稿した後、ユーザーが「OK」「どうぞ」「再チェックして」など、FB対応完了後の再確認を促した時
+- このスキルで指摘コメントを投稿した後、ユーザーが FB 対応完了後の再確認を依頼した時
 
 # 入力と出力
 
@@ -35,14 +35,12 @@ description: >
 
 ## 出力
 
-- GitHub PR 上の review comments
-- FB対応後の再チェック結果に応じた review thread への返信、Resolve、または overall comment
-- 必要な場合のみ overall review comment
+- GitHub PR 上の inline review comments
+- 差分箇所に紐づけられない指摘がある場合のみ、代替としての overall review comment
 - ユーザーへの簡潔な報告
   - 何件コメントしたか
   - 重大な指摘があるか
   - 実行できなかった操作があるか
-  - 指摘投稿後は、FB対応完了後に `OK` や `どうぞ` で再チェックできること
 - 各コメントに、AI エージェントが投稿したと識別できるメタ情報
 
 # Agentが行うこと
@@ -50,11 +48,11 @@ description: >
 1. 対象 PR とレビュー対象リポジトリを特定する。
 2. PR の概要、差分、既存コメントを取得する。
 3. 差分を読み、バグ・仕様逸脱・保守性低下・テスト不足を優先して指摘候補を作る。
-4. 各指摘が inline comment 可能か確認し、可能なら差分上の行へ紐づける。
+4. 各指摘を原則として差分上の行へ inline comment として紐づける。
 5. コメント文を簡潔に整え、重要度ラベルを付ける。
 6. 重複投稿を避けたうえで GitHub PR にコメントを投稿する。
-7. 投稿結果と未解決事項をユーザーへ報告し、FB対応後の再チェック待ちにする。
-8. ユーザーが `OK` や `どうぞ` で再チェックを促した場合は、元の指摘が改善されたか確認する。
+7. 投稿結果と未解決事項をユーザーへ報告する。
+8. ユーザーが再チェックを促した場合は、元の指摘が改善されたか確認する。
 
 # ステップの詳細
 
@@ -87,8 +85,10 @@ description: >
 ## 4. コメント位置を決める
 
 - 原則として、該当する差分行に対して inline comment を付ける。
+- 各指摘は、可能な限り個別の差分箇所へコメントする。
 - 直接その行に付けられない場合は、同じ hunk 内で最も近い差分行に付ける。
-- 同じファイル内に適切な差分行がない場合は、overall review comment へ落とす。
+- ファイル全体への指摘、複数ファイルをまたぐ設計指摘、削除済み行や GitHub API 制約で差分箇所に付けられない指摘だけ、overall review comment へ落とす。
+- overall review comment は inline comment の代替手段であり、総評や要約のためには使わない。
 - GitHub のレビューコメントは差分に紐づくため、変更されていないファイル先頭へのコメントを前提にしない。
 
 ## 5. コメント文を作る
@@ -113,7 +113,8 @@ description: >
 - 投稿前に、コメント本文に文字列としての `\n` が残っていないことを確認する。
 - 複数行コメントや Markdown コメントは、一時ファイル、JSON ファイル、または `gh api --field body=@file` のようなファイル参照で渡す。バッククォート、`$()`、引用符、改行を含む本文をシェル引数へ直接埋め込まない。
 - `gh pr review` が GraphQL の Projects classic などコメント投稿以外の取得エラーで失敗した場合は、可能な範囲で `gh api` の REST / GraphQL 呼び出しへ切り替える。
-- CLI や API の制約で inline comment ができない場合のみ、overall review comment を使う。
+- CLI や API の制約、または指摘の性質上 inline comment ができない場合のみ、overall review comment を使う。
+- overall review comment を使う場合は、どの指摘が inline comment にできなかったか分かる本文にする。
 - 投稿後は `gh api` または `gh pr view --comments` で、意図した本文が実際に投稿されていることを確認する。
 
 ## 7. ユーザーへ報告する
@@ -121,14 +122,14 @@ description: >
 - 投稿したコメント件数を伝える。
 - `[must]` がある場合は、その有無だけ簡潔に伝える。
 - 権限不足、`gh` 未認証、差分取得失敗などで未実施部分があれば明記する。
-- 対象 PR の URL または番号、投稿した指摘の要約、再チェック待ちであることを簡潔に残す。
-- 最後に、FB対応が終わったら `OK` や `どうぞ` と送れば再チェックする旨を伝える。
+- 対象 PR の URL または番号、投稿した指摘の要約を簡潔に残す。
+- overall review comment を使った場合は、inline comment にできなかった理由を伝える。
 - この報告では、ユーザーに PR URL や番号の再入力を求めない。次の再チェックで文脈から対象 PR を引き継ぐ。
 
 ## 8. FB対応後に再チェックする
 
 - 直前または会話内でこのスキルが投稿したレビュー指摘を再チェック対象にする。
-- ユーザーが `OK`、`どうぞ`、`再チェックして` などと送った場合は、FB対応が完了した合図として扱う。
+- ユーザーが再チェックを依頼した場合は、FB対応が完了した合図として扱う。
 - 対象 PR は、会話内に残した PR URL/番号を優先し、なければ現在ブランチ名から特定する。
 - 最新状態を確認するため、`gh pr view --json number,url,title,headRefName,baseRefName,commits` と `gh pr diff` を再取得する。
 - 返信・Resolve の対象を特定するため、`gh api graphql` で `pullRequest.reviewThreads` を取得し、各 thread の `id`、`isResolved`、コメントの `databaseId`、`body`、`path`、`url`、`author` を確認する。
@@ -256,7 +257,8 @@ description: >
 - PR 情報の取得、差分レビュー、コメント投稿、報告までの手順が上から順に実行できる
 - GitHub の inline comment 制約に合わない指示が入っていない
 - コメント重複の回避が手順に含まれている
-- 総評だけで終わらず、PR 上へコメントを付けることが成果物として明記されている
+- 総評だけで終わらず、差分上の inline comment を基本成果物として明記されている
+- overall review comment は、差分箇所に紐づけられない指摘の代替に限定されている
 - FB対応後の再チェックで、未改善の指摘へ再コメントし、改善済みの指摘へ返信して Resolve する手順が含まれている
 - 再チェック時に `pullRequest.reviewThreads` を取得し、前回投稿コメントと review thread ID / resolved 状態を対応付ける手順が含まれている
 - 返信や Resolve ができない場合、overall comment で完了状態を伝える手順が含まれている
