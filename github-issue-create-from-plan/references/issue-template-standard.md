@@ -14,6 +14,8 @@
 | Data shape / データ構造 | TypeScript, JSON, SQL, or schema code block |
 | Core logic / 主要ロジック | Source-like pseudocode or small code snippet |
 
+Plan 原文にサンプル例、コードブロック、表、Mermaid、具体的な入出力例がある場合は、要約で消さずに原文に近い形で残す。主な配置先は `Design Details / 設計詳細` とし、補足的な例だけ `Notes / 補足` に置く。
+
 ## 本文テンプレート
 
     ## Overview / 概要
@@ -54,6 +56,7 @@
     - Mermaid ERD for database relationships
     - TypeScript, JSON, SQL, or schema code block for data structures
     - Source-like pseudocode or code snippet for important logic
+    Replace the placeholder examples below with concrete examples from the confirmed plan.
     -->
 
     ```mermaid
@@ -119,3 +122,5 @@
 - ユーザーが README や `AGENTS.md` の更新を求めている場合は `### Documentation / ドキュメント` に明記する。
 - `Related Issues/PRs / 関連Issue・PR` は関連がなければ `None` と書く。
 - 設計記述は表に従い、Mermaid・コードブロック・擬似コードのいずれかを必ず含める。
+- Plan 原文のサンプル例、コードブロック、表、Mermaid、具体的な入出力例は削らず、実装判断に必要か迷う場合は残す。
+- 本文テンプレート内の Mermaid や TypeScript はプレースホルダーなので、実際の Issue では Plan 原文の具体例で置き換える。
