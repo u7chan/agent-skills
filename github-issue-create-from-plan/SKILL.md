@@ -21,7 +21,7 @@ description: >
 2. 不明点があればプランに影響する事項だけを確認する。
 3. 決定完了なプランを `<proposed_plan>` ブロックで提示する。
 4. 現在モードを判断し、plan の場合だけ Edit/Auto への切替案内を出す。
-5. edit または auto の場合は、Issue の規模を判定し、`references/` 配下のテンプレートを **片方だけ** 読み込む。
+5. edit または auto の場合は、Issue の規模を判定し、`references/` 配下のテンプレートを **片方だけ** 読み込む。保持対象が多い、または設計判断を含む場合は Standard に切り替える。
 6. edit または auto の場合は、確定済みプランの原文から、Issue に残すべき具体例を抽出する。
 7. edit または auto の場合は、確定済みプランと抽出した具体例を基に Issue タイトルと本文を作る。
 8. edit または auto の場合は、`gh issue create` を実行する。

@@ -17,6 +17,7 @@
     Include this section only when the confirmed plan contains examples,
     code blocks, tables, Mermaid, or concrete input/output samples.
     Keep those details close to the original wording.
+    Place code blocks, tables, Mermaid, or concrete examples here.
     -->
 
     ## Testing / テスト
