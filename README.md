@@ -22,7 +22,7 @@
 
 | Skill | Description |
 |-------|-------------|
-| [github-implement-pr](github-implement-pr/) | Issue 確認から実装、検証、コミット、push、PR 作成まで自動で進める |
+| [github-implement-pr](github-implement-pr/) | 既存スキルを参照しつつ Issue 確認から PR 作成まで進める |
 
 ### 依存パッケージ更新
 
