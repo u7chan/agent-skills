@@ -30,9 +30,9 @@ GitHub Issue または実装指示を受け、作業ブランチ作成、実装�
 
 # 参照するスキル
 
-- ブランチ作成: `git-branch-create/SKILL.md`
-- コミットメッセージ作成: `git-commit-message/SKILL.md`
-- push / PR 作成: `github-pr-create/SKILL.md`
+- ブランチ作成: `../git-branch-create/SKILL.md`
+- コミットメッセージ作成: `../git-commit-message/SKILL.md`
+- push / PR 作成: `../github-pr-create/SKILL.md`
 
 Issue 確認、実装、品質確認は専用スキルへ分けず、このスキル内の手順に従う。
 
@@ -58,7 +58,7 @@ Issue 確認、実装、品質確認は専用スキルへ分けず、このス�
 
 ## 2. ベースブランチと作業ブランチを用意する
 
-- `git-branch-create/SKILL.md` を読み、ブランチ名の生成ルールと作成手順を適用する。
+- `../git-branch-create/SKILL.md` を読み、ブランチ名の生成ルールと作成手順を適用する。
 - 現在のブランチを `git branch --show-current` で確認する。
 - ベースブランチを解決する前に `git fetch origin` を実行し、リモート状態を更新する。
 - ベースブランチは `origin/HEAD` を優先し、取れない場合は `main`、`master`、`develop` の順で存在するものを使う。
@@ -84,14 +84,14 @@ Issue 確認、実装、品質確認は専用スキルへ分けず、このス�
 
 ## 5. コミットする
 
-- `git-commit-message/SKILL.md` を読み、コミットメッセージの生成ルールを適用する。
+- `../git-commit-message/SKILL.md` を読み、コミットメッセージの生成ルールを適用する。
 - `git diff` と `git status --short` を確認し、今回の変更だけを stage する。
 - コミットは原則 1 つ。独立してレビューできる大きな変更だけ複数コミットにする。
 - 参照先スキルの `fb:` ルールは PR レビュー指摘への対応時だけ使う。通常の Issue 実装では Conventional Commits 形式を使う。
 
 ## 6. push して PR を作成する
 
-- `github-pr-create/SKILL.md` を読み、push と PR 作成の手順を適用する。
+- `../github-pr-create/SKILL.md` を読み、push と PR 作成の手順を適用する。
 - PR タイトルはコミットまたは Issue 内容から短く具体的に作る。
 - PR 本文は次の構造を基本にする。Issue がない場合は `Issues` を省略する。参照先スキルのテンプレートと衝突する場合は、この構造を優先して `PR_BODY` として渡す。
 
