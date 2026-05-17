@@ -36,7 +36,9 @@ basename "$(pwd)"
 - 命令形（add, fix, update など）
 - 小文字で記述（API などの頭字語は例外）
 - プレフィックス: `feat:` `fix:` `docs:` `style:` `refactor:` `test:` `chore:`
+- PR レビュー指摘への対応コミットでは、変更種別よりも feedback 対応であることを優先して `fb:` を使う
 - モノレポの場合: スコープ付き `feat(scope):` `fix(scope):` など
+- `fb:` でもスコープは通常ルールに従う。モノレポでは feedback ではなく対象プロジェクトや対象スキルを scope に入れる
 
 **本文（英語で記述）:**
 - 何を変更したか、および なぜ変更したかを説明
