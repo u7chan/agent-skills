@@ -2,14 +2,14 @@
 name: github-implement-pr
 description: >
   Use this when the user asks to implement a GitHub Issue or implementation task
-  and expects the agent to keep moving through branch creation, code changes,
-  validation, commits, push, and pull request creation without delegating to
-  other skills.
+  and expects the agent to coordinate branch creation, code changes, validation,
+  commits, push, and pull request creation by referencing the relevant workflow
+  skills at each step.
 ---
 
 # 概要
 
-GitHub Issue または実装指示を受け、作業ブランチ作成、実装、検証、コミット、push、PR 作成までを単体で進めるスキル。基本方針は「失敗時だけ停止」。ユーザー確認を細かく挟まず、完了まで進める。
+GitHub Issue または実装指示を受け、作業ブランチ作成、実装、検証、コミット、push、PR 作成までを進める入口スキル。既存スキルがある工程では該当スキルを参照し、専用スキルがない工程だけこのスキル内の手順で進める。基本方針は「失敗時だけ停止」。ユーザー確認を細かく挟まず、完了まで進める。
 
 # 使用タイミング
 
@@ -23,9 +23,18 @@ GitHub Issue または実装指示を受け、作業ブランチ作成、実装�
 - 目的、受け入れ条件、影響範囲が十分に分かる場合は、ユーザー確認なしでブランチ作成から PR 作成まで進める。
 - `main`、`master`、`develop` では直接実装せず、必ず作業ブランチを作る。
 - 無関係な未コミット変更は勝手に取り込まない。必要な変更だけを stage/commit する。
-- 他のスキルへ委譲しない。このスキル内の手順だけで完結させる。
+- 既存スキルがある工程では、該当スキルを読み、その工程の具体手順として適用する。
+- 参照先スキルにユーザー確認を挟む通常運用があっても、このスキルでは停止条件に当たらない限り確認せず進める。
 - PR 作成・本文更新は `gh` / `gh api` で行い、GitHub コネクタは使わない。コネクタは `gh` のユーザー認証と権限が異なるため、PR 更新で 403 になることがある。
 - PR 本文、Issue 本文、コメント本文などの Markdown 長文は必ずファイル経由で渡す。バッククォートや `$()` を含む本文を `--body "..."` や `--field body="$(cat ...)"` へ直接埋め込まない。
+
+# 参照するスキル
+
+- ブランチ作成: `../git-branch-create/SKILL.md`
+- コミットメッセージ作成: `../git-commit-message/SKILL.md`
+- push / PR 作成: `../github-pr-create/SKILL.md`
+
+Issue 確認、実装、品質確認は専用スキルへ分けず、このスキル内の手順に従う。
 
 # 停止条件
 
@@ -49,6 +58,7 @@ GitHub Issue または実装指示を受け、作業ブランチ作成、実装�
 
 ## 2. ベースブランチと作業ブランチを用意する
 
+- `../git-branch-create/SKILL.md` を読み、ブランチ名の生成ルールと作成手順を適用する。
 - 現在のブランチを `git branch --show-current` で確認する。
 - ベースブランチを解決する前に `git fetch origin` を実行し、リモート状態を更新する。
 - ベースブランチは `origin/HEAD` を優先し、取れない場合は `main`、`master`、`develop` の順で存在するものを使う。
@@ -56,15 +66,7 @@ GitHub Issue または実装指示を受け、作業ブランチ作成、実装�
 - 既に作業ブランチ上にいる場合は、再利用前に `git log <base>..HEAD`、upstream、既存 PR を確認する。
 - 既存ブランチに今回の作業以外のコミットや別 PR の変更が含まれる場合は、ベースブランチから新しい作業ブランチを作る。
 - 既存ブランチが今回の作業だけを含み、名前も適切な場合だけそのまま使う。
-- ブランチ名は `<type>/<description>` を標準にする。Issue がある場合は `issue-123` を含める。
-- `type` は `feature`、`fix`、`docs`、`refactor`、`test`、`chore` から選ぶ。
-- 説明部分は英小文字とハイフンで 3〜5 語にする。
-
-例:
-
-```bash
-git switch -c fix/issue-123-login-error
-```
+- ブランチ名は参照先スキルの形式に従う。Issue がある場合は `issue-123` を含める。
 
 ## 3. 実装する
 
@@ -82,24 +84,16 @@ git switch -c fix/issue-123-login-error
 
 ## 5. コミットする
 
+- `../git-commit-message/SKILL.md` を読み、コミットメッセージの生成ルールを適用する。
 - `git diff` と `git status --short` を確認し、今回の変更だけを stage する。
 - コミットは原則 1 つ。独立してレビューできる大きな変更だけ複数コミットにする。
-- コミットメッセージは英語の Conventional Commits 形式にする。
-- タイトルは 60 文字以内を目安にし、本文には何を変えたか、なぜ必要かを簡潔に書く。
-
-例:
-
-```bash
-git commit -m "fix: handle missing login redirect" -m "Update the login flow to keep redirects stable when the callback query is absent."
-```
+- 参照先スキルの `fb:` ルールは PR レビュー指摘への対応時だけ使う。通常の Issue 実装では Conventional Commits 形式を使う。
 
 ## 6. push して PR を作成する
 
-- `gh auth status` で認証状態を確認する。
-- `BASE..HEAD` に PR 対象コミットがあることを確認する。
-- リモートに現在のブランチがなければ `git push -u origin <branch>` を実行する。既にあれば通常の `git push` を実行する。
+- `../github-pr-create/SKILL.md` を読み、push と PR 作成の手順を適用する。
 - PR タイトルはコミットまたは Issue 内容から短く具体的に作る。
-- PR 本文は次の構造を基本にする。Issue がない場合は `Issues` を省略する。
+- PR 本文は次の構造を基本にする。Issue がない場合は `Issues` を省略する。参照先スキルのテンプレートと衝突する場合は、この構造を優先して `PR_BODY` として渡す。
 
 ```markdown
 ## Issues
@@ -125,8 +119,6 @@ git commit -m "fix: handle missing login redirect" -m "Update the login flow to 
 ```
 
 - Issue を閉じる意図が明確なら `Close #123`、関連付けのみなら `Refs #123` を使う。
-- Markdown 本文は一時ファイルに書き、`gh pr create --body-file` で渡す。`gh pr create --body "..."` は使わない。
-- PR 本文を作成後に直す必要がある場合は、同じ本文ファイルを使って `gh pr edit --body-file "$FILE"` を試す。`gh pr edit` が GraphQL の Projects classic など本文更新以外の取得エラーで失敗した場合は、`gh api repos/<owner>/<repo>/pulls/<number> --method PATCH --field body=@"$FILE"` に切り替える。
 - 作成後に `gh pr view --json title,body,url` で結果を確認し、PR URL を最終報告に含める。
 
 # 最終報告
@@ -136,9 +128,10 @@ git commit -m "fix: handle missing login redirect" -m "Update the login flow to 
 
 # 品質チェック
 
-- [ ] 他スキルへの委譲や参照なしで、Issue 確認から PR 作成まで完結する
+- [ ] 既存スキルがある工程では、該当スキルを参照する
+- [ ] Issue 確認、実装、品質確認は、このスキル内の手順で完結する
 - [ ] 失敗時だけ停止する方針が明記されている
-- [ ] ブランチ名、コミットメッセージ、PR 本文の生成規則が明記されている
+- [ ] ブランチ名、コミットメッセージ、PR 作成は既存スキルへの参照先が明記されている
 - [ ] `main`、`master`、`develop` への直接実装と直接 push を避ける
 - [ ] 無関係な変更を stage/commit しない
 - [ ] PR 本文は `--body-file`、本文更新は `--body-file` または `gh api --field body=@file` で安全に渡す
