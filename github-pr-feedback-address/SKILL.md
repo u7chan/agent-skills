@@ -113,6 +113,7 @@ GitHub PR に付いた review comments / conversation comments を確認し、�
 - commit message の生成には必ず `git-commit-message/SKILL.md` を使い、そのワークフローに従う。
 - `git-commit-message` 側に `git add .` の例があっても、このスキルでは使わない。stage 対象は必ずこのスキルで行った変更だけに限定する。
 - commit message は `git-commit-message` のルールに従い、feedback 対応であることが分かる Conventional Commits 形式にする。
+- feedback 対応であることは原則として scope の `feedback` で明示し、type は実際の変更内容に合わせる（例: `fix(feedback): ...`、ドキュメントのみなら `docs(feedback): ...`）。
 - コミット済みの変更が既にある場合は、必要に応じて新しい commit を追加する。既存 commit を勝手に amend / rebase しない。
 
 ## 7. push する
