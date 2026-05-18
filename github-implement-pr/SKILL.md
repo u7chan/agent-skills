@@ -2,14 +2,14 @@
 name: github-implement-pr
 description: >
   Use this when the user asks to implement a GitHub Issue or implementation task
-  and expects the agent to coordinate branch creation, code changes, validation,
-  commits, push, and pull request creation by referencing the relevant workflow
-  skills at each step.
+  and expects the agent to coordinate worktree creation, code changes,
+  validation, commits, push, and pull request creation by referencing the
+  relevant workflow skills at each step.
 ---
 
 # 概要
 
-GitHub Issue または実装指示を受け、作業ブランチ作成、実装、検証、コミット、push、PR 作成までを進める入口スキル。既存スキルがある工程では該当スキルを参照し、専用スキルがない工程だけこのスキル内の手順で進める。基本方針は「失敗時だけ停止」。ユーザー確認を細かく挟まず、完了まで進める。
+GitHub Issue または実装指示を受け、作業用 worktree 作成、実装、検証、コミット、push、PR 作成までを進める入口スキル。既存スキルがある工程では該当スキルを参照し、専用スキルがない工程だけこのスキル内の手順で進める。基本方針は「失敗時だけ停止」。ユーザー確認を細かく挟まず、完了まで進める。
 
 # 使用タイミング
 
@@ -20,8 +20,9 @@ GitHub Issue または実装指示を受け、作業ブランチ作成、実装�
 # 基本方針
 
 - 既存コード、Issue、会話から要求と完了条件を読み取り、探索で解決できる不明点は質問せず調べる。
-- 目的、受け入れ条件、影響範囲が十分に分かる場合は、ユーザー確認なしでブランチ作成から PR 作成まで進める。
-- `main`、`master`、`develop` では直接実装せず、必ず作業ブランチを作る。
+- 目的、受け入れ条件、影響範囲が十分に分かる場合は、ユーザー確認なしで worktree 作成から PR 作成まで進める。
+- `main`、`master`、`develop` では直接実装せず、必ず作業用 worktree を作る。
+- 既存ブランチや既存 worktree の再利用は、今回の作業専用だと判断できる場合だけ行う。
 - 無関係な未コミット変更は勝手に取り込まない。必要な変更だけを stage/commit する。
 - 既存スキルがある工程では、該当スキルを読み、その工程の具体手順として適用する。
 - 参照先スキルにユーザー確認を挟む通常運用があっても、このスキルでは停止条件に当たらない限り確認せず進める。
@@ -30,7 +31,8 @@ GitHub Issue または実装指示を受け、作業ブランチ作成、実装�
 
 # 参照するスキル
 
-- ブランチ作成: `../git-branch-create/SKILL.md`
+- 作業用 worktree 作成: `../git-worktree-create/SKILL.md`
+- ブランチ名生成: `../git-branch-create/SKILL.md`
 - コミットメッセージ作成: `../git-commit-message/SKILL.md`
 - push / PR 作成: `../github-pr-create/SKILL.md`
 
@@ -42,7 +44,7 @@ Issue 確認、実装、品質確認は専用スキルへ分けず、このス�
 
 - 要求、完了条件、対象リポジトリ、対象 Issue が特定できない。
 - 破壊的操作、履歴改変、無関係な変更の巻き込みが必要になる。
-- 既存の作業ツリー変更が実装対象と衝突し、安全に分離できない。
+- 既存ブランチや既存 worktree が今回の作業専用か判断できず、安全に分離できない。
 - lint、test、build などの品質確認が失敗し、自力で修正できない。
 - `gh` が未インストール、未認証、または権限不足。
 - push や PR 作成が失敗し、原因が認証、権限、保護ルールなどユーザー側の対応を必要とする。
@@ -56,16 +58,14 @@ Issue 確認、実装、品質確認は専用スキルへ分けず、このス�
 - 設計合意が必要なほど要求が曖昧な場合は停止する。自動で Issue 化しない。
 - 実装前に `git status --short` を確認し、既存変更の有無と今回触ってよい範囲を把握する。
 
-## 2. ベースブランチと作業ブランチを用意する
+## 2. ベースブランチと作業用 worktree を用意する
 
-- `../git-branch-create/SKILL.md` を読み、ブランチ名の生成ルールと作成手順を適用する。
-- 現在のブランチを `git branch --show-current` で確認する。
-- ベースブランチを解決する前に `git fetch origin` を実行し、リモート状態を更新する。
-- ベースブランチは `origin/HEAD` を優先し、取れない場合は `main`、`master`、`develop` の順で存在するものを使う。
-- 保護対象ブランチ上にいる場合は、ベースブランチから作業ブランチを作る。
-- 既に作業ブランチ上にいる場合は、再利用前に `git log <base>..HEAD`、upstream、既存 PR を確認する。
-- 既存ブランチに今回の作業以外のコミットや別 PR の変更が含まれる場合は、ベースブランチから新しい作業ブランチを作る。
-- 既存ブランチが今回の作業だけを含み、名前も適切な場合だけそのまま使う。
+- `../git-worktree-create/SKILL.md` を読み、作業用 worktree の作成手順を適用する。
+- `git-worktree-create` から `../git-branch-create/SKILL.md` のブランチ名生成ルールを参照する。
+- 現在の作業ツリーでは `git switch` しない。実装、検証、コミット、push、PR 作成は作成した worktree 内で行う。
+- worktree の既定パスは `../<repo-name>-worktrees/<branch-slug>` とする。
+- ベースブランチは `origin/HEAD` を優先し、取れない場合は `origin/main`、`origin/master`、`origin/develop` の順で存在するものを使う。
+- 既存ブランチや既存 worktree は、今回の作業専用だと判断できる場合だけ再利用する。
 - ブランチ名は参照先スキルの形式に従う。Issue がある場合は `issue-123` を含める。
 
 ## 3. 実装する
@@ -84,14 +84,14 @@ Issue 確認、実装、品質確認は専用スキルへ分けず、このス�
 
 ## 5. コミットする
 
-- `../git-commit-message/SKILL.md` を読み、コミットメッセージの生成ルールを適用する。
+- 作成した worktree 内で `../git-commit-message/SKILL.md` を読み、コミットメッセージの生成ルールを適用する。
 - `git diff` と `git status --short` を確認し、今回の変更だけを stage する。
 - コミットは原則 1 つ。独立してレビューできる大きな変更だけ複数コミットにする。
 - 参照先スキルの `fb:` ルールは PR レビュー指摘への対応時だけ使う。通常の Issue 実装では Conventional Commits 形式を使う。
 
 ## 6. push して PR を作成する
 
-- `../github-pr-create/SKILL.md` を読み、push と PR 作成の手順を適用する。
+- 作成した worktree 内で `../github-pr-create/SKILL.md` を読み、push と PR 作成の手順を適用する。
 - PR タイトルはコミットまたは Issue 内容から短く具体的に作る。
 - PR 本文は次の構造を基本にする。Issue がない場合は `Issues` を省略する。参照先スキルのテンプレートと衝突する場合は、この構造を優先して `PR_BODY` として渡す。
 
@@ -131,7 +131,7 @@ Issue 確認、実装、品質確認は専用スキルへ分けず、このス�
 - [ ] 既存スキルがある工程では、該当スキルを参照する
 - [ ] Issue 確認、実装、品質確認は、このスキル内の手順で完結する
 - [ ] 失敗時だけ停止する方針が明記されている
-- [ ] ブランチ名、コミットメッセージ、PR 作成は既存スキルへの参照先が明記されている
+- [ ] worktree 作成、ブランチ名、コミットメッセージ、PR 作成は既存スキルへの参照先が明記されている
 - [ ] `main`、`master`、`develop` への直接実装と直接 push を避ける
 - [ ] 無関係な変更を stage/commit しない
 - [ ] PR 本文は `--body-file`、本文更新は `--body-file` または `gh api --field body=@file` で安全に渡す

@@ -11,6 +11,7 @@
 | Skill | Description |
 |-------|-------------|
 | [git-branch-create](git-branch-create/) | ブランチ名を提案し、ブランチを作成する |
+| [git-worktree-create](git-worktree-create/) | 独立した git worktree を作成し、並列作業用の作業領域を用意する |
 | [git-commit-message](git-commit-message/) | コミットメッセージを提案する |
 | [github-issue-create-from-plan](github-issue-create-from-plan/) | 設計プラン合意後に GitHub Issue を作成する |
 | [github-pr-create](github-pr-create/) | PR 本文生成を含めて GitHub に PR を作成する |
