@@ -63,9 +63,6 @@ Issue 確認、実装、品質確認は専用スキルへ分けず、このス�
 - `../git-worktree-create/SKILL.md` を読み、作業用 worktree の作成手順を適用する。
 - `git-worktree-create` から `../git-branch-create/SKILL.md` のブランチ名生成ルールを参照する。
 - 現在の作業ツリーでは `git switch` しない。実装、検証、コミット、push、PR 作成は作成した worktree 内で行う。
-- worktree の既定パスは `../<repo-name>-worktrees/<branch-slug>` とする。
-- ベースブランチは `origin/HEAD` を優先し、取れない場合は `origin/main`、`origin/master`、`origin/develop` の順で存在するものを使う。
-- 既存ブランチや既存 worktree は、今回の作業専用だと判断できる場合だけ再利用する。
 - ブランチ名は参照先スキルの形式に従う。Issue がある場合は `issue-123` を含める。
 
 ## 3. 実装する

@@ -57,6 +57,7 @@ description: >
 - 標準のブランチ名は `<type>/<description>` とする。
 - worktree パス用の `branch-slug` は、ブランチ名の `/` を `-` に置換して作る。
 - worktree の既定パスは `../<repo-name>-worktrees/<branch-slug>` とする。
+- worktree の親ディレクトリは `../<repo-name>-worktrees` とし、存在しない場合は `mkdir -p ../<repo-name>-worktrees` で作成する。
 
 例:
 
@@ -74,18 +75,21 @@ worktree-path: ../agent-skills-worktrees/feature-issue-91-git-worktree-create-sk
 - 既存ブランチや既存 worktree が今回の作業専用で、ベースからの差分も今回の作業だけだと判断できる場合は再利用してよい。
 - 別タスクの変更や別 PR のコミットが含まれる可能性がある場合は、別名を生成するか停止する。
 - 作成先ディレクトリが存在し、空でない場合は使わない。
+- worktree の親ディレクトリが存在しない場合は作成する。作成に失敗した場合は停止する。
 
 ## 5. worktree を作成する
 
 標準コマンド:
 
 ```bash
+mkdir -p ../<repo-name>-worktrees
 git worktree add -b <branch> <worktree-path> <base>
 ```
 
 既存ブランチを今回の作業専用として再利用できる場合だけ、次の形を使う。
 
 ```bash
+mkdir -p ../<repo-name>-worktrees
 git worktree add <worktree-path> <branch>
 ```
 
@@ -109,5 +113,6 @@ Base: <base>
 - [ ] `git fetch origin` 後にベースブランチを解決している
 - [ ] ブランチ名は `git-branch-create` の命名ルールに従っている
 - [ ] worktree パスは `../<repo-name>-worktrees/<branch-slug>` 形式になっている
+- [ ] worktree の親ディレクトリが存在しない場合は作成している
 - [ ] 既存ブランチや既存 worktree の衝突確認をしている
 - [ ] 以降の作業場所として worktree パスを明示している
