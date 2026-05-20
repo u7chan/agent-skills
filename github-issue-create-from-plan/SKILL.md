@@ -45,7 +45,7 @@ description: >
 - plan モード時のみ、Edit/Auto モード切替と Issue 作成待ちを示す短い案内
 - 作成済み GitHub Issue の URL
 - Issue 作成後の人間向けHTML作成確認
-- 承諾された場合のみ、`./output/{slug}.html`
+- 承諾された場合のみ、人間向けHTML（`./output/{slug}.html`）
 
 # ステップの詳細
 
@@ -76,8 +76,6 @@ description: >
 - plan モードで `OK` を受け取った場合は、切替後の edit または auto モードとして Issue 作成へ進む。
 - edit または auto モードでは、`OK` を待たずに Issue を作成する。
 - plan モードで `OK` 以外の修正依頼が来たら、プラン更新を優先する。
-- Issue 作成後のHTML確認では、直前の確認に対する `OK`、`お願いします`、`作って`、`yes` などの明確な承諾だけをHTML生成トリガーにする。
-- HTML確認への承諾がない場合、または修正依頼が来た場合はHTMLを生成しない。
 
 ## 5. テンプレートを選ぶ
 
@@ -148,7 +146,8 @@ Issue の規模に応じて、`references/` 配下のテンプレートを **ど
 - HTML生成時は、確定済み `<proposed_plan>` と作成済み Issue 本文/URL を素材にする。
 - Issue 本文は実装者向けMarkdownとして残し、HTML側は人間のレビュー・共有用に要約、比較、論点、次アクションを前面に出して再構成する。
 - HTMLテンプレートは `html-artifact-format` の規模判定に従い、`single-screen-brief`、`scroll-report`、`tabbed-workspace` のどれか1つを選ぶ。
-- 承諾が曖昧な場合は、HTMLを生成せず確認を続ける。
+- HTML生成のトリガーは、直前の確認に対する `OK`、`お願いします`、`作って`、`yes` などの明確な承諾だけにする。
+- HTML確認への承諾がない場合、承諾が曖昧な場合、または修正依頼が来た場合はHTMLを生成しない。
 
 ## 8. 完了報告
 

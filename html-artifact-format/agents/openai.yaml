@@ -1,4 +1,0 @@
-interface:
-  display_name: "HTML Artifact Format"
-  short_description: "MarkdownとHTMLの成果物形式を判断してHTML生成する"
-  default_prompt: "Use $html-artifact-format to decide whether this plan should stay Markdown or become a human-friendly HTML artifact."
