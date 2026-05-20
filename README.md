@@ -24,6 +24,7 @@
 | Skill | Description |
 |-------|-------------|
 | [github-implement-pr](github-implement-pr/) | 既存スキルを参照しつつ Issue 確認から PR 作成まで進める |
+| [html-artifact-format](html-artifact-format/) | AI向けMarkdownと人間向けHTMLの成果物形式を判断し、規模別HTMLを生成する |
 
 ### 依存パッケージ更新
 
