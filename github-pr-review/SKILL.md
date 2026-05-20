@@ -133,7 +133,7 @@ description: >
 ## 8. FB対応後に再チェックする
 
 - 詳細手順は `references/recheck.md` を読む。
-- 直前または会話内でこのスキルが投稿したレビュー指摘を再チェック対象にする。
+- 直前または会話内でこのスキルが投稿したレビュー指摘だけを再チェック対象にする。
 - ユーザーが再チェックを依頼した場合は、FB対応が完了した合図として扱う。
 - 対象 PR は、会話内に残した PR URL/番号を優先し、なければ現在ブランチ名から特定する。
 - 最新状態を確認するため、`gh pr view --json number,url,title,headRefName,baseRefName,commits` と `gh pr diff` を再取得する。
