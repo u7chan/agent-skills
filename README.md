@@ -24,7 +24,7 @@
 | Skill | Description |
 |-------|-------------|
 | [github-implement-pr](github-implement-pr/SKILL.md) | 既存スキルを参照しつつ Issue 確認から PR 作成まで進める |
-| [html-artifact-format](html-artifact-format/SKILL.md) | AI向けMarkdownと人間向けHTMLの成果物形式を判断し、規模別HTMLを生成する |
+| [html-artifact-format](html-artifact-format/SKILL.md) | AI向けMarkdownと人間向けHTMLを判断し、視覚化要素入りの単一HTMLを生成する |
 
 ### 品質 / テスト設計
 
