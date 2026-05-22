@@ -26,6 +26,13 @@
 | [github-implement-pr](github-implement-pr/SKILL.md) | 既存スキルを参照しつつ Issue 確認から PR 作成まで進める |
 | [html-artifact-format](html-artifact-format/SKILL.md) | AI向けMarkdownと人間向けHTMLを判断し、視覚化要素入りの単一HTMLを生成する |
 
+### 要件定義 / 設計対話
+
+| Skill | Description |
+|-------|-------------|
+| [grill-me](grill-me/SKILL.md) | 計画や設計を一問ずつ厳しく掘り下げ、意思決定の曖昧さを解消する |
+| [grill-with-docs](grill-with-docs/SKILL.md) | 既存ドキュメントやコードと照合しながら設計を詰め、用語集やADRを必要に応じて更新する |
+
 ### 品質 / テスト設計
 
 | Skill | Description |
