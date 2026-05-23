@@ -16,7 +16,27 @@ description: Use when asked to create or open a GitHub PR, including casual requ
 
 ## 実行手順
 
-### 1. PR 本文を用意する
+### 1. 品質チェックを実行する
+
+会話の流れの中で未実施の品質チェックがあれば、PR作成前に実行する。実行コマンドは `AGENTS.md` や `package.json` など、プロジェクトで使われている標準的な設定ファイルから解決する。コマンドが見つからない場合はスキップする。
+
+#### Format
+
+- 会話内でまだ `format` 系のコマンドが実行されていなければ、CI のフォーマット漏れ検知前の最後の確認として、プロジェクトの format コマンドを実行する
+- format によって差分が発生した場合は、差分内容を確認し、この PR に含めるべき整形差分だけを `git add` + `git commit` する
+- 無関係な未コミット変更や未追跡ファイルは追加しない
+
+#### Lint / TypeCheck
+
+- 会話内でまだ `lint` / `typecheck` / `tsc` 系のコマンドが実行されていなければ、プロジェクトに存在する lint / typecheck / tsc コマンドを実行する
+- エラーがあれば修正して再実行する（修正できない場合はユーザーに報告して中断）
+
+#### Test
+
+- 会話内でまだ test コマンドが実行されていなければ、プロジェクトの test コマンドを実行する
+- 失敗があれば修正して再実行する（修正できない場合はユーザーに報告して中断）
+
+### 2. PR 本文を用意する
 
 - 会話内に完成済みの `PR_BODY` がある場合は、それを優先して使う
 - `PR_BODY` がない場合は、現在の変更内容から以下の構造で本文を生成する
@@ -42,8 +62,10 @@ description: Use when asked to create or open a GitHub PR, including casual requ
 
 ## Checklist
 
-- [ ] 項目 1
-- [ ] 項目 2
+- [ ] フォーマット
+- [ ] リント / 型チェック
+- [ ] テスト
+- [ ] 項目（必要に応じて追加）
 
 ## Details（任意）
 
@@ -56,10 +78,10 @@ description: Use when asked to create or open a GitHub PR, including casual requ
   - Issue をクローズする場合、`Issues` セクションは `- Close {IssueId}` の形式にする
   - Issue をクローズしない場合、`Issues` セクションは `- Refs {IssueId}` の形式にする
   - `Summary` は 2〜3 文以内に収める
-  - `Checklist` は実際の変更内容を反映させる
+  - `Checklist` は手順 1 で実施した品質チェックの結果を反映させる（実施済みなら `[x]`、未実施なら `[ ]`）
   - `Details` は必要な場合のみ追加する
 
-### 2. gh で PR を作成する
+### 3. gh で PR を作成する
 
 ```bash
 # 変数設定
