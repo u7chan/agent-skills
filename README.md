@@ -52,7 +52,7 @@
 | Skill | Description |
 |-------|-------------|
 | [tailwind-ui-compose](tailwind-ui-compose/SKILL.md) | 画面構成から始めて Tailwind UI の設計と実装方針を整える |
-| [browser-check](browser-check/SKILL.md) | `browser-use` で localhost の画面確認を最小構成で進める |
+| [browser-check](browser-check/SKILL.md) | `browser-use` で localhost の画面確認ワークフローを進める |
 
 ### アセット変換
 
