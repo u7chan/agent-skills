@@ -60,5 +60,4 @@ browser-use close
 
 - ブラウザがおかしい時: `browser-use close` してから再度 `open`
 - 要素が見つからない時: `browser-use scroll down` の後に `browser-use state`
-- 動作を見たい時: `browser-use --headed open <url>`
 - `DISPLAY` 環境変数がない環境で `--headed` を使おうとした時: GUIブラウザは起動できないため、ヘッドレスモードで実行
