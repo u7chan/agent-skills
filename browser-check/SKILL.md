@@ -61,7 +61,7 @@ browser-use state
 > 補足: 遷移や保存が即座に完了し、次の `state` で結果が確認できる場合は `wait` を省略しても構いません。
 
 ```bash
-browser-use wait selector "button[type=submit]"
+browser-use wait selector ".success-message"
 browser-use wait text "Saved"
 browser-use state
 browser-use screenshot
