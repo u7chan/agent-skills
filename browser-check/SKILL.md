@@ -53,7 +53,7 @@ browser-use close
 - スキル起動時、まず `DISPLAY` 環境変数の有無を確認する
 - `DISPLAY` がない場合: GUIブラウザは起動できない旨を通知し、ヘッドレスモードに自動フォールバックする
 - `DISPLAY` がある場合: ユーザーに「GUIブラウザ表示 (推奨, headed)」または「ヘッドレス (headless)」を選んでもらう
-- GUIブラウザ表示 (headed) を選んだ場合は、`browser-use --headed open <url>` で起動する
+- GUIブラウザ表示 (推奨, headed) を選んだ場合は、`browser-use --headed open <url>` で起動する
 - ヘッドレス (headless) を選んだ場合、またはヘッドレスへフォールバックした場合は、`browser-use open <url>` で起動する
 
 ## トラブルシュート
