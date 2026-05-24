@@ -48,8 +48,17 @@ browser-use close
 - 見た目や挙動を確認したい時は `--headed` を使う
 - 複雑な自動化より、1 コマンドずつ確実に進める
 
+## 起動モード選択
+
+- スキル起動時、まず `DISPLAY` 環境変数の有無を確認する
+- `DISPLAY` がない場合: GUIブラウザは起動できない旨を通知し、ヘッドレスモードに自動フォールバックする
+- `DISPLAY` がある場合: ユーザーに「GUIブラウザ表示 (推奨, headed)」または「ヘッドレス (headless)」を選んでもらう
+- GUIブラウザ表示 (headed) を選んだ場合は、`browser-use --headed open <url>` で起動する
+- ヘッドレス (headless) を選んだ場合、またはヘッドレスへフォールバックした場合は、`browser-use open <url>` で起動する
+
 ## トラブルシュート
 
 - ブラウザがおかしい時: `browser-use close` してから再度 `open`
 - 要素が見つからない時: `browser-use scroll down` の後に `browser-use state`
 - 動作を見たい時: `browser-use --headed open <url>`
+- `DISPLAY` 環境変数がない時: `--headed` は使わず、ヘッドレスモードで実行
