@@ -44,6 +44,8 @@ browser-use get title
 
 `state` に表示された要素番号を使って、クリックや入力を 1 コマンドずつ実行する。画面遷移や DOM 更新の後は、再度 `state` を取って番号を確認し直す。
 
+> 注意: `open` 直後に取得した `state` の番号が、すぐに無効になることがあります。「Element index not found」と出た場合は、まず `browser-use state` を再度実行して番号を確認し直してください。
+
 ```bash
 browser-use click 5
 browser-use input 3 "hello"
@@ -55,6 +57,8 @@ browser-use state
 ### 5. 結果を待って確認する
 
 保存・送信・遷移などの完了条件を、セレクタまたは表示テキストで待つ。その後 `state` や `screenshot` で結果を確認する。
+
+> 補足: 遷移や保存が即座に完了し、次の `state` で結果が確認できる場合は `wait` を省略しても構いません。
 
 ```bash
 browser-use wait selector "button[type=submit]"
@@ -82,5 +86,5 @@ browser-use close
 ## トラブルシュート
 
 - ブラウザがおかしい時: `browser-use close` してから再度 `open`
-- 要素が見つからない時: `browser-use scroll down` の後に `browser-use state`
+- 要素が見つからない時: まず `browser-use state` を再度実行して番号を確認し直す。スクロールで見えていない可能性がある場合は `browser-use scroll down` の後に `browser-use state`
 - `DISPLAY` 環境変数がない環境で `--headed` を使おうとした時: GUIブラウザは起動できないため、ヘッドレスモードで実行
