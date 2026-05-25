@@ -111,7 +111,42 @@ description: >
 
 - 複数コメントがある場合は、可能なら pending review としてまとめて送信する。
 - コメント投稿は `gh` CLI / `gh api` を使って行い、GitHub コネクタは使わない。
-- 使うコマンドや API は環境に合わせて選ぶが、行番号・ファイルパス・body を明示して投稿する。
+- inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews` を使う。`event: "COMMENT"` と `comments` 配列を指定すると、各コメントでファイル内の行番号を使える。
+- `POST /repos/{owner}/{repo}/pulls/{pull_number}/comments` は避ける。この単一レビューコメント作成 API は diff hunk 内の相対位置を示す `position`、または `in_reply_to` などが必要になりやすく、`line` だけでは 422 エラーになる。
+- review 作成 API で inline comment を送る場合は、少なくとも次を指定する。
+  - `commit_id`: 対象 PR の head commit SHA
+  - `event`: `"COMMENT"`
+  - `comments[].path`: 対象ファイルのリポジトリ相対パス
+  - `comments[].side`: 変更後行なら `"RIGHT"`、変更前行なら `"LEFT"`
+  - `comments[].line`: ファイル内の絶対行番号
+  - `comments[].body`: コメント本文
+- 具体例:
+
+```bash
+gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid
+
+gh api \
+  --method POST \
+  "repos/$OWNER/$REPO/pulls/$PR_NUMBER/reviews" \
+  --input review-payload.json
+```
+
+```json
+{
+  "commit_id": "HEAD_COMMIT_SHA",
+  "event": "COMMENT",
+  "comments": [
+    {
+      "path": "src/example.ts",
+      "side": "RIGHT",
+      "line": 42,
+      "body": "[must] コメント本文 <!-- codex-review -->"
+    }
+  ]
+}
+```
+
+- JSON payload は一時ファイルとして作成し、`gh api --input review-payload.json` で渡す。複数行の Markdown コメント本文は別ファイルから読み込んで JSON を生成する。本文にバッククォート、`$()`、引用符、改行が含まれるため、JSON や Markdown コメント本文をシェル引数へ直接埋め込まない。
 - 投稿前に、同一内容の既存コメントがないことを再確認する。
 - 投稿前に、すべてのコメント本文へ AI エージェント識別メタ情報が入っていることを確認する。
 - 投稿前に、コメント本文に文字列としての `\n` が残っていないことを確認する。
