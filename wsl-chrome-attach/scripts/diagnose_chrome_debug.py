@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import json
 import os
 import socket
@@ -166,6 +167,19 @@ def fetch_version(candidate: Candidate, timeout: float) -> Result:
     return Result(candidate, ok=True, data=data)
 
 
+def fetch_versions(candidates: list[Candidate], timeout: float) -> list[Result]:
+    if not candidates:
+        return []
+
+    max_workers = min(8, len(candidates))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [
+            executor.submit(fetch_version, candidate, timeout)
+            for candidate in candidates
+        ]
+        return [future.result() for future in futures]
+
+
 def mcp_json(browser_url: str) -> str:
     config = {
         "mcpServers": {
@@ -229,7 +243,7 @@ def main(argv: list[str]) -> int:
     print("Checking Chrome remote debugging endpoints from WSL...")
     print()
 
-    results = [fetch_version(candidate, args.timeout) for candidate in candidates]
+    results = fetch_versions(candidates, args.timeout)
     for result in results:
         status = "OK" if result.ok else "FAIL"
         detail = ""
