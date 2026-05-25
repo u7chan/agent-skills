@@ -89,6 +89,8 @@ python3 <skill-dir>/scripts/diagnose_chrome_debug.py
 - WSL の default gateway
 - `/etc/resolv.conf` の `nameserver`
 
+既定 port `9333` で診断する場合は、WSL NAT mode と Windows portproxy の実用構成向けに `http://<default-gateway>:9334` も自動で候補に含める。これは `0.0.0.0:9334 -> 127.0.0.1:9333` の portproxy が残っている環境を検出するための候補であり、成功した場合だけ `--browserUrl=http://<default-gateway>:9334` として使う。
+
 ### 4. 成功 URL を MCP 設定に使う
 
 診断成功時に表示される `--browserUrl=...` を `chrome-devtools-mcp` に渡す。
@@ -174,7 +176,9 @@ WSL 側で default gateway を確認する。
 ip route | grep default
 ```
 
-例: default gateway が `172.28.160.1` なら、診断スクリプトに candidate として渡す。
+既定 port `9333` の通常診断では、診断スクリプトが `http://<default-gateway>:9334` も自動で試す。成功した場合は、その URL が `--browserUrl` として表示される。
+
+明示的に portproxy 側だけを確認したい場合や、候補を固定して優先したい場合は candidate として渡す。
 
 ```bash
 python3 <skill-dir>/scripts/diagnose_chrome_debug.py \
@@ -211,9 +215,8 @@ netsh interface portproxy delete v4tov4 `
 1. `Chrome Debug` ショートカットで専用 profile の Chrome を起動する。
 2. Windows 側で `http://127.0.0.1:9333/json/version` が成功することを確認する。
 3. 管理者 PowerShell で `netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=9334 connectaddress=127.0.0.1 connectport=9333` を実行する。
-4. WSL 側で `ip route | grep default` を確認する。
-5. WSL 側で `python3 <skill-dir>/scripts/diagnose_chrome_debug.py --candidate http://<default-gateway>:9334 --port 9334` を実行する。
-6. 成功した `http://<default-gateway>:9334` を `chrome-devtools-mcp` の `--browserUrl` に渡す。
+4. WSL 側で `python3 <skill-dir>/scripts/diagnose_chrome_debug.py` を実行する。
+5. 成功した `http://<default-gateway>:9334` を `chrome-devtools-mcp` の `--browserUrl` に渡す。
 
 `portproxy` 設定は Windows 側に残る。2回目以降は、多くの場合 `Chrome Debug` ショートカットで専用 profile の Chrome を起動するだけで、WSL 側から同じ `http://<default-gateway>:9334` に再接続できる。接続できない時だけ `netsh interface portproxy show all` と診断スクリプトで状態を確認する。
 

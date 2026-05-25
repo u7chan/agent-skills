@@ -17,6 +17,7 @@ from dataclasses import dataclass
 
 
 DEFAULT_PORT = 9333
+DEFAULT_PORTPROXY_PORT = 9334
 
 
 @dataclass(frozen=True)
@@ -114,8 +115,18 @@ def build_candidates(port: int, explicit: list[str]) -> list[Candidate]:
     for nameserver in read_resolv_nameservers():
         raw.append((f"http://{nameserver}:{port}", "/etc/resolv.conf nameserver"))
 
-    for gateway in read_default_gateways():
+    default_gateways = read_default_gateways()
+    for gateway in default_gateways:
         raw.append((f"http://{gateway}:{port}", "default gateway"))
+
+    if port == DEFAULT_PORT:
+        for gateway in default_gateways:
+            raw.append(
+                (
+                    f"http://{gateway}:{DEFAULT_PORTPROXY_PORT}",
+                    "default gateway portproxy",
+                )
+            )
 
     candidates: list[Candidate] = []
     seen: set[str] = set()
@@ -214,6 +225,22 @@ def print_failure_help(port: int) -> None:
     print("If PowerShell succeeds but WSL fails:")
     print("  - Check WSL networking mode, Windows Firewall, and Chrome listen scope.")
     print("  - Avoid --remote-debugging-address=0.0.0.0 unless the exposure risk is understood.")
+    if port == DEFAULT_PORT:
+        gateways = read_default_gateways()
+        print()
+        print("For WSL NAT mode with Windows portproxy:")
+        if gateways:
+            print("  - This diagnostic also tried these common portproxy candidates:")
+            for gateway in gateways:
+                print(f"    http://{gateway}:{DEFAULT_PORTPROXY_PORT}")
+        else:
+            print("  - Check the WSL default gateway, then test <default-gateway>:9334.")
+        print("  - Verify the Windows listener with:")
+        print("    netsh interface portproxy show all")
+        print(
+            "  - Expected mapping: "
+            f"0.0.0.0:{DEFAULT_PORTPROXY_PORT} -> 127.0.0.1:{DEFAULT_PORT}"
+        )
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
