@@ -53,6 +53,7 @@
 |-------|-------------|
 | [tailwind-ui-compose](tailwind-ui-compose/SKILL.md) | 画面構成から始めて Tailwind UI の設計と実装方針を整える |
 | [browser-check](browser-check/SKILL.md) | `browser-use` で localhost の画面確認ワークフローを進める |
+| [wsl-chrome-attach](wsl-chrome-attach/SKILL.md) | WSL2 上のエージェントから Windows Chrome の remote debugging へ接続診断する |
 
 ### アセット変換
 
