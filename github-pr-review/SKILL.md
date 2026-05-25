@@ -112,9 +112,10 @@ description: >
 - 複数コメントがある場合は、可能なら pending review としてまとめて送信する。
 - コメント投稿は `gh` CLI / `gh api` を使って行い、GitHub コネクタは使わない。
 - inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews` を使う。`event: "COMMENT"` と `comments` 配列を指定すると、各コメントでファイル内の行番号を使える。
-- `POST /repos/{owner}/{repo}/pulls/{pull_number}/comments` は避ける。この単一レビューコメント作成 API は diff hunk 内の相対位置を示す `position`、または `in_reply_to` などが必要になりやすく、`line` だけでは 422 エラーになる。
+- `POST /repos/{owner}/{repo}/pulls/{pull_number}/comments` は通常のレビュー投稿では避ける。この単一レビューコメント作成 API でも `commit_id` / `path` / `line` / `side` / `body` を使って投稿できるが、複数コメントを 1 つの review としてまとめにくく、通知もコメントごとに飛びやすい。返信や単発コメントなど、この endpoint が自然な場合だけ使う。
 - review 作成 API で inline comment を送る場合は、少なくとも次を指定する。
   - `commit_id`: 対象 PR の head commit SHA
+  - `body`: review 全体の本文。`event: "COMMENT"` では必須
   - `event`: `"COMMENT"`
   - `comments[].path`: 対象ファイルのリポジトリ相対パス
   - `comments[].side`: 変更後行なら `"RIGHT"`、変更前行なら `"LEFT"`
@@ -123,7 +124,24 @@ description: >
 - 具体例:
 
 ```bash
-gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid
+HEAD_COMMIT_SHA=$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)
+
+jq -n \
+  --arg commit_id "$HEAD_COMMIT_SHA" \
+  --rawfile comment_body review-comment.md \
+  '{
+    commit_id: $commit_id,
+    body: "AIレビュー補助（Codex / GPT-5）によるレビューです。",
+    event: "COMMENT",
+    comments: [
+      {
+        path: "src/example.ts",
+        side: "RIGHT",
+        line: 42,
+        body: $comment_body
+      }
+    ]
+  }' > review-payload.json
 
 gh api \
   --method POST \
@@ -131,25 +149,40 @@ gh api \
   --input review-payload.json
 ```
 
+`review-comment.md` の例:
+
+```markdown
+[must] 問題の要約
+
+なぜ問題になるかを短く説明します。
+
+必要なら修正案を書きます。
+
+AIレビュー補助（Codex / GPT-5）によるコメントです
+```
+
+生成される JSON payload の形:
+
 ```json
 {
   "commit_id": "HEAD_COMMIT_SHA",
+  "body": "AIレビュー補助（Codex / GPT-5）によるレビューです。",
   "event": "COMMENT",
   "comments": [
     {
       "path": "src/example.ts",
       "side": "RIGHT",
       "line": 42,
-      "body": "[must] コメント本文 <!-- codex-review -->"
+      "body": "[must] 問題の要約\n\nなぜ問題になるかを短く説明します。\n\n必要なら修正案を書きます。\n\nAIレビュー補助（Codex / GPT-5）によるコメントです\n"
     }
   ]
 }
 ```
 
-- JSON payload は一時ファイルとして作成し、`gh api --input review-payload.json` で渡す。複数行の Markdown コメント本文は別ファイルから読み込んで JSON を生成する。本文にバッククォート、`$()`、引用符、改行が含まれるため、JSON や Markdown コメント本文をシェル引数へ直接埋め込まない。
+- JSON payload は一時ファイルとして作成し、`gh api --input review-payload.json` で渡す。複数行の Markdown コメント本文は別ファイルから読み込んで JSON を生成する。JSON 内では改行が `\n` として表現されるが、GitHub 上のコメント本文は実改行として表示される。本文にバッククォート、`$()`、引用符、改行が含まれるため、JSON や Markdown コメント本文をシェル引数へ直接埋め込まない。
 - 投稿前に、同一内容の既存コメントがないことを再確認する。
 - 投稿前に、すべてのコメント本文へ AI エージェント識別メタ情報が入っていることを確認する。
-- 投稿前に、コメント本文に文字列としての `\n` が残っていないことを確認する。
+- 投稿前に、コメント本文の元ファイルや GitHub 上の表示に、文字列としての `\n` が残らないことを確認する。JSON payload 内のエスケープ表現としての `\n` は問題ない。
 - 複数行コメントや Markdown コメントは、一時ファイル、JSON ファイル、または `gh api --field body=@file` のようなファイル参照で渡す。バッククォート、`$()`、引用符、改行を含む本文をシェル引数へ直接埋め込まない。
 - `gh pr review` が GraphQL の Projects classic などコメント投稿以外の取得エラーで失敗した場合は、可能な範囲で `gh api` の REST / GraphQL 呼び出しへ切り替える。
 - CLI や API の制約、または指摘の性質上 inline comment ができない場合のみ、overall review comment を使う。
