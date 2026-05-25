@@ -215,6 +215,12 @@ netsh interface portproxy delete v4tov4 `
 
 `portproxy` 設定は Windows 側に残る。2回目以降は、多くの場合 `Chrome Debug` ショートカットで専用 profile の Chrome を起動するだけで、WSL 側から同じ `http://<default-gateway>:9334` に再接続できる。接続できない時だけ `netsh interface portproxy show all` と診断スクリプトで状態を確認する。
 
+### Chrome 未起動時の期待値
+
+`portproxy` 設定が残っていても、専用 profile の Chrome が未起動なら attach は失敗する。WSL 側の診断では、全候補が `Connection refused` や `timeout` になり、成功 URL は表示されない。
+
+この場合はまず Windows 側で `Chrome Debug` ショートカットから Chrome を起動し、`Invoke-RestMethod http://127.0.0.1:9333/json/version` が成功することを確認する。`portproxy` は永続設定なので、削除していなければ通常は再設定不要。
+
 ## 推奨判断
 
 | 方法 | 推奨 | 備考 |
