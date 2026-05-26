@@ -80,6 +80,19 @@
 
 これにより、一覧を見た時に「どこで」「何に対して」「何をする」スキルかを判断しやすくします。
 
+## Skill Maintenance
+
+`SKILL.md` は原則として180行以内に収め、必須ルール・禁止事項・主要ワークフローは先頭150行以内に置きます。
+長い例、詳細手順、CLI/APIサンプル、トラブルシュートは `references/` に用途別で分割します。
+
+ローカル検証は次のコマンドで実行できます。
+
+```sh
+bash scripts/validate-skills.sh
+```
+
+この検証では、`SKILL.md` の行数、`references/` の参照切れ、README の `Available Skills` と実スキル一覧の一致を確認します。
+
 ## Setup
 
 ### Claude Code を使用する場合
