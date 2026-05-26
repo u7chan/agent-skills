@@ -52,12 +52,9 @@
 | Skill | Description |
 |-------|-------------|
 | [tailwind-ui-compose](tailwind-ui-compose/SKILL.md) | 画面構成から始めて Tailwind UI の設計と実装方針を整える |
-| [browser-use](browser-use/SKILL.md) | `browser-use` CLI の独自ブラウザで localhost などの画面確認を進める |
+| [browser-use](browser-use/SKILL.md) | browser-use CLI の独自ブラウザで localhost などの画面確認を進める |
 | [wsl-chrome-attach](wsl-chrome-attach/SKILL.md) | WSL2 上のエージェントから Windows Chrome の remote debugging へ接続診断する |
-| [wsl-chrome-attach-use](wsl-chrome-attach-use/SKILL.md) | attach 済み Windows Chrome を `chrome-devtools-mcp` 経由で操作する |
-
-> [!NOTE]
-> `browser-check` は `browser-use` に改名しました。互換エイリアスは残していないため、既存の `$browser-check` 呼び出しは `$browser-use` に置き換えてください。
+| [wsl-chrome-attach-use](wsl-chrome-attach-use/SKILL.md) | attach 済み Windows Chrome を chrome-devtools-mcp 経由で操作する |
 
 ### アセット変換
 

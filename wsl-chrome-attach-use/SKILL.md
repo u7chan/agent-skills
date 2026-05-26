@@ -1,6 +1,6 @@
 ---
 name: wsl-chrome-attach-use
-description: wsl-chrome-attach 後に chrome-devtools-mcp 経由で Windows Chrome を操作するワークフロー。
+description: attach 済み Windows Chrome を chrome-devtools-mcp 経由で操作する
 ---
 
 # WSL Chrome Attach Use
@@ -13,7 +13,7 @@ description: wsl-chrome-attach 後に chrome-devtools-mcp 経由で Windows Chro
 
 - `wsl-chrome-attach` の診断が成功している。
 - 診断成功時に表示された `--browserUrl=...` が `chrome-devtools-mcp` の起動引数に設定されている。
-- MCP 設定後にエージェントを再起動し、このセッションで `navigate_page`、`take_screenshot`、`click`、`fill`、`press_key`、`wait_for` などの Chrome DevTools MCP ツールが利用可能になっている。
+- MCP 設定後にエージェントを再起動し、このセッションで Chrome DevTools MCP ツールが利用可能になっている。クライアントによっては `chrome-devtools_navigate_page` のようにサーバー名 prefix 付きで表示されるため、`navigate_page`、`take_screenshot`、`click`、`fill`、`press_key`、`wait_for` に対応するツールが見えていることを確認する。
 - Chrome はユーザー管理の専用 profile で起動したままにする。
 
 ## ワークフロー
@@ -22,7 +22,7 @@ description: wsl-chrome-attach 後に chrome-devtools-mcp 経由で Windows Chro
 
 このセッションで Chrome DevTools MCP ツールが見えているか確認する。
 
-利用可能な MCP ツール一覧に `navigate_page`、`take_screenshot`、`take_snapshot` などがない場合は、まだ操作を始めない。`wsl-chrome-attach` の診断結果を使って MCP 設定を見直し、エージェントを再起動してから再実行する。
+利用可能な MCP ツール一覧に `navigate_page`、`take_screenshot`、`take_snapshot` などに対応するツールがない場合は、まだ操作を始めない。`chrome-devtools_navigate_page` のような prefix 付き表示も同じ操作として扱う。対応するツールが見つからない時は、`wsl-chrome-attach` の診断結果を使って MCP 設定を見直し、エージェントを再起動してから再実行する。
 
 ### 2. 対象 URL を決める
 

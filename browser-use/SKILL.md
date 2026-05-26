@@ -1,6 +1,6 @@
 ---
 name: browser-use
-description: browser-use CLI の独自ブラウザで localhost などの画面確認を進めるワークフロー。
+description: browser-use CLI の独自ブラウザで localhost などの画面確認を進める
 ---
 
 # Browser Use
