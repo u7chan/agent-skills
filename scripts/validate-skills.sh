@@ -33,6 +33,10 @@ find_skill_files() {
 
 find_skill_files > "$tmp_dir/skills.actual"
 
+if [[ ! -s "$tmp_dir/skills.actual" ]]; then
+  report_failure 'no SKILL.md files found'
+fi
+
 while IFS= read -r skill_file; do
   line_count="$(wc -l < "$skill_file" | tr -d ' ')"
   if (( line_count > MAX_SKILL_LINES )); then
