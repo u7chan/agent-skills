@@ -1,11 +1,13 @@
 ---
-name: browser-check
-description: localhost の画面確認を browser-use で進めるワークフロー。
+name: browser-use
+description: browser-use CLI の独自ブラウザで localhost などの画面確認を進める
 ---
 
-# Browser Check
+# Browser Use
 
-`browser-use` を、`localhost` の画面確認用に最小構成で使う。
+`browser-use` CLI が起動する独自ブラウザで、`localhost` などの画面確認を進める。
+
+このスキルは `browser-use` CLI 専用であり、ユーザー管理の既存ブラウザや MCP 経由の操作は扱わない。
 
 ## ワークフロー
 
@@ -16,8 +18,6 @@ description: localhost の画面確認を browser-use で進めるワークフ�
 ### 2. 起動モードを選択する
 
 まず `DISPLAY` 環境変数の有無を確認する。
-
-WSL2 上のエージェントから、認証や設定を済ませた Windows 側 Chrome に attach してから確認したい場合は、先に `wsl-chrome-attach` で `chrome-devtools-mcp` の `browserUrl` を確定する。
 
 - `DISPLAY` がない場合: GUI ブラウザは起動できないため、ヘッドレスモードで進める
 - `DISPLAY` がある場合: 画面の見た目や操作感を確認する目的なら headed、状態確認だけで足りる目的なら headless を選ぶ
