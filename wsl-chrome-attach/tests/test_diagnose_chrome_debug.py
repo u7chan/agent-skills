@@ -96,6 +96,30 @@ class DiagnoseChromeDebugTests(unittest.TestCase):
 
         self.assertNotIn("For WSL NAT mode with Windows portproxy:", output.getvalue())
 
+    def test_success_output_mentions_next_skill(self) -> None:
+        candidate = self.diag.Candidate("http://127.0.0.1:9333", "test")
+        result = self.diag.Result(
+            candidate,
+            ok=True,
+            data={
+                "Browser": "Chrome/Test",
+                "webSocketDebuggerUrl": "ws://127.0.0.1:9333/devtools/browser/test",
+            },
+        )
+
+        with (
+            mock.patch.object(self.diag, "build_candidates", return_value=[candidate]),
+            mock.patch.object(self.diag, "fetch_versions", return_value=[result]),
+        ):
+            output = io.StringIO()
+            with redirect_stdout(output):
+                exit_code = self.diag.main([])
+
+        self.assertEqual(exit_code, 0)
+        text = output.getvalue()
+        self.assertIn("Next step:", text)
+        self.assertIn("wsl-chrome-attach-use skill", text)
+
 
 if __name__ == "__main__":
     unittest.main()

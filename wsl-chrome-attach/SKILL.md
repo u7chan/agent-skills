@@ -1,13 +1,13 @@
 ---
 name: wsl-chrome-attach
-description: WSL2 上の Codex や Claude Code などのコーディングエージェントから、Windows 側で remote debugging を有効にした Chrome へ接続診断し、chrome-devtools-mcp / Browser Use CLI に渡す browserUrl を特定する。認証や設定を人間が済ませた専用 Chrome profile を AI 操作へバトンタッチしたい時に使う。
+description: WSL2 上の Codex や Claude Code などのコーディングエージェントから、Windows 側で remote debugging を有効にした Chrome へ接続診断し、chrome-devtools-mcp に渡す browserUrl を特定する。認証や設定を人間が済ませた専用 Chrome profile を AI 操作へバトンタッチしたい時に使う。
 ---
 
 # WSL Chrome Attach
 
 WSL2 上のエージェントから Windows 側 Chrome の Chrome DevTools Protocol (CDP) endpoint に到達できるか確認し、MCP 設定に使う `--browserUrl=...` を決める。
 
-このスキルは attach までを扱う。attach 後のクリック、入力、スクリーンショット確認は `browser-check` を使う。
+このスキルは attach までを扱う。attach 後のクリック、入力、スクリーンショット確認は `wsl-chrome-attach-use` を使う。
 
 ## 必須注意
 
@@ -110,6 +110,8 @@ python3 <skill-dir>/scripts/diagnose_chrome_debug.py
 ```
 
 `--browserUrl` の値は診断スクリプトの成功結果に合わせる。WSL networking mode によって `127.0.0.1`、`localhost`、Windows host IP のどれが通るかは変わる。
+
+MCP 設定を反映するには、利用中のエージェントを再起動して MCP サーバーを読み込ませる。再起動後、`wsl-chrome-attach-use` を使い、このセッションで `navigate_page`、`take_screenshot`、`click`、`fill` などの Chrome DevTools MCP ツールが見えていることを確認してから操作する。
 
 ## 失敗時の切り分け
 
@@ -217,6 +219,7 @@ netsh interface portproxy delete v4tov4 `
 3. 管理者 PowerShell で `netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=9334 connectaddress=127.0.0.1 connectport=9333` を実行する。
 4. WSL 側で `python3 <skill-dir>/scripts/diagnose_chrome_debug.py` を実行する。
 5. 成功した `http://<default-gateway>:9334` を `chrome-devtools-mcp` の `--browserUrl` に渡す。
+6. エージェントを再起動して MCP 設定を読み込み、`wsl-chrome-attach-use` で attach 済み Chrome を操作する。
 
 `portproxy` 設定は Windows 側に残る。2回目以降は、多くの場合 `Chrome Debug` ショートカットで専用 profile の Chrome を起動するだけで、WSL 側から同じ `http://<default-gateway>:9334` に再接続できる。接続できない時だけ `netsh interface portproxy show all` と診断スクリプトで状態を確認する。
 
