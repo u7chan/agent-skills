@@ -217,6 +217,7 @@ AIレビュー補助（Codex / GPT-5）によるコメントです
 - `unknown` は、前回コメントや thread は特定できるが、最新差分・現在のファイル内容・取得権限のいずれかが不足し、修正有無を根拠付きで判断できない場合にだけ使う。`unknown` は Resolve しない。
 - `resolved` は返信して Resolve、`partial` / `unresolved` は該当スレッドへ追加コメント、`unknown` は理由を報告して Resolve しない。
 - 追加コメントや完了コメントを投稿する場合は、重複を避け、改善済みの指摘へ不要な再指摘をしない。
+- 再チェックコメントにも AI エージェント識別メタ情報を必ず付け、`references/posting-rules.md` の再チェック用フォーマットに従う。
 - `gh pr review --approve`、`gh api` での `APPROVE` review event、その他 PR approval に相当する操作は絶対に実行しない。自分自身のレビューは Approve できずエラーになるため、完了通知は reply / resolve / overall comment で行う。
 - 最終報告では、再コメントした件数、Resolve した件数、overall comment で代替した件数、未解決の有無を簡潔に伝える。
 
