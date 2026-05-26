@@ -4,22 +4,27 @@
 
 ## Available Skills
 
-スキルは役割ごとにグルーピングしてあります。グループ内の並びは関連の強さや作業フローの順です。
+スキルは利用目的ごとにグルーピングしてあります。グループ内の並びは関連の強さや作業フローの順です。
 
-### Git / GitHub 操作
+### Git ローカル操作
 
 | Skill | Description |
 |-------|-------------|
 | [git-branch-create](git-branch-create/SKILL.md) | ブランチ名を提案し、ブランチを作成する |
 | [git-worktree-create](git-worktree-create/SKILL.md) | 独立した git worktree を作成し、並列作業用の作業領域を用意する |
 | [git-commit-message](git-commit-message/SKILL.md) | コミットメッセージを提案する |
+
+### GitHub Issue / PR
+
+| Skill | Description |
+|-------|-------------|
 | [github-issue-create-from-plan](github-issue-create-from-plan/SKILL.md) | 設計プラン合意後に GitHub Issue を作成する |
 | [github-pr-create](github-pr-create/SKILL.md) | PR 本文生成を含めて GitHub に PR を作成する |
 | [github-pr-feedback-address](github-pr-feedback-address/SKILL.md) | GitHub PR のレビュー指摘を確認し、実装対応から返信まで行う |
 | [github-pr-review](github-pr-review/SKILL.md) | 指定した GitHub PR をレビューし、FB 対応後の再チェックまで行う |
 | [github-pr-comment-reply](github-pr-comment-reply/SKILL.md) | GitHub PR の review comment や conversation comment に返信する |
 
-### 実装フロー
+### 実装 / 成果物生成
 
 | Skill | Description |
 |-------|-------------|
@@ -52,17 +57,22 @@
 | Skill | Description |
 |-------|-------------|
 | [tailwind-ui-compose](tailwind-ui-compose/SKILL.md) | 画面構成から始めて Tailwind UI の設計と実装方針を整える |
+
+### ブラウザ操作 / 検証
+
+| Skill | Description |
+|-------|-------------|
 | [browser-use](browser-use/SKILL.md) | browser-use CLI の独自ブラウザで localhost などの画面確認を進める |
 | [wsl-chrome-attach](wsl-chrome-attach/SKILL.md) | WSL2 上のエージェントから Windows Chrome の remote debugging へ接続診断する |
 | [wsl-chrome-attach-use](wsl-chrome-attach-use/SKILL.md) | attach 済み Windows Chrome を chrome-devtools-mcp 経由で操作する |
 
-### アセット変換
+### Experimental
 
 | Skill | Description |
 |-------|-------------|
-| [image-to-svg](image-to-svg/SKILL.md) | **experimental** — 画像（PNG/JPEG）を編集可能な SVG に変換する |
+| [image-to-svg](image-to-svg/SKILL.md) | 画像（PNG/JPEG）を編集可能な SVG に変換する |
 
-### スキル管理 / セットアップ
+### スキル作成 / メンテナンス
 
 | Skill | Description |
 |-------|-------------|
@@ -80,6 +90,8 @@
 
 これにより、一覧を見た時に「どこで」「何に対して」「何をする」スキルかを判断しやすくします。
 
+README のグルーピングはスキル名の prefix ではなく、利用目的を優先して決めます。
+
 ## Skill Maintenance
 
 `SKILL.md` は原則として180行以内に収め、必須ルール・禁止事項・主要ワークフローは先頭150行以内に置きます。
@@ -95,39 +107,7 @@ bash scripts/validate-skills.sh
 
 ## Setup
 
-### Claude Code を使用する場合
-
-```sh
-git clone git@github.com:u7chan/agent-skills.git
-cd agent-skills
-mkdir -p "$HOME/.claude/skills"
-ln -sf "$(pwd)" "$HOME/.claude/skills"
-```
-
-> [!NOTE]
-> `$HOME/.claude/skills` ディレクトリが既に存在する場合は、上記コマンドをそのまま実行してください。
-
-### Codex を使用する場合
-
-```sh
-git clone git@github.com:u7chan/agent-skills.git
-cd agent-skills
-mkdir -p "$HOME/.codex"
-ln -sfn "$(pwd)" "$HOME/.codex/skills"
-```
-
-> [!NOTE]
-> `"$HOME/.codex/skills"` が既に存在する場合は、上記コマンドをそのまま実行してください。
-
-### シンボリックリンクを解除する場合
-
-```sh
-rm "$HOME/.claude/skills"
-rm "$HOME/.codex/skills"
-```
-
-> [!NOTE]
-> Claude Code 以外のエージェントでは、設定ディレクトリのパスが異なる場合があります。
+セットアップ手順は [SETUP.md](SETUP.md) を参照してください。
 
 ## Usage
 

@@ -60,10 +60,9 @@ README の説明文は `SKILL.md` の front matter と本文冒頭から短く�
 - 性質バッジを Description セルの先頭に付ける場合は次の書式に揃える
   - 書式: `**<バッジ>** — <用途の短い説明>`
   - 用途が定まっているバッジ:
-    - `**experimental**`: 安定度がまだ揺れているスキル。安定したら注記を外す
     - `**本リポジトリ専用**`: 他リポジトリで使うことを想定していない、この `agent-skills` リポジトリ自身のメンテに紐付くスキル (例: `skills-readme-sync`)
   - 列は増やさない (該当スキルが少数のため、列追加は表が広がるだけ)
-  - 複数バッジが必要になったら `**experimental** / **本リポジトリ専用**` のように `/` で区切る
+- 実験的なスキルは Description の `experimental` バッジではなく、`Experimental` グループに置く
 
 ### Step 3: README の一覧を同期する
 
@@ -79,18 +78,23 @@ README の説明文は `SKILL.md` の front matter と本文冒頭から短く�
 
 | グループ | 含めるスキルの目安 |
 |---------|------------------|
-| Git / GitHub 操作 | `git-*` `github-*` などリポジトリ・PR・Issue を扱うもの |
-| 実装フロー | Issue 着手から PR 準備までの進行管理を担うもの (`start-implementation` 等) |
+| Git ローカル操作 | `git-*` のうち branch / worktree / commit などローカル Git 操作を扱うもの |
+| GitHub Issue / PR | `github-issue-*` `github-pr-*` など Issue / PR の作成・レビュー・返信を扱うもの |
+| 実装 / 成果物生成 | Issue 着手から PR 準備までの進行管理や、Markdown/HTML 成果物生成を担うもの |
+| 要件定義 / 設計対話 | 設計、要件、意思決定の対話やドキュメント照合を担うもの |
+| 品質 / テスト設計 | QA 観点やテストケース設計を担うもの |
 | 依存パッケージ更新 | `*-dependency-update` 系 (npm / bun / uv など) |
-| UI / フロントエンド | 画面構成・スタイリング・ブラウザ確認に関するもの |
-| アセット変換 | 画像→SVG など、生成・変換系のもの |
-| スキル管理 / セットアップ | スキル自体の作成・同期・連携設定に関するもの |
+| UI / フロントエンド | 画面構成・スタイリングに関するもの |
+| ブラウザ操作 / 検証 | browser-use や Chrome remote debugging などブラウザ操作・接続確認に関するもの |
+| Experimental | 安定度や運用方針がまだ揺れている実験的なもの |
+| スキル作成 / メンテナンス | スキル自体の作成・同期・連携設定に関するもの |
 
 ルール:
 - 既存グループに馴染むスキルは新規グループを作らずそこに入れる
 - 該当スキルが 0 件になったグループは見出しごと削除する
 - グループ内のソート順は、**関連の強い順** または **作業フローの順** を優先し、難しい場合のみ名前順 ASC を使う
-  - 例: Git / GitHub 操作 → branch → commit → issue → PR (create → review → comment-reply) のような流れ順
+  - 例: Git ローカル操作 → branch → worktree → commit のような流れ順
+  - 例: GitHub Issue / PR → issue → PR (create → feedback-address → review → comment-reply) のような流れ順
   - 例: 依存パッケージ更新 → 言語/ランタイムのアルファベット順 (bun → npm → uv)
 - 新しい性質のスキルが増えてどのグループにも収まらない場合のみ、新グループを追加して理由をコミットメッセージに残す
 
