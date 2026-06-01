@@ -4,6 +4,7 @@
 
 inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews` を使う。
 `event: "COMMENT"` と `comments` 配列を指定すると、複数コメントを 1 つの review としてまとめられる。
+取得、投稿、再チェックはいずれも `gh` CLI / `gh api` で行い、GitHub コネクタは使わない。
 
 最低限指定する値:
 
@@ -43,7 +44,7 @@ inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}
 
 `review-comment.md` の例:
 
-    [must] 問題の要約
+    [must] ⚠️ 問題の要約
 
     なぜ問題になるかを短く説明します。
 
