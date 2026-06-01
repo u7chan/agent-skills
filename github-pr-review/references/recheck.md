@@ -2,10 +2,13 @@
 
 ## 対象の特定
 
-- 直前または会話内でこのスキルが投稿したレビュー指摘だけを再チェック対象にする。
+- この会話でこのスキルが以前に投稿したレビュー指摘だけを再チェック対象にする。
+- 他者のコメント、過去の別会話で投稿されたコメント、今回新たに見つけた論点は再チェック対象にしない。
 - 対象 PR は、会話内に残した PR URL/番号を優先し、なければ現在ブランチ名から特定する。
 - 最新状態を確認するため、`gh pr view --json number,url,title,headRefName,baseRefName,commits` と `gh pr diff` を再取得する。
 - 返信・Resolve の対象を特定するため、`gh api graphql` で `pullRequest.reviewThreads` を取得し、各 thread の `id`、`isResolved`、コメントの `databaseId`、`body`、`path`、`url`、`author` を確認する。
+- 必要なら `git fetch` を実行する。ローカル checkout が古く、最新状態に基づく判断ができない場合はその旨を報告する。
+- ユーザーの未コミット変更を上書きしない。
 
 ## review thread 対応付け
 
@@ -15,7 +18,7 @@
 2. `author` が現在の `gh` 認証ユーザーで、本文にこのスキルの AI エージェント識別メタ情報が含まれる thread。
 3. コメント本文の主旨、ファイルパス、差分文脈が一致する thread。
 
-既に `isResolved: true` の thread は原則として再コメントや Resolve 対象から外し、未解決 thread だけを再チェック対象にする。
+既に `isResolved: true` の thread は再コメントや Resolve 対象から外し、未解決 thread だけを再チェック対象にする。
 
 ## 分類
 
@@ -35,6 +38,7 @@
 - コメント返信や Resolve ができない指摘がある場合は、overall comment で再チェック完了と対象指摘の状態を伝える。
 - 返信・追加コメントにも AI エージェント識別メタ情報を欠けなく付け、`references/posting-rules.md` の再チェック用フォーマットに従う。
 - `unknown` を overall comment に含めるのは、PR 上で対応履歴を残す必要がある場合、または同じ PR 上で他の再チェック結果を overall comment で報告する場合に限る。チャット報告で十分な場合は投稿しない。
+- 既に修正された点に、重複する新規コメントや不要な再指摘をしない。
 
 ## 禁止事項
 
@@ -42,6 +46,7 @@
 - `gh api` で `APPROVE` review event を送らない。
 - その他 PR approval に相当する操作を実行しない。
 - 改善済みの指摘へ不要な再指摘をしない。
+- GitHub コネクタを使わない。
 
 ## 最終報告
 

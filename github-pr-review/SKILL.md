@@ -20,13 +20,14 @@ description: >
 
 # 前提と禁止事項
 
-- GitHub 連携は `gh` CLI / `gh api` を優先し、GitHub コネクタには依存しない。
-- レビュー開始前に `gh auth status` が成功することを確認する。
+- GitHub 連携は取得・投稿・再チェックを含め、すべて `gh` CLI / `gh api` で行う。GitHub コネクタは使わない。
+- レビュー開始前に `gh auth status` が成功することを確認する。投稿する場合は対象リポジトリへコメント権限があることも確認する。
 - レビュー投稿者が自分自身のアカウントになるため、PR を `APPROVE` しない。
 - `gh pr review --approve`、`gh api` の `APPROVE` review event、その他 PR approval 相当の操作は絶対に実行しない。
-- 外部書き込みが禁止された評価・dry-run・権限不足の環境では、取得や投稿を実行せず、実行予定手順、コメント候補、未実施理由を報告する。
+- 外部書き込みが禁止された評価・dry-run・read-only・コメント権限不足の環境では投稿しない。取得できる範囲で PR 差分や既存コメントを読み、コメント候補と未投稿理由を報告する。
 - コメント本文はファイルまたは JSON 入力で渡し、バッククォート、`$()`、引用符、改行を含む Markdown をシェル引数へ直接埋め込まない。
 - すべてのコメントに、AI エージェントによる投稿だと分かる識別用メタ情報を必ず入れる。
+- すべての指摘コメントの先頭には、現行形式の重要度ラベルをちょうど 1 つ付ける。
 - 改行を含む本文は実改行で扱い、文字列としての `\n` を投稿しない。
 
 # 入力と出力
@@ -78,6 +79,7 @@ description: >
 
 - `gh auth status` を実行し、認証と対象権限を確認する。
 - `gh pr view --json title,body,url,baseRefName,headRefName,headRefOid,files` で PR の概要と変更ファイル一覧を確認する。
+- コメント本文の言語を、PR の説明文、説明文が空または判別不能なら PR タイトル、それでも判別不能なら日本語に決める。
 - `gh pr diff` で差分を取得する。
 - `gh api` または `gh pr view --comments` を使い、既存の review comments と overall comments を確認する。
 - 既存コメントに同じ論点がある場合は重複投稿しない。同じ入力条件・失敗モード・修正方針を扱う指摘は同一論点として扱う。
@@ -103,12 +105,13 @@ description: >
 - 投稿前に `references/posting-rules.md` を読み、コメント本文と AI エージェント識別メタ情報を整える。
 - 1コメント1論点を守る。
 - 何が問題か、なぜ問題か、必要ならどう直すかを短く書く。
+- `must` 以外は、必須ではなく推奨・質問・提案だと伝わる表現にする。
 - 投稿前に、コメント本文へ AI 識別メタ情報が入っていることと、文字列としての `\n` が残らないことを確認する。
 
 ## 6. コメントを投稿する
 
 - 複数コメントがある場合は、可能なら pending review としてまとめて送信する。
-- コメント投稿は `gh` CLI / `gh api` を使い、GitHub コネクタは使わない。
+- コメント投稿は `gh` CLI / `gh api` だけを使い、GitHub コネクタは使わない。
 - inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews` を使う。
 - review 作成 API で inline comment を送る場合は、`commit_id`、`body`、`event: "COMMENT"`、`comments[].path`、`comments[].side`、`comments[].line`、`comments[].body` を指定する。
 - 具体的な payload 例と `jq` での作成例は `references/posting-api.md` を読む。
@@ -119,7 +122,7 @@ description: >
 ## 7. ユーザーへ報告する
 
 - 投稿したコメント件数を伝える。
-- `[must]` がある場合は、その有無だけ簡潔に伝える。
+- `[must] ⚠️` がある場合は、その有無だけ簡潔に伝える。
 - 権限不足、`gh` 未認証、差分取得失敗などで未実施部分があれば明記する。
 - 対象 PR の URL または番号、投稿した指摘の要約を簡潔に残す。
 - overall review comment を使った場合は、inline comment にできなかった理由を伝える。
@@ -127,21 +130,21 @@ description: >
 ## 8. FB対応後に再チェックする
 
 - 詳細手順は `references/recheck.md` を読む。
-- 直前または会話内でこのスキルが投稿したレビュー指摘だけを再チェック対象にする。
+- この会話でこのスキルが以前に投稿したレビュー指摘だけを再チェック対象にする。
 - 最新状態を確認するため、PR 情報と差分を再取得する。
 - `pullRequest.reviewThreads` を取得し、前回投稿コメントと review thread ID / resolved 状態を対応付ける。
+- 既に resolved の thread はスキップし、未解決 thread だけを確認する。
 - `resolved` は返信して Resolve、`partial` / `unresolved` は該当スレッドへ追加コメント、`unknown` は理由を報告して Resolve しない。
+- 必要なら `git fetch` する。ローカル checkout が古く判断に影響する場合は、その旨を報告する。ユーザーの未コミット変更は上書きしない。
 - 再チェックコメントにも AI エージェント識別メタ情報を必ず付け、PR approval 相当の操作は実行しない。
 
 # 品質チェック
 
 - `description` を読むだけで、このスキルの起動条件がわかる
 - PR 情報の取得、差分レビュー、コメント投稿、報告までの手順が上から順に実行できる
-- GitHub の inline comment 制約に合わない指示が入っていない
-- コメント重複の回避が手順に含まれている
-- overall review comment は、差分箇所に紐づけられない指摘の代替に限定されている
-- FB対応後の再チェックで、未改善の指摘へ再コメントし、改善済みの指摘へ返信して Resolve する手順が含まれている
+- GitHub の inline comment 制約に合い、GitHub コネクタを使わず `gh` CLI / `gh api` だけで完結する
+- コメント本文の言語を PR 説明文またはタイトルから決める手順が含まれている
+- コメント重複の回避と、overall review comment を差分箇所に紐づけられない指摘の代替に限定する手順が含まれている
+- FB対応後の再チェックで、この会話で以前に投稿した指摘だけを対象にし、未改善の指摘へ再コメントし、改善済みの指摘へ返信して Resolve する手順が含まれている
 - PR approval に相当する操作を決して実行しないルールが含まれている
-- すべてのコメントに AI エージェント識別メタ情報を付けるルールが含まれている
-- コメント本文の改行を実改行で扱い、文字列としての `\n` をそのまま投稿しないルールが含まれている
-- Markdown コメント本文をシェル引数へ直接埋め込まず、ファイル参照または JSON 入力で渡すルールが含まれている
+- AI エージェント識別メタ情報と現行形式ラベル、実改行とファイル/JSON 入力のルールが含まれている
