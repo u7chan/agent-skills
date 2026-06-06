@@ -58,3 +58,28 @@ inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}
 - 複数行の Markdown コメント本文は別ファイルから読み込んで JSON を生成する。
 - JSON 内では改行が `\n` として表現されるが、GitHub 上のコメント本文は実改行として表示される。
 - 本文にバッククォート、`$()`、引用符、改行が含まれるため、JSON や Markdown コメント本文をシェル引数へ直接埋め込まない。
+
+## 指摘なしの review comment
+
+指摘がない場合は、inline comment を作らず、`event: "COMMENT"` と `body` だけを指定した review comment を投稿する。
+この場合も `APPROVE` は使わない。
+
+payload 例:
+
+    jq -n \
+      --rawfile body no-findings.md \
+      '{
+        event: "COMMENT",
+        body: $body
+      }' > no-findings-review-payload.json
+
+    gh api \
+      --method POST \
+      "repos/$OWNER/$REPO/pulls/$PR_NUMBER/reviews" \
+      --input no-findings-review-payload.json
+
+`no-findings.md` の例:
+
+    確認した範囲では、修正が必要な指摘は見つかりませんでした。
+
+    AIレビュー補助（Codex / GPT-5）によるレビューです
