@@ -14,6 +14,7 @@
 - **review comment 返信**: `repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies` 以外の経路は使わない
 - **top-level PR comment**: threaded reply は使えないため、`issues/{pr_number}/comments` への follow-up へ切り替える
 - **候補が複数ある**: 自動投稿せず、最大 3 件まで提示してユーザーに選ばせる
+- 親スキルが返信対象 comment ID または thread を一意に特定している場合は、候補探索による追加確認を挟まない。
 
 ## 投稿後の確認
 
