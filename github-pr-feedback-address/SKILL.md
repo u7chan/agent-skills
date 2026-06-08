@@ -43,6 +43,7 @@ GitHub PR に付いた review comments / conversation comments を確認し、�
 - ユーザーの未コミット変更や無関係な変更を勝手に取り込まない。
 - review thread の Resolve と Approve は行わない。
 - 対応した feedback コメントには、対応内容や未対応理由が分かる返信を投稿する。
+- ユーザーがこのスキルで FB 対応を依頼した時点で、対応後の GitHub コメント返信まで許可されたものとして扱う。投稿本文をユーザーに事前確認しない。
 - PR approval に相当する操作は絶対に実行しない。
 
 # Agentが行うこと
@@ -85,7 +86,8 @@ GitHub PR に付いた review comments / conversation comments を確認し、�
 ## 3. 対応方針を決める
 
 - `actionable` を優先して実装する。
-- `question`、`not-applicable`、`blocked` は勝手に仕様を決めず、必要ならユーザーに確認する。
+- `question`、`not-applicable`、`blocked` は勝手に仕様を決めない。コード変更の判断にユーザー決定が必須な場合のみユーザーに確認する。
+- コード変更なしで説明、未対応理由、確認事項を reviewer に返せる feedback は、ユーザー確認待ちにせずコメント返信まで進める。
 - 小さな推測で安全に進められる場合のみ、理由を明確にして実装する。
 - 複数指摘が衝突する場合は、先にユーザーへ確認する。
 - 対応不要と判断した指摘は、最終報告に理由を残す。
@@ -128,7 +130,8 @@ GitHub PR に付いた review comments / conversation comments を確認し、�
 - 対応した top-level PR conversation comment には follow-up comment を投稿する。
 - 返信本文には、対応内容、関連 commit、検証結果を簡潔に含める。
 - 未対応、判断不能、質問が必要な feedback には、必要に応じて理由や確認事項を返信する。
-- 返信対象と投稿方法は `github-pr-comment-reply/SKILL.md` の方針に従う。
+- 返信は push 後に自動で投稿し、ユーザー確認待ちにしない。返信対象が特定でき、本文がこのスキルの対応結果に基づいている場合、投稿完了までがこのスキルの完了条件。
+- 返信対象と投稿方法は `github-pr-comment-reply/SKILL.md` の方針に従う。ただし、同スキルの「投稿前のユーザー確認」ルールはこのスキルからの自動返信では省略する。
 - review thread の Resolve と Approve は行わない。
 
 ## 9. 報告する
@@ -147,6 +150,7 @@ GitHub PR に付いた review comments / conversation comments を確認し、�
 - review feedback の収集、分類、実装、検証、commit、push、返信、報告までの流れがある
 - 無関係な変更を commit しないルールがある
 - 対応した feedback コメントへ返信するルールがある
+- FB 対応後の返信はユーザー確認なしで自動投稿するルールがある
 - Resolve / Approve をこのスキルで行わないルールがある
 - GitHub コネクタに依存せず `gh` / `gh api` の認証で進めるルールがある
 
