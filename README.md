@@ -35,8 +35,8 @@
 
 | Skill | Description |
 |-------|-------------|
-| [grill-me](grill-me/SKILL.md) | 計画や設計を一問ずつ厳しく掘り下げ、意思決定の曖昧さを解消する |
-| [grill-with-docs](grill-with-docs/SKILL.md) | 既存ドキュメントやコードと照合しながら設計を詰め、用語集やADRを必要に応じて更新する |
+| [grill-me](grill-me/SKILL.md) | 計画や設計を厳しく壁打ちする |
+| [grill-with-docs](grill-with-docs/SKILL.md) | 既存ドキュメントと照合しながら設計を厳しく壁打ちする |
 
 ### 品質 / テスト設計
 
