@@ -38,6 +38,12 @@
 | [grill-me](grill-me/SKILL.md) | 計画や設計を厳しく壁打ちする |
 | [grill-with-docs](grill-with-docs/SKILL.md) | 既存ドキュメントと照合しながら設計を厳しく壁打ちする |
 
+### 文章チェック / 校正
+
+| Skill | Description |
+|-------|-------------|
+| [japanese-text-proofread](japanese-text-proofread/SKILL.md) | 日本語の文章や Markdown 原稿の誤字脱字・表記ゆれを点検する |
+
 ### 品質 / テスト設計
 
 | Skill | Description |
