@@ -1,17 +1,24 @@
-# Issue Template (Light) / 軽量Issueテンプレート
+# Issue Template (Light)
 
 軽微な修正向けの最小テンプレート。
 
 ## 本文テンプレート
 
-    ## Overview / 概要
-    <!-- Summarize in about 1–2 lines -->
+    ## Related Issues / PRs
 
-    ## Tasks / タスク
+    <!--
+    Link related issues or PRs.
+    Write "None" if there are no related items.
+    -->
+
+    ## Summary
+    <!-- Summarize the current context and expected outcome in about 1–3 lines -->
+
+    ## Tasks
 
     - [ ] Modify ○○
 
-    ## Examples / サンプル
+    ## Examples
 
     <!--
     Include this section only when the confirmed plan contains examples,
@@ -20,16 +27,16 @@
     Place code blocks, tables, Mermaid, or concrete examples here.
     -->
 
-    ## Testing / テスト
+    ## Testing
 
-    ### Validation Policy / 検証方針
+    ### Validation Policy
     If the project has linters or tests configured, make sure that the linter and tests pass.
 
-    ### Documentation / ドキュメント
+    ### Documentation
 
     <!-- Update README.md or AGENTS.md if needed. Write "None" if not applicable. -->
 
-    ## Acceptance Criteria / 完了条件
+    ## Acceptance Criteria
 
     - [ ] Expected behavior is implemented
     - [ ] If a linter command is configured, it completes successfully
@@ -38,8 +45,10 @@
 
 ## 注意事項
 
-- `Overview / 概要`、`Tasks / タスク`、`Acceptance Criteria / 完了条件`、`Testing / テスト` は省略しない。
-- 軽量テンプレートでは `Background / 背景`、`Implementation Approach / 実装方針`、`Design Details / 設計詳細`、`Out of Scope / スコープ外`、`Test Perspectives / テスト観点`、`Related Issues/PRs / 関連Issue・PR`、`Notes / 補足` は使わない。
-- `Examples / サンプル` は、Plan 原文にサンプル例、コードブロック、表、Mermaid、具体的な入出力例がある場合だけ使う。
+- テンプレートの見出し構成と順序に従い、本文は日本語で記述する。
+- `Related Issues / PRs` は本文の先頭に置き、関連がなければ `None` と書く。
+- `Related Issues / PRs`、`Summary`、`Tasks`、`Acceptance Criteria`、`Testing` は省略しない。
+- 軽量テンプレートでは `Implementation Approach`、`Design Details`、`Out of Scope`、`Test Perspectives`、`Notes` は使わない。
+- `Examples` は、Plan 原文にサンプル例、コードブロック、表、Mermaid、具体的な入出力例がある場合だけ使う。
 - サンプル量が多い、または設計判断を含む場合は Standard テンプレートへ切り替える。
-- ユーザーが README や `AGENTS.md` の更新を求めている場合は `### Documentation / ドキュメント` に明記する。不要なら `None` と書く。
+- ユーザーが README や `AGENTS.md` の更新を求めている場合は `### Documentation` に明記する。不要なら `None` と書く。
