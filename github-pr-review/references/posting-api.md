@@ -18,6 +18,8 @@ inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}
 
 ## payload 作成例
 
+`<model from config.toml>` は、投稿前に `/home/u7dev/.codex/config.toml` の `model = "..."` の値へ置き換える。
+
     HEAD_COMMIT_SHA=$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)
 
     jq -n \
@@ -25,7 +27,7 @@ inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}
       --rawfile comment_body review-comment.md \
       '{
         commit_id: $commit_id,
-        body: "AIレビュー補助（Codex / GPT-5）によるレビューです。",
+        body: "AIレビュー補助（Codex / <model from config.toml>）によるレビューです 🤖",
         event: "COMMENT",
         comments: [
           {
@@ -50,7 +52,7 @@ inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}
 
     必要なら修正案を書きます。
 
-    AIレビュー補助（Codex / GPT-5）によるコメントです
+    AIレビュー補助（Codex / <model from config.toml>）によるレビューです 🤖
 
 ## 注意事項
 
@@ -82,4 +84,4 @@ payload 例:
 
     確認した範囲では、修正が必要な指摘は見つかりませんでした。
 
-    AIレビュー補助（Codex / GPT-5）によるレビューです
+    AIレビュー補助（Codex / <model from config.toml>）によるレビューです 🤖
