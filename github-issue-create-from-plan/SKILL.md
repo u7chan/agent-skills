@@ -73,9 +73,7 @@ description: >
 ## 4. 待機条件
 
 - plan モードでは、ユーザーが `OK` と返すまでは Issue を作成しない。
-- plan モードで `OK` を受け取った場合は、切替後の edit または auto モードとして Issue 作成へ進む。
 - edit または auto モードでは、`OK` を待たずに Issue を作成する。
-- plan モードで `OK` 以外の修正依頼が来たら、プラン更新を優先する。
 
 ## 5. テンプレートを選ぶ
 
@@ -100,9 +98,12 @@ Issue の規模に応じて、`references/` 配下のテンプレートを **ど
   - 実装判断やレビュー判断に必要な具体値、ファイル例、API 例
 - 保持対象は要約で消さず、Issue 本文の適切なセクションに原文に近い形で移す。
 - 保持対象が実装判断に必要か迷う場合は残す。
-- Standard の場合は、保持対象を主に `Design Details / 設計詳細` に置く。補足的な例は `Notes / 補足` に置いてよい。
-- Light の場合でも、保持対象があるなら `Examples / サンプル` セクションを追加して残す。保持対象が多い、または設計判断を含む場合は Standard に切り替える。
+- Standard の場合は、保持対象を主に `Design Details` に置く。補足的な例は `Notes` に置いてよい。
+- Light の場合でも、保持対象があるなら `Examples` セクションを追加して残す。保持対象が多い、または設計判断を含む場合は Standard に切り替える。
 - Issue タイトルは内容が一目で分かる具体的な文にする。
+- 選択したテンプレートの見出し構成と順序に従い、本文は日本語で記述する。
+- `Related Issues / PRs` を本文の先頭に置き、関連がなければ `None` と書く。
+- 背景、目的、変更概要は別々のセクションへ細分化せず、`Summary` にまとめる。
 - モノレポ運用で対象アプリやパッケージが明確な場合、Issue タイトルの先頭に Prefix を付ける。
 - Prefix 形式は `[example-app] title example` のように `[scope] summary` を使う。
 - 単一リポジトリ、または対象スコープが1つに定まらない場合は Prefix を付けない。
@@ -110,7 +111,7 @@ Issue の規模に応じて、`references/` 配下のテンプレートを **ど
 - Label は確認できた候補の中から、Issue 内容に最も合うものだけを選んで付与する。
 - 適切な Label が存在しない場合は、存在しない Label 名を新規に仮定して付けない。
 - ただし、既存 Label では運用上どうしても不足し、新規作成が妥当な場合は候補 Label 名と用途をユーザーに一度提案してから作成する。
-- ユーザーが README や `AGENTS.md` の更新を要求している場合は、本文の `### Documentation / ドキュメント` セクションに明記する。
+- ユーザーが README や `AGENTS.md` の更新を要求している場合は、本文の `### Documentation` セクションに明記する。
 - `gh issue create` を使い、必要なら対象リポジトリを `--repo` で明示する。
 - Label を付ける場合は、事前に確認した既存 Label 名だけを `--label` で明示する。
 - 新規 Label が必要な場合は、ユーザー合意前に Label を作成しない。
@@ -126,7 +127,10 @@ Issue の規模に応じて、`references/` 配下のテンプレートを **ど
     FILE=$(mktemp)
     trap 'rm -f "$FILE"' EXIT
     cat > "$FILE" << 'EOF'
-    ## Overview / 概要
+    ## Related Issues / PRs
+    None
+
+    ## Summary
     ...
     EOF
 
