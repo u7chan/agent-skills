@@ -6,158 +6,108 @@ description: >
 
 # 概要
 
-GitHub PR に付いた review comments / conversation comments を確認し、指摘内容に沿ってコードを修正するためのスキル。
-このスキルは実装対応、検証、コミット、push、対応した feedback コメントへの返信までを担当する。
+GitHub PR の未解決 feedback を検証し、必要なコード変更、テスト、commit、push、コメント返信まで行う。
+reviewer の指摘をそのまま仕様とみなさず、現在のコードと既存仕様に照らして対応を決める。
 
-# このスキルを使用するタイミング
+# 実行ルール
 
-- ユーザーが「PRのFBおねがい」「PRのコメントみて」「FB対応して」「レビューコメント対応して」と依頼した時
-- PR 作成後の文脈で、指摘コメントやレビューコメントへの対応を求められた時
-- PR URL や番号が明示されていなくても、現在ブランチに紐づく PR の feedback 対応が自然な時
+- GitHub 操作は `gh` CLI / `gh api` を使い、最初に `gh auth status` を確認する。
+- FB 対応依頼を、対応後のコメント返信までの許可として扱い、投稿前確認は挟まない。
+- review thread の Resolve と PR approval は実行しない。
+- ユーザーの未コミット変更、無関係な変更、既存 commit を壊さない。
+- 指摘対応に必要な変更だけを行い、無関係な整形、リファクタ、依存更新を混ぜない。
+- 指摘同士が衝突する、または仕様決定が必要な場合だけユーザーへ確認する。
 
-# 入力と出力
-
-## 入力
-
-- PR 番号、PR URL、`owner/repo` と PR 番号、または現在ブランチに紐づく PR
-- review comments、review threads、top-level PR comments
-- 対象リポジトリのローカル checkout
-- `gh` CLI が利用可能で、対象リポジトリへ read/write 権限のある認証が済んでいること
-
-## 出力
-
-- 指摘に対応するコード変更
-- 必要な検証結果
-- 対応コミットと push 済みブランチ
-- 対応した feedback コメントへの返信
-- ユーザーへの簡潔な報告
-  - 対応した指摘
-  - 対応しなかった指摘と理由
-  - 実行した検証
-  - 返信したコメント
-
-# 前提
-
-- GitHub 連携は `gh` CLI / `gh api` を優先して使い、GitHub コネクタには依存しない。コネクタと `gh` は認証主体や権限が異なるため、PR 取得や更新で 403 になることがある。
-- 作業前に `gh auth status` を確認する。
-- ユーザーの未コミット変更や無関係な変更を勝手に取り込まない。
-- review thread の Resolve と Approve は行わない。
-- 対応した feedback コメントには、対応内容や未対応理由が分かる返信を投稿する。
-- ユーザーがこのスキルで FB 対応を依頼した時点で、対応後の GitHub コメント返信まで許可されたものとして扱う。投稿本文をユーザーに事前確認しない。
-- PR approval に相当する操作は絶対に実行しない。
-
-# Agentが行うこと
+# ワークフロー
 
 1. 対象 PR と現在ブランチを特定する。
-2. 未対応の review feedback を収集する。
-3. 対応対象を分類し、実装方針を決める。
-4. コードを修正する。
-5. 必要なテスト・lint・型チェックを実行する。
-6. 変更を確認し、対応内容だけを commit する。
-7. ブランチを push する。
-8. 対応した feedback コメントへ返信する。
-9. 対応結果を報告する。
+2. 未解決 feedback と最新差分を取得する。
+3. 各 feedback の主張と根拠を検証し、対応を分類する。
+4. `actionable` な指摘だけ実装する。
+5. 変更範囲に対応する検証を実行する。
+6. コード変更がある場合だけ、この作業の変更を commit して push する。
+7. 各 feedback へ、対応結果または未対応理由を返信する。
+8. 実装、検証、commit、返信結果を報告する。
 
-# ステップの詳細
+# 手順
 
 ## 1. PR を特定する
 
-- ユーザーが PR URL を渡した場合は URL から `owner/repo` と PR 番号を読み取る。
-- ユーザーが PR 番号だけを渡した場合は、現在の git remote から対象リポジトリを推定する。
-- PR URL や番号がない場合は、現在ブランチから対象 PR を特定する。
-  - `git branch --show-current` で現在ブランチを取得する。
-  - `gh pr view "$BRANCH" --json number,url,title,headRefName,baseRefName` を試す。
-  - 見つからない場合は `gh pr view --json number,url,title,headRefName,baseRefName` を試す。
-  - それでも特定できない場合のみ、対象 PR をユーザーへ確認する。
+- PR URL があれば `owner/repo` と PR 番号を読み取る。
+- PR 番号だけなら現在の remote からリポジトリを推定する。
+- 指定がなければ、現在ブランチに対して `gh pr view "$BRANCH"`、次に `gh pr view` を試す。
+- 特定できない場合だけユーザーへ確認する。
 
 ## 2. feedback を収集する
 
-- `gh pr view --json number,url,title,body,headRefName,baseRefName,comments,reviews` で PR 概要とトップレベルコメントを確認する。
-- review comments / review threads は `gh api graphql` または `gh api repos/{owner}/{repo}/pulls/{number}/comments` で取得する。
-- 可能なら thread の resolved 状態を取得し、resolved 済みの指摘は原則対応対象から外す。
-- 既存の最新差分を `gh pr diff` で確認し、コメントが現在のコードにまだ該当するかを見る。
-- feedback は次のように分類する。
-  - `actionable`: コードやテストの変更で対応できる
-  - `question`: 仕様確認や意図説明が必要
-  - `already-fixed`: 現在の差分では解消済み
-  - `not-applicable`: 現在のコードに該当しない、または誤認
-  - `blocked`: 情報不足や権限不足で対応できない
+- `gh pr view --json number,url,title,body,headRefName,baseRefName,comments,reviews` で概要を取得する。
+- GraphQL または pull request comments API で review threads と resolved 状態を取得する。
+- resolved 済みの指摘を原則として対象外にする。
+- `gh pr diff` と現在のコードを読み、コメントが最新状態にも該当するか確認する。
 
-## 3. 対応方針を決める
+## 3. 指摘を検証して分類する
 
-- `actionable` を優先して実装する。
-- `question`、`not-applicable`、`blocked` は勝手に仕様を決めない。コード変更の判断にユーザー決定が必須な場合のみユーザーに確認する。
-- コード変更なしで説明、未対応理由、確認事項を reviewer に返せる feedback は、ユーザー確認待ちにせずコメント返信まで進める。
-- 小さな推測で安全に進められる場合のみ、理由を明確にして実装する。
-- 複数指摘が衝突する場合は、先にユーザーへ確認する。
-- 対応不要と判断した指摘は、最終報告に理由を残す。
+各 feedback から、主張、想定する発生条件、問題となる挙動、要求された変更を分けて読む。
+次の分類を使う。
 
-## 4. コードを修正する
+- `actionable`: 現在のコードで問題を確認でき、コードまたはテスト変更で対応できる。
+- `question`: 仕様、意図、実行時条件の確認が必要。
+- `already-fixed`: 最新状態では、元の失敗条件が既に解消している。
+- `not-applicable`: 前提が現行コードや仕様と一致せず、指摘した挙動が起きない。
+- `blocked`: 情報、権限、環境が不足して判断または実装できない。
 
-- 既存の設計、命名、テスト方針に合わせる。
-- 指摘対応に必要な範囲だけを変更する。
-- 無関係な整形、リファクタ、依存更新を混ぜない。
-- ユーザーの未コミット変更が同じファイルにある場合は、差分を読んで壊さないように作業する。
-- 変更対象が不明な場合は、先に `rg`、`git diff`、関連ファイルの読み取りで根拠を集める。
+分類時は次を守る。
+
+- reviewer の推定を未確認のまま事実や仕様として採用しない。
+- ガード、呼び出し元、型、設定、フレームワーク仕様、既存テストによる反証を確認する。
+- 複数の原因や要求が一つのコメントに含まれる場合は、個別に判定する。
+- 小さな推測で進める場合も、仮定と影響範囲を明確にできる場合に限る。
+- コード変更が不要なら、根拠を示した返信だけで完了してよい。
+- `already-fixed`、`not-applicable`、`question`、`blocked` だけでコード変更がない場合は、commit と push を行わない。
+
+## 4. 実装する
+
+- `actionable` の発生条件を閉じる最小の変更を行う。
+- 症状だけを隠さず、指摘された挙動を生む原因を修正する。
+- 既存の設計、命名、エラー処理、テスト方針へ合わせる。
+- feedback の要求より狭い変更で問題を解消できる場合は、狭い変更を選ぶ。
 
 ## 5. 検証する
 
-- 変更範囲に応じて最小限かつ十分な検証を行う。
-- 既存の test / lint / typecheck コマンドが分かる場合はそれを使う。
-- 検証できなかった場合は理由を報告する。
-- 失敗した場合はログを読み、指摘対応に関係する失敗なら修正する。無関係な既存失敗は区別して報告する。
+- 元の失敗条件を再現または防止できるテストを優先する。
+- 変更範囲に応じて test、lint、typecheck を実行する。
+- 検証不能なら理由を記録する。
+- 失敗が今回の変更に関係するかを切り分け、無関係な既存失敗と混同しない。
 
-## 6. commit する
+## 6. commit と push を行う
 
+- コード変更がない場合は、この手順をスキップする。空コミットを作らない。
 - `git status --short` と `git diff` で変更範囲を確認する。
-- このスキルで行った変更だけを stage する。
-- 未追跡ファイルや無関係な変更を勝手に commit しない。
-- commit message の生成には必ず `git-commit-message/SKILL.md` を使い、そのワークフローに従う。
-- `git-commit-message` 側に `git add .` の例があっても、このスキルでは使わない。stage 対象は必ずこのスキルで行った変更だけに限定する。
-- commit message は `git-commit-message` のルールに従い、feedback 対応であることが分かる Conventional Commits 形式にする。
-- feedback 対応であることは `git-commit-message` の feedback 対応用 type で表し、scope は通常ルールに従って対象プロジェクトや対象スキルを入れる。
-- コミット済みの変更が既にある場合は、必要に応じて新しい commit を追加する。既存 commit を勝手に amend / rebase しない。
+- この作業の変更だけを stage する。`git add .` は使わない。
+- commit message は `git-commit-message/SKILL.md` を使い、feedback 対応用 type に従う。
+- 既存 commit を勝手に amend / rebase しない。
+- 現在ブランチを push し、upstream がなければ設定する。force push はしない。
 
-## 7. push する
+## 7. feedback へ返信する
 
-- 現在ブランチを push する。
-- upstream がなければ `git push -u origin "$BRANCH"` を使う。
-- push に失敗した場合は理由を報告し、勝手に force push しない。
+- review comment には threaded reply、top-level comment には follow-up comment を投稿する。
+- 投稿方法は `github-pr-comment-reply/SKILL.md` に従う。
+- `actionable` には、変更内容、元の失敗条件をどう閉じたか、commit、検証結果を書く。
+- `already-fixed` / `not-applicable` には、判断根拠となる現在のコードや仕様を書く。
+- `question` / `blocked` には、確定に必要な情報を具体的に書く。
+- 一部だけ対応した場合は「対応済み」と言い切らず、残っている条件を明記する。
+- 「修正しました」だけの返信や、変更内容の重複要約を避ける。
+- 返信後も thread は Resolve しない。
 
-## 8. feedback コメントへ返信する
+## 8. 報告する
 
-- 対応した review comment には threaded reply を投稿する。
-- 対応した top-level PR conversation comment には follow-up comment を投稿する。
-- 返信本文には、対応内容、関連 commit、検証結果を簡潔に含める。
-- 未対応、判断不能、質問が必要な feedback には、必要に応じて理由や確認事項を返信する。
-- 返信は push 後に自動で投稿し、ユーザー確認待ちにしない。返信対象が特定でき、本文がこのスキルの対応結果に基づいている場合、投稿完了までがこのスキルの完了条件。
-- 返信対象と投稿方法は `github-pr-comment-reply/SKILL.md` の方針に従う。ただし、同スキルの「投稿前のユーザー確認」ルールはこのスキルからの自動返信では省略する。
-- review thread の Resolve と Approve は行わない。
+- 対応、未対応、判断不能の feedback と理由を簡潔に列挙する。
+- 実行した検証、PR URL、返信先を伝える。commit を作成した場合だけ commit hash を含める。
+- push または返信に失敗した場合は、失敗箇所と理由を伝える。
 
-## 9. 報告する
+# 完了条件
 
-- 対応した feedback を簡潔に列挙する。
-- 未対応、判断不能、質問が必要な feedback があれば理由を添える。
-- 実行した検証と結果を伝える。
-- commit hash と PR URL を伝える。
-- 返信したコメントを伝える。
-- このスキル自身では review thread の Resolve と Approve を行わない。
-
-# 品質チェック
-
-- `description` を読むだけで、「PRのFBおねがい」「PRのコメントみて」で発火すべきことが分かる
-- PR URL/番号がなくても現在ブランチから PR を特定する手順がある
-- review feedback の収集、分類、実装、検証、commit、push、返信、報告までの流れがある
-- 無関係な変更を commit しないルールがある
-- 対応した feedback コメントへ返信するルールがある
-- FB 対応後の返信はユーザー確認なしで自動投稿するルールがある
-- Resolve / Approve をこのスキルで行わないルールがある
-- GitHub コネクタに依存せず `gh` / `gh api` の認証で進めるルールがある
-
-# 参考資料
-
-- `github-pr-review/SKILL.md`
-- `github-pr-comment-reply/SKILL.md`
-- `gh pr view`
-- `gh pr diff`
-- `gh api`
+- 各 feedback の前提を検証し、未確認の推定を仕様として実装していない。
+- 変更が元の失敗条件を閉じ、対応範囲外の変更を含まない。
+- 必要な検証と返信が完了し、コード変更がある場合だけ commit と push が完了している。
+- Resolve と PR approval を実行していない。
