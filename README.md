@@ -35,7 +35,7 @@
 
 | Skill | Description |
 |-------|-------------|
-| [grill-me](grill-me/SKILL.md) | 計画や設計を厳しく壁打ちする |
+| [grilling](grilling/SKILL.md) | 計画や設計を実装前に徹底的に壁打ちし、意思決定と前提を明確にする |
 | [grill-with-docs](grill-with-docs/SKILL.md) | 既存ドキュメントと照合しながら設計を厳しく壁打ちする |
 
 ### 文章チェック / 校正
