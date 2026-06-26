@@ -44,6 +44,7 @@
 | Skill | Description |
 |-------|-------------|
 | [japanese-text-proofread](japanese-text-proofread/SKILL.md) | 日本語の文章や Markdown 原稿の誤字脱字・表記ゆれを点検する |
+| [japanese-ai-text-naturalize](japanese-ai-text-naturalize/SKILL.md) | AI生成っぽい技術・業務文を自然で実用的な日本語へ整える |
 
 ### 品質 / テスト設計
 
