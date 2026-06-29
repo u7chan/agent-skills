@@ -1,0 +1,4 @@
+interface:
+  display_name: "tmux Claude Code Split"
+  short_description: "現在の tmux を分割して Claude Code を起動"
+  default_prompt: "Use $tmux-claude-split to split the current tmux window horizontally and start Claude Code in the new pane."
