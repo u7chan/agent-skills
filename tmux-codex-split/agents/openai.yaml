@@ -1,0 +1,4 @@
+interface:
+  display_name: "tmux Codex Split"
+  short_description: "現在の tmux を左右分割して Codex を起動"
+  default_prompt: "Use $tmux-codex-split to split the current tmux window horizontally and start Codex in the new pane."

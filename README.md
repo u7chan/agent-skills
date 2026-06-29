@@ -66,6 +66,12 @@
 |-------|-------------|
 | [tailwind-ui-compose](tailwind-ui-compose/SKILL.md) | 画面構成から始めて Tailwind UI の設計と実装方針を整える |
 
+### ターミナル操作
+
+| Skill | Description |
+|-------|-------------|
+| [tmux-codex-split](tmux-codex-split/SKILL.md) | 現在の tmux ウィンドウを左右分割し、新しいペインで Codex CLI を起動する |
+
 ### ブラウザ操作 / 検証
 
 | Skill | Description |
