@@ -1,0 +1,4 @@
+interface:
+  display_name: "tmux OpenCode Split"
+  short_description: "現在の tmux を分割して OpenCode を起動"
+  default_prompt: "Use $tmux-opencode-split to split the current tmux window horizontally and start OpenCode in the new pane."

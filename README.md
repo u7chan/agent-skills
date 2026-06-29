@@ -71,6 +71,8 @@
 | Skill | Description |
 |-------|-------------|
 | [tmux-codex-split](tmux-codex-split/SKILL.md) | 現在の tmux ウィンドウを左右分割し、新しいペインで Codex CLI を起動する |
+| [tmux-opencode-split](tmux-opencode-split/SKILL.md) | 現在の tmux ウィンドウを左右分割し、新しいペインで OpenCode CLI を起動する |
+| [tmux-claude-split](tmux-claude-split/SKILL.md) | 現在の tmux ウィンドウを左右分割し、新しいペインで Claude Code CLI を起動する |
 
 ### ブラウザ操作 / 検証
 
