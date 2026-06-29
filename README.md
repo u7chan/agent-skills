@@ -29,7 +29,7 @@
 
 | Skill | Description |
 |-------|-------------|
-| [github-implement-pr](github-implement-pr/SKILL.md) | 既存スキルを参照しつつ Issue 確認から PR 作成まで進める |
+| [github-implement-pr](github-implement-pr/SKILL.md) | Issue 確認から PR 作成、別 Codex への非同期レビュー依頼まで進める |
 | [html-artifact-format](html-artifact-format/SKILL.md) | AI向けMarkdownと人間向けHTMLを判断し、視覚化要素入りの単一HTMLを生成する |
 
 ### 要件定義 / 設計対話
