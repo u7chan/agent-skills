@@ -1,9 +1,8 @@
 ---
 name: ai-identity-resolve
 description: >
-  Resolve AI agent identity metadata for review comments and PR replies. Use
-  when composing AI review helper metadata or when another skill needs the
-  current agent name and model name without guessing.
+  レビューコメントやPR返信に付けるAI識別メタデータを解決するときに使う。
+  現在のエージェント名とモデル名を推測せず取得する。
 ---
 
 # 概要

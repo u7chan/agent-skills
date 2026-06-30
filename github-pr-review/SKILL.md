@@ -1,8 +1,8 @@
 ---
 name: github-pr-review
 description: >
-  Use this when asked to review a specific GitHub Pull Request and leave review comments on the PR itself.
-  Trigger this skill when the user provides a PR number or URL, says casual review requests like "レビューして", "PRレビューして", or "このPR見て", or explicitly asks you to review and comment on a GitHub PR instead of only summarizing findings in chat. Also trigger when the user asks to recheck feedback previously posted by this skill.
+  指定されたGitHub PRのレビューや再チェックを行い、PR上へコメントするときに使う。
+  PR URL・番号の指定や、「レビューして」「PRレビューして」「このPR見て」など、GitHubへの投稿を求める依頼で起動する。
 ---
 
 # 概要

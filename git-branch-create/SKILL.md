@@ -1,6 +1,6 @@
 ---
 name: git-branch-create
-description: Branch naming and creation workflow
+description: Gitブランチ名の提案やブランチ作成を依頼されたときに使う。
 ---
 
 ## ワークフロー

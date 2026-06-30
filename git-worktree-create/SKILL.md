@@ -1,9 +1,8 @@
 ---
 name: git-worktree-create
 description: >
-  Create an isolated git worktree for coding-agent work, including base branch
-  resolution, branch naming, collision checks, and the handoff path for
-  implementation.
+  コーディングエージェント用の独立したgit worktreeを作成するときに使う。
+  基点ブランチの特定、ブランチ命名、衝突確認、実装先の引き継ぎまで扱う。
 ---
 
 # 概要

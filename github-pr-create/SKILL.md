@@ -1,6 +1,6 @@
 ---
 name: github-pr-create
-description: Use when asked to create or open a GitHub PR, including casual requests like "PRまでお願い", "PRまで", "pushしてPR", "PR作って", or "PR open". Handles PR body generation and gh-based PR creation.
+description: GitHub PRの作成を依頼されたときに使う。「PRまでお願い」「PRまで」「pushしてPR」「PR作って」「PR open」も対象。PR本文を生成し、ghでPRを作成する。
 ---
 
 ## 概要

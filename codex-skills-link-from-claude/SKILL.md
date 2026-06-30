@@ -1,10 +1,8 @@
 ---
 name: codex-skills-link-from-claude
 description: >
-  Use this when asked to make Claude Code skills available to Codex by creating a
-  `.codex/skills` symlink that points to `.claude/skills`. It captures the exact
-  symlink pattern that works in this repo and avoids the relative-path mistake that
-  breaks editor discovery.
+  Claude CodeのスキルをCodexでも使えるように依頼されたときに使う。
+  `.claude/skills` を指す `.codex/skills` symlinkを正しい相対パスで作成し、エディタの検出漏れを防ぐ。
 ---
 
 # Claude To Codex Skills Link

@@ -1,11 +1,8 @@
 ---
 name: npm-dependency-update
 description: >
-  Use this when asked to update dependencies in an npm application, whether the request is
-  a broad non-major refresh or a major-version upgrade for a specific package. It captures
-  the branching workflow for deciding between safe npm updates within the current major
-  series and an interactive major-upgrade flow with upstream research, user confirmation,
-  one-package-at-a-time changes, and project validation.
+  npmアプリの依存関係を一括で非メジャー更新するとき、または特定パッケージをメジャー更新するときに使う。
+  upstream調査、ユーザー確認、1パッケージずつの更新、プロジェクト検証まで扱う。
 ---
 
 # npm Dependency Updater
