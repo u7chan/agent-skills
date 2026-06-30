@@ -144,7 +144,7 @@ trace_from_parent() {
 
 send_message() {
   local action="$1"; shift
-  local to='' text='' text_file='' parent='' timeout=1800 arg trace id dir payload_path response_file='' payload contexts_json
+  local to='' text='' text_file='' parent='' timeout=1800 arg trace id dir payload_path response_file='' payload contexts_json pending='' pending_lock=''
   local -a contexts=()
   while (($#)); do
     arg="$1"; shift
@@ -170,22 +170,25 @@ send_message() {
     payload_path="$dir/commands/$id.json"
     payload="$(jq -cn --arg id "$id" --arg trace "$trace" --arg now "$(now)" --arg from "$TMUX_PANE" --arg to "$to" --arg text "$text" --argjson contexts "$contexts_json" '{id:$id,traceId:$trace,action:"command",createdAt:$now,fromPaneId:$from,toPaneId:$to,text:$text,contextFiles:$contexts}')"
   else
-    local pending="$STORAGE_BASE/pending/$(pane_key "$TMUX_PANE").json"
+    pending="$STORAGE_BASE/pending/$(pane_key "$TMUX_PANE").json"
+    pending_lock="${pending}.lock"
     [[ ! -e "$pending" ]] || die "このペインには未完了requestがあります: $pending"
     payload_path="$dir/requests/$id.json"
     response_file="$dir/responses/$id.json"
     payload="$(jq -cn --arg id "$id" --arg trace "$trace" --arg now "$(now)" --arg from "$TMUX_PANE" --arg to "$to" --arg text "$text" --argjson contexts "$contexts_json" --arg response "$response_file" --argjson timeout "$timeout" '{id:$id,traceId:$trace,action:"request",createdAt:$now,fromPaneId:$from,toPaneId:$to,text:$text,contextFiles:$contexts,responseFile:$response,timeoutSeconds:$timeout}')"
+    mkdir "$pending_lock" 2>/dev/null || die "このペインには未完了requestがあります: $pending"
     if ! atomic_write "$pending" "$(jq -cn --arg request "$payload_path" --arg response "$response_file" --arg id "$id" --arg trace "$trace" '{requestFile:$request,responseFile:$response,requestId:$id,traceId:$trace}')"; then
+      rmdir "$pending_lock" 2>/dev/null || true
       die '未完了request状態を保存できません'
     fi
   fi
   if ! atomic_write "$payload_path" "$payload"; then
-    [[ "$action" == request ]] && rm -f "$STORAGE_BASE/pending/$(pane_key "$TMUX_PANE").json"
+    if [[ "$action" == request ]]; then rm -f "$pending"; rmdir "$pending_lock" 2>/dev/null || true; fi
     die 'Payloadを保存できません'
   fi
   if ! notify_pane "$to" "$payload_path"; then
     rm -f "$payload_path"
-    [[ "$action" == request ]] && rm -f "$STORAGE_BASE/pending/$(pane_key "$TMUX_PANE").json"
+    if [[ "$action" == request ]]; then rm -f "$pending"; rmdir "$pending_lock" 2>/dev/null || true; fi
     die 'Payloadの配送に失敗しました'
   fi
   if [[ "$action" == request ]]; then
@@ -196,18 +199,24 @@ send_message() {
 
 read_message() {
   (($# == 1)) || die 'usage: read <payload-path>'
-  local loaded path json action pending pending_json
+  local loaded path json action pending pending_lock pending_json
   loaded="$(load_payload "$1")"; path="${loaded%%$'\n'*}"; json="${loaded#*$'\n'}"; action="$(jq -r '.action' <<<"$json")"
   if [[ "$action" == response ]]; then
     pending="$STORAGE_BASE/pending/$(pane_key "$TMUX_PANE").json"
+    pending_lock="${pending}.lock"
     [[ -f "$pending" && ! -L "$pending" && "$(stat -c '%u' "$pending")" == "$UID" ]] || die '対応する未完了requestがありません'
     pending_json="$(jq -c . "$pending")" || die '未完了request状態が不正です'
     jq -e 'keys == ["requestFile","requestId","responseFile","traceId"]' >/dev/null <<<"$pending_json" || die '未完了request状態に未定義フィールドがあります'
     jq -e --arg path "$path" --arg id "$(jq -r '.inReplyTo' <<<"$json")" '.responseFile == $path and .requestId == $id' >/dev/null <<<"$pending_json" || die 'responseが未完了requestと一致しません'
     rm -f "$pending"
+    rmdir "$pending_lock" 2>/dev/null || true
   fi
   printf '%s\n' "$json"
-  [[ "$action" == command ]] && rm -f "$path"
+  if [[ "$action" == command ]]; then
+    rm -f "$path"
+    rmdir "$(dirname "$path")" 2>/dev/null || true
+    rmdir "$(dirname "$(dirname "$path")")" 2>/dev/null || true
+  fi
   return 0
 }
 
