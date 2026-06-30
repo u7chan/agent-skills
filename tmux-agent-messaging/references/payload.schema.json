@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/u7chan/agent-skills/tmux-agent-messaging/payload.schema.json",
+  "title": "tmux Agent Message Payload",
+  "oneOf": [
+    { "$ref": "#/$defs/command" },
+    { "$ref": "#/$defs/request" },
+    { "$ref": "#/$defs/response" }
+  ],
+  "$defs": {
+    "common": {
+      "type": "object",
+      "required": ["id", "traceId", "action", "createdAt", "fromPaneId", "toPaneId", "text", "contextFiles"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^msg-[0-9a-f-]+$" },
+        "traceId": { "type": "string", "pattern": "^trace-[0-9a-f-]+$" },
+        "action": { "enum": ["command", "request", "response"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "fromPaneId": { "type": "string", "pattern": "^%[0-9]+$" },
+        "toPaneId": { "type": "string", "pattern": "^%[0-9]+$" },
+        "text": { "type": "string" },
+        "contextFiles": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^/" }
+        }
+      }
+    },
+    "command": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "properties": { "action": { "const": "command" } }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "request": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "required": ["responseFile", "timeoutSeconds"],
+          "properties": {
+            "action": { "const": "request" },
+            "responseFile": { "type": "string", "pattern": "^/tmp/tmux-agent-messaging/[0-9]+/trace-[0-9a-f-]+/responses/msg-[0-9a-f-]+\\.json$" },
+            "timeoutSeconds": { "type": "integer", "minimum": 1 }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "response": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "required": ["inReplyTo", "status"],
+          "properties": {
+            "action": { "const": "response" },
+            "inReplyTo": { "type": "string", "pattern": "^msg-[0-9a-f-]+$" },
+            "status": { "enum": ["completed", "failed"] },
+            "error": {
+              "type": "object",
+              "required": ["code"],
+              "properties": { "code": { "type": "string", "minLength": 1 } },
+              "additionalProperties": false
+            }
+          }
+        }
+      ],
+      "if": { "properties": { "status": { "const": "failed" } } },
+      "then": { "required": ["error"] },
+      "else": { "not": { "required": ["error"] } },
+      "unevaluatedProperties": false
+    }
+  }
+}
