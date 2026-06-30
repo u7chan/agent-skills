@@ -1,0 +1,4 @@
+interface:
+  display_name: "npm Dependency Update"
+  short_description: "npmアプリの依存関係を1パッケージずつ安全に更新する"
+  default_prompt: "Use $npm-dependency-update to update npm project dependencies one by one with upstream checks."

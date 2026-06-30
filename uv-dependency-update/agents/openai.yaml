@@ -1,0 +1,4 @@
+interface:
+  display_name: "uv Dependency Update"
+  short_description: "uv管理のPython依存関係を1パッケージずつ安全に更新する"
+  default_prompt: "Use $uv-dependency-update to update uv-managed Python dependencies one by one."

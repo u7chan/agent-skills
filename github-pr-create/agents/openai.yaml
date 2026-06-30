@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub PR Create"
+  short_description: "PR本文を生成してghでGitHub Pull Requestを作成する"
+  default_prompt: "Use $github-pr-create to generate a PR description and create a GitHub pull request."

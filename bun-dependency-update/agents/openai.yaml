@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bun Dependency Update"
+  short_description: "Bunアプリの依存関係を1パッケージずつ安全に更新する"
+  default_prompt: "Use $bun-dependency-update to update Bun project dependencies one by one with upstream checks."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grill with Docs"
+  short_description: "既存ドキュメントと照合しながら設計を厳しく壁打ち検証する"
+  default_prompt: "Use $grill-with-docs to rigorously stress-test a design against existing documentation."

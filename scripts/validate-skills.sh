@@ -91,6 +91,57 @@ else
   done < "$tmp_dir/readme.stale"
 fi
 
+# Validate agents/openai.yaml metadata for each skill
+MIN_DESC_LEN=25
+MAX_DESC_LEN=64
+
+while IFS= read -r skill_file; do
+  skill_dir="$(dirname "$skill_file")"
+  yaml_file="$skill_dir/agents/openai.yaml"
+
+  # Extract skill name from SKILL.md frontmatter
+  skill_name="$(sed -n '/^---$/,/^---$/ { /^name:/ { s/^name:[[:space:]]*//p; q; } }' "$skill_file")"
+  if [[ -z "$skill_name" ]]; then
+    report_failure "$skill_file: could not extract name from frontmatter"
+    continue
+  fi
+
+  # Check agents/openai.yaml exists
+  if [[ ! -f "$yaml_file" ]]; then
+    report_failure "$skill_dir: agents/openai.yaml is missing"
+    continue
+  fi
+
+  # Check display_name
+  display_name="$(sed -n 's/^[[:space:]]*display_name:[[:space:]]*"\(.*\)"/\1/p' "$yaml_file")"
+  if [[ -z "$display_name" ]]; then
+    report_failure "$yaml_file: display_name is missing or empty"
+  fi
+
+  # Check short_description
+  short_desc="$(sed -n 's/^[[:space:]]*short_description:[[:space:]]*"\(.*\)"/\1/p' "$yaml_file")"
+  if [[ -z "$short_desc" ]]; then
+    report_failure "$yaml_file: short_description is missing or empty"
+  else
+    desc_len=$(python3 -c "import sys; print(len(sys.argv[1]))" "$short_desc")
+    if (( desc_len < MIN_DESC_LEN )); then
+      report_failure "$yaml_file: short_description is $desc_len chars (min $MIN_DESC_LEN)"
+    elif (( desc_len > MAX_DESC_LEN )); then
+      report_failure "$yaml_file: short_description is $desc_len chars (max $MAX_DESC_LEN)"
+    fi
+  fi
+
+  # Check default_prompt
+  default_prompt="$(sed -n 's/^[[:space:]]*default_prompt:[[:space:]]*"\(.*\)"/\1/p' "$yaml_file")"
+  if [[ -z "$default_prompt" ]]; then
+    report_failure "$yaml_file: default_prompt is missing or empty"
+  else
+    if ! echo "$default_prompt" | grep -qE "\\\$$skill_name([^a-z0-9-]|\$)"; then
+      report_failure "$yaml_file: default_prompt does not reference \$$skill_name"
+    fi
+  fi
+done < "$tmp_dir/skills.actual"
+
 if (( failures > 0 )); then
   printf 'Skill validation failed with %s error(s).\n' "$failures" >&2
   exit 1

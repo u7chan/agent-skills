@@ -1,0 +1,4 @@
+interface:
+  display_name: "WSL Chrome Attach Use"
+  short_description: "attach済みWindows Chromeをchrome-devtools-mcp経由で操作する"
+  default_prompt: "Use $wsl-chrome-attach-use to operate an attached Windows Chrome via chrome-devtools-mcp."

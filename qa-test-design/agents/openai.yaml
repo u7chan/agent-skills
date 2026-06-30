@@ -1,0 +1,4 @@
+interface:
+  display_name: "QA Test Design"
+  short_description: "QA観点出し・テスト設計・テストケース洗い出しを体系的に行う"
+  default_prompt: "Use $qa-test-design to systematically design test cases and QA perspectives."

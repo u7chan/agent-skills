@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Worktree Create"
+  short_description: "コーディングエージェント用の独立したgit worktreeを作成する"
+  default_prompt: "Use $git-worktree-create to create an isolated git worktree for a coding agent."
