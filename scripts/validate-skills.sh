@@ -123,7 +123,7 @@ while IFS= read -r skill_file; do
   if [[ -z "$short_desc" ]]; then
     report_failure "$yaml_file: short_description is missing or empty"
   else
-    desc_len="$(echo -n "$short_desc" | wc -m)"
+    desc_len=$(python3 -c "import sys; print(len(sys.argv[1]))" "$short_desc")
     if (( desc_len < MIN_DESC_LEN )); then
       report_failure "$yaml_file: short_description is $desc_len chars (min $MIN_DESC_LEN)"
     elif (( desc_len > MAX_DESC_LEN )); then
@@ -136,7 +136,7 @@ while IFS= read -r skill_file; do
   if [[ -z "$default_prompt" ]]; then
     report_failure "$yaml_file: default_prompt is missing or empty"
   else
-    if ! echo "$default_prompt" | grep -qF "\$$skill_name"; then
+    if ! echo "$default_prompt" | grep -qE "\\\$$skill_name([^a-z0-9-]|\$)"; then
       report_failure "$yaml_file: default_prompt does not reference \$$skill_name"
     fi
   fi
