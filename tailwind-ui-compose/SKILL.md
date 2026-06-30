@@ -1,11 +1,8 @@
 ---
 name: tailwind-ui-compose
 description: >
-  Composition-first UI design and Tailwind implementation guidance for screens,
-  pages, and app surfaces that need clear hierarchy, restrained decoration, and
-  responsive structure. Use when Codex is asked to design a new UI, restyle an
-  existing screen, propose layout direction, or generate JSX/TSX with Tailwind
-  while avoiding card-heavy, shadow-heavy, component-first output.
+  Tailwindで画面を新規設計・リスタイルするとき、レイアウト提案やJSX/TSX生成を依頼されたときに使う。
+  明確な階層、控えめな装飾、レスポンシブ構成を重視したcomposition-firstのUI設計を扱う。
 ---
 
 # Design UI Compose

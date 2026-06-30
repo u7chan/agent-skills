@@ -1,7 +1,8 @@
 ---
 name: github-pr-feedback-address
 description: >
-  Use this when asked to address feedback on an existing GitHub Pull Request, including casual requests like "PRのFBおねがい", "PRのコメントみて", "レビューコメント対応して", "FB対応して", or requests made after a PR has been opened and review comments are expected. Finds the current PR from the provided PR URL/number or current branch, inspects unresolved review feedback, implements fixes, validates, commits, pushes, and replies to the addressed feedback comments.
+  既存のGitHub PRへのfeedback対応を依頼されたときに使う。「PRのFBおねがい」「PRのコメントみて」
+  「レビューコメント対応して」「FB対応して」も対象。未解決feedbackの検証、修正、テスト、commit、push、返信まで行う。
 ---
 
 # 概要

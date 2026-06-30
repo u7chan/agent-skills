@@ -1,6 +1,6 @@
 ---
 name: git-commit-message
-description: Commit message suggestion workflow
+description: Gitのコミットメッセージ提案を依頼されたときに使う。
 ---
 
 ## ワークフロー

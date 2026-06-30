@@ -1,9 +1,8 @@
 ---
 name: skills-readme-sync
 description: >
-  Use this when adding, renaming, removing, or materially changing skills in this
-  repository and the README may need to be updated. It synchronizes the README's
-  Available Skills table with the current skill set.
+  このリポジトリでスキルを追加・改名・削除・大幅変更し、READMEの更新が必要なときに使う。
+  Available Skills表を現在のスキル構成へ同期する。
 ---
 
 # Skills README Sync
