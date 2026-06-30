@@ -1,0 +1,4 @@
+interface:
+  display_name: "HTML Artifact Format"
+  short_description: "AI向けMarkdown成果物を人間向け単一HTMLに変換して視覚化する"
+  default_prompt: "Use $html-artifact-format to convert AI-oriented Markdown artifacts into human-readable HTML with visual elements."

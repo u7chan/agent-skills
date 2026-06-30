@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Author"
+  short_description: "SKILL.mdの新規作成・改善・レビューを体系的に行う"
+  default_prompt: "Use $skill-author to create, improve, or review a SKILL.md file."

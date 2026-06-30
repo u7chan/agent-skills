@@ -1,0 +1,4 @@
+interface:
+  display_name: "Image to SVG"
+  short_description: "PNG/JPEG画像を編集可能なベクターSVGに変換する"
+  default_prompt: "Use $image-to-svg to convert a raster image (PNG/JPEG) into an editable vector SVG."

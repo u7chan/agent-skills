@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tailwind UI Compose"
+  short_description: "Tailwind CSSでレイアウト設計・UIコンポーネントのJSXを生成する"
+  default_prompt: "Use $tailwind-ui-compose to design layout and generate JSX components with Tailwind CSS."

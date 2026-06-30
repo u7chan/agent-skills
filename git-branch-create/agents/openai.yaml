@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Branch Create"
+  short_description: "Gitのブランチ名を自動生成し作業ブランチを作成する"
+  default_prompt: "Use $git-branch-create to propose and create a git branch name for your task."

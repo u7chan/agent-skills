@@ -1,0 +1,4 @@
+interface:
+  display_name: "Japanese Text Proofread"
+  short_description: "日本語Markdown文書の誤字脱字・表記ゆれ・句読点を校正する"
+  default_prompt: "Use $japanese-text-proofread to proofread Japanese text for typos, inconsistencies, and punctuation errors."

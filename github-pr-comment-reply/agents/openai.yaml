@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub PR Comment Reply"
+  short_description: "GitHub PRのレビューコメントや会話コメントへ返信する"
+  default_prompt: "Use $github-pr-comment-reply to reply to review comments or conversation comments on a GitHub PR."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "WSL Chrome Attach"
+  short_description: "WSL2からWindows側のChromeへremote debug接続を診断・確立する"
+  default_prompt: "Use $wsl-chrome-attach to diagnose and establish a remote debugging connection to Windows Chrome from WSL2."
