@@ -25,6 +25,14 @@ description: tmux を分割して新しいペインで OpenCode CLI を起動す
 
 4. `tmux capture-pane -p -t '<new-pane-id>' -S -20` で OpenCode の起動を確認する。
 
+## Agent間メッセージング
+
+起動後のOpenCodeへ長い指示、複数行の本文、コンテキストファイル、応答が必要な依頼を渡す時は、`../tmux-agent-messaging/SKILL.md`を読み、共通ヘルパーで新規ペインへPayloadパスだけを通知する。短いCLI起動コマンド以外の本文を`tmux send-keys`へ直接渡さない。
+
+- 応答不要なら`command --to-pane '<new-pane-id>'`を使う。
+- 応答が必要なら`request --to-pane '<new-pane-id>'`を使い、送信後は入力待ちへ戻る。
+- 子ペインから通知されたresponseは共通ヘルパーの`read`で検証する。
+
 ## 指定の扱い
 
 - 対象ペインやセッションが指定された場合は、`$TMUX_PANE` より指定を優先する。

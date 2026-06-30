@@ -1,0 +1,4 @@
+interface:
+  display_name: "tmux Agent Messaging"
+  short_description: "tmux Agent間でJSON Payloadを安全に非同期配送する"
+  default_prompt: "Use $tmux-agent-messaging to send a JSON payload to another tmux agent pane."

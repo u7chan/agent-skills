@@ -70,6 +70,7 @@
 
 | Skill | Description |
 |-------|-------------|
+| [tmux-agent-messaging](tmux-agent-messaging/SKILL.md) | tmuxペイン上のAgent間でJSON Payloadを安全に非同期配送する |
 | [tmux-codex-split](tmux-codex-split/SKILL.md) | 現在の tmux ウィンドウを左右分割し、新しいペインで Codex CLI を起動する |
 | [tmux-opencode-split](tmux-opencode-split/SKILL.md) | 現在の tmux ウィンドウを左右分割し、新しいペインで OpenCode CLI を起動する |
 | [tmux-claude-split](tmux-claude-split/SKILL.md) | 現在の tmux ウィンドウを左右分割し、新しいペインで Claude Code CLI を起動する |
