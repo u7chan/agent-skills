@@ -1,4 +1,4 @@
 interface:
   display_name: "GitHub Implement PR"
-  short_description: "GitHub Issue対応から検証・PR作成までを一括実行する"
-  default_prompt: "Use $github-implement-pr to implement a GitHub issue and create a PR."
+  short_description: "GitHub Issue対応からレビュー・FB対応まで一括実行する"
+  default_prompt: "Use $github-implement-pr to implement a GitHub issue, create a PR, and manage review feedback."
