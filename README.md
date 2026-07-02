@@ -29,7 +29,7 @@
 
 | Skill | Description |
 |-------|-------------|
-| [github-implement-pr](github-implement-pr/SKILL.md) | Issue 確認から PR 作成、別 Codex への非同期レビュー依頼まで進める |
+| [github-implement-pr](github-implement-pr/SKILL.md) | Issue 確認から実装、検証、PR 作成までを一連で進める |
 | [html-artifact-format](html-artifact-format/SKILL.md) | AI向けMarkdownと人間向けHTMLを判断し、視覚化要素入りの単一HTMLを生成する |
 
 ### 要件定義 / 設計対話
@@ -65,15 +65,6 @@
 | Skill | Description |
 |-------|-------------|
 | [tailwind-ui-compose](tailwind-ui-compose/SKILL.md) | 画面構成から始めて Tailwind UI の設計と実装方針を整える |
-
-### ターミナル操作
-
-| Skill | Description |
-|-------|-------------|
-| [tmux-agent-messaging](tmux-agent-messaging/SKILL.md) | tmuxペイン上のAgent間でJSON Payloadを安全に非同期配送する |
-| [tmux-codex-split](tmux-codex-split/SKILL.md) | 現在の tmux ウィンドウを左右分割し、新しいペインで Codex CLI を起動する |
-| [tmux-opencode-split](tmux-opencode-split/SKILL.md) | 現在の tmux ウィンドウを左右分割し、新しいペインで OpenCode CLI を起動する |
-| [tmux-claude-split](tmux-claude-split/SKILL.md) | 現在の tmux ウィンドウを左右分割し、新しいペインで Claude Code CLI を起動する |
 
 ### ブラウザ操作 / 検証
 
