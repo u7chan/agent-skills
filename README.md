@@ -30,6 +30,7 @@
 | Skill | Description |
 |-------|-------------|
 | [github-implement-pr](github-implement-pr/SKILL.md) | Issue 確認から実装、検証、PR 作成までを一連で進める |
+| [herdr-agent-delegate](herdr-agent-delegate/SKILL.md) | Herdr 上の CLI Agent へタスクを委譲し、起動・待機・結果回収まで行う |
 | [html-artifact-format](html-artifact-format/SKILL.md) | AI向けMarkdownと人間向けHTMLを判断し、視覚化要素入りの単一HTMLを生成する |
 
 ### 要件定義 / 設計対話
