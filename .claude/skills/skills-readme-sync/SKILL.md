@@ -45,7 +45,8 @@ description: >
 - 各スキルの `SKILL.md`
 - `README.md` の `Available Skills`
 
-`find . -maxdepth 4 -name SKILL.md | sort` などで実在するスキルを確認し、README の列挙漏れや古い名前を見つける。
+`.archive/` 配下は利用・保守対象外のため、スキル一覧の収集対象から除外する。
+`find . -path './.archive' -prune -o -name SKILL.md -print | sort` などで実在するアクティブなスキルを確認し、README の列挙漏れや古い名前を見つける。
 
 ### Step 2: 一覧表の説明を決める
 
@@ -113,7 +114,7 @@ README の説明文は `SKILL.md` の front matter と本文冒頭から短く�
 
 ## 品質チェック
 
-- [ ] 実在する全スキルが `Available Skills` のいずれかのグループに載っている
+- [ ] `.archive/` を除く実在する全スキルが `Available Skills` のいずれかのグループに載っている
 - [ ] 各グループ見出しの直後に表が続き、空のグループ見出しが残っていない
 - [ ] 各スキルのリンク先が正しい
 - [ ] 説明文が古いスキル名や古い用途を含んでいない
