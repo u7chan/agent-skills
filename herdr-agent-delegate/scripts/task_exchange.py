@@ -12,9 +12,10 @@ import stat
 import sys
 import time
 from pathlib import Path
+from typing import NoReturn
 
 
-def die(message: str) -> "NoReturn":
+def die(message: str) -> NoReturn:
     print(f"ERROR: {message}", file=sys.stderr)
     raise SystemExit(1)
 
@@ -93,6 +94,7 @@ def create_exchange(args: argparse.Namespace) -> None:
     marker = f"HERDR_DELEGATE_DONE_{tag.upper().replace('-', '_')}"
     reply_tmp = task_dir / "reply.tmp.md"
     reply = task_dir / "reply.md"
+    result = task_dir / "result.md"
     script = Path(__file__).resolve()
 
     context_lines = "\n".join(f"- `{path}`" for path in contexts) or "- なし"
@@ -110,9 +112,9 @@ def create_exchange(args: argparse.Namespace) -> None:
 ## Completion contract
 
 1. この依頼だけを実行し、結果をMarkdownで作成する。
-2. 結果を一度別の通常ファイルへ書き、次のコマンドで確定する。
+2. 結果を `{result}` へ書き、次のコマンドをそのまま実行して確定する。
 
-   `{script} complete --task-dir {task_dir} --reply-file <result-file>`
+   `{script} complete --task-dir {task_dir} --reply-file {result}`
 
 3. コマンドが出力する一意な完了markerを改変せず表示して完了する。
 4. 結果は直上の親にだけ返す。ネスト委譲時もrootへ直接通知しない。
@@ -136,10 +138,18 @@ def complete_exchange(args: argparse.Namespace) -> None:
     marker_path = safe_regular_file(task_dir / "marker", require_nonempty=True)
     reply_tmp = task_dir / "reply.tmp.md"
     reply = task_dir / "reply.md"
-    if reply.exists() or reply.is_symlink():
-        die(f"reply is already finalized: {reply}")
-    atomic_write(reply_tmp, source.read_text(encoding="utf-8"))
-    os.replace(reply_tmp, reply)
+    lock = task_dir / ".complete.lock"
+    try:
+        lock.mkdir(mode=0o700)
+    except FileExistsError:
+        die(f"another process is finalizing this reply: {reply}")
+    try:
+        if reply.exists() or reply.is_symlink():
+            die(f"reply is already finalized: {reply}")
+        atomic_write(reply_tmp, source.read_text(encoding="utf-8"))
+        os.replace(reply_tmp, reply)
+    finally:
+        lock.rmdir()
     print(marker_path.read_text(encoding="utf-8").strip())
 
 

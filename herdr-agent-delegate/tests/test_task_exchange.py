@@ -40,6 +40,8 @@ class TaskExchangeTest(unittest.TestCase):
         task_text = Path(exchange["task_path"]).read_text(encoding="utf-8")
         self.assertIn("調査して結果を返す。", task_text)
         self.assertNotIn(exchange["marker"], task_text)
+        self.assertIn(f"--reply-file {task_dir / 'result.md'}", task_text)
+        self.assertNotIn("<result-file>", task_text)
         self.assertEqual(task_dir.stat().st_mode & 0o777, 0o700)
 
         result_file = Path(self.temporary.name) / "result.md"
@@ -66,6 +68,39 @@ class TaskExchangeTest(unittest.TestCase):
         failed = self.run_script("collect", "--task-dir", str(task_dir), check=False)
         self.assertNotEqual(failed.returncode, 0)
         self.assertTrue(task_dir.exists())
+
+    def test_only_one_concurrent_complete_succeeds(self):
+        exchange = self.create()
+        task_dir = Path(exchange["task_dir"])
+        result_files = []
+        for index in range(2):
+            result_file = Path(self.temporary.name) / f"result-{index}.md"
+            result_file.write_text(f"result {index}\n", encoding="utf-8")
+            result_files.append(result_file)
+
+        processes = [
+            subprocess.Popen(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "complete",
+                    "--task-dir",
+                    str(task_dir),
+                    "--reply-file",
+                    str(result_file),
+                ],
+                env=self.env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            for result_file in result_files
+        ]
+        results = [process.communicate() for process in processes]
+
+        self.assertEqual(sorted(process.returncode for process in processes), [0, 1])
+        self.assertIn((task_dir / "reply.md").read_text(encoding="utf-8"), {"result 0\n", "result 1\n"})
+        self.assertEqual(sum(exchange["marker"] in stdout for stdout, _ in results), 1)
 
 
 if __name__ == "__main__":

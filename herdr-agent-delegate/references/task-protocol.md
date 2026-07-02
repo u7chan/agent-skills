@@ -6,6 +6,7 @@
 /tmp/herdr-agent-delegate/<uid>/<tag>/
 ├── task.md
 ├── marker
+├── result.md
 ├── reply.tmp.md
 └── reply.md
 ```
@@ -16,8 +17,8 @@
 ## 子Agentの完了
 
 1. `task.md` 全文を読む。
-2. 結果をMarkdownの通常ファイルへ書く。
-3. `task.md` 記載の `task_exchange.py complete` を実行する。
+2. 結果を `task.md` 記載の `result.md` へ書く。
+3. `task.md` 記載の `task_exchange.py complete` をそのまま実行する。
 4. helperは内容を `reply.tmp.md` へ安全に書き、同一ディレクトリ内で `reply.md` へatomic renameする。
 5. helperが出力した一意なmarkerを表示する。
 

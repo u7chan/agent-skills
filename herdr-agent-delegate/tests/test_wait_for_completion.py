@@ -55,6 +55,21 @@ class WaitForCompletionTest(unittest.TestCase):
         with patch.object(waiter, "agent_status", return_value="blocked"):
             self.assertEqual(waiter.wait_semantic(self.args()), 2)
 
+    def test_semantic_wait_reports_missing_reply_after_working_to_idle(self):
+        with patch.object(waiter, "agent_status", side_effect=["working", "idle"]), patch.object(
+            waiter, "wait_for_state", return_value=Result()
+        ):
+            self.assertEqual(waiter.wait_semantic(self.args()), 4)
+
+    def test_failed_state_wait_sleeps_for_remaining_poll_interval(self):
+        with patch.object(waiter, "run_herdr", return_value=Result(returncode=1)), patch.object(
+            waiter.time, "monotonic", side_effect=[10.0, 10.1]
+        ), patch.object(waiter.time, "sleep") as sleep:
+            waiter.wait_for_state("w1:p2", "working", 1_000)
+
+        sleep.assert_called_once()
+        self.assertAlmostEqual(sleep.call_args.args[0], 0.9)
+
     def test_marker_requires_reply_after_match(self):
         with patch.object(waiter, "run_herdr", return_value=Result()):
             self.assertEqual(waiter.wait_marker(self.args()), 4)

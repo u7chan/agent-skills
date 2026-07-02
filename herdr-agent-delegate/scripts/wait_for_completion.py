@@ -59,6 +59,20 @@ def emit(status: str, target: str, started: float, agent_state: str | None = Non
     print(json.dumps(result))
 
 
+def wait_for_state(target: str, state: str, poll_ms: int) -> subprocess.CompletedProcess[str]:
+    started = time.monotonic()
+    result = run_herdr(
+        ["wait", "agent-status", target, "--status", state, "--timeout", str(poll_ms)],
+        timeout=poll_ms / 1000 + 5,
+    )
+    if result.returncode != 0:
+        elapsed = time.monotonic() - started
+        remaining = poll_ms / 1000 - elapsed
+        if remaining > 0:
+            time.sleep(remaining)
+    return result
+
+
 def wait_semantic(args: argparse.Namespace) -> int:
     started = time.monotonic()
     deadline = started + args.timeout / 1000
@@ -74,16 +88,13 @@ def wait_semantic(args: argparse.Namespace) -> int:
         if valid_reply(reply) and (seen_working or state in {"idle", "done"}):
             emit("completed", args.target, started, state)
             return 0
-        if state == "done":
+        if state == "done" or (seen_working and state == "idle"):
             emit("reply_missing", args.target, started, state)
             return 4
         remaining_ms = max(1, int((deadline - time.monotonic()) * 1000))
         poll_ms = min(args.poll_interval, remaining_ms)
         awaited_state = "idle" if seen_working else "working"
-        run_herdr(
-            ["wait", "agent-status", args.target, "--status", awaited_state, "--timeout", str(poll_ms)],
-            timeout=poll_ms / 1000 + 5,
-        )
+        wait_for_state(args.target, awaited_state, poll_ms)
 
     emit("timeout", args.target, started, agent_status(args.target))
     return 3
