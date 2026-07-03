@@ -53,9 +53,17 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
   --child <child-pane-id>
 ```
 
-3. 検証済みの新規 pane ID へ `herdr pane run <new-pane-id> '<agent-command>'` を実行する。
-4. semantic state対応Agentは `agent-status idle`、その他は画面出力と `pane read` で起動を確認する。確認できない場合は依頼を送らない。
-5. 分割判断に使ったlayout一時ファイルを削除する。
+3. 検証済みの新規 pane ID へ `herdr pane run <new-pane-id> '<agent-command>'` だけを実行する。
+4. 別コマンドの `herdr wait agent-status <new-pane-id> --status idle --timeout 30000` でsemantic stateによるAgent検出を待つ。この時点の `agent_status=idle` は入力可能を意味しない。
+5. Codex、Claude Code、OpenCodeは次を別コマンドで実行し、Agent別の入力欄を `wait output` と `pane read` の両方で確認する。
+
+```bash
+<skill-dir>/scripts/wait_for_input_ready.py \
+  --target <new-pane-id> --agent <codex|claude|opencode> --task-dir <task-dir>
+```
+
+6. その他のCLIは `references/agent-cli.md` の観測可能な入力可能条件を使う。条件が未定義または確認失敗なら、noticeもEnterも送らずpaneとtask directoryを保持して失敗終了する。
+7. 分割判断に使ったlayout一時ファイルを削除する。
 
 `split_scoped_pane.py` は検証失敗時に Agent を起動しない。事後検証失敗時は、新規 pane が安全に帰属できる場合だけ `herdr pane close` する。帰属不能または close 失敗時は pane と task directory を保持して停止する。診断情報は `<task-dir>/split_scoped_pane.diagnostics.json` に保存する。
 
@@ -68,7 +76,7 @@ Agentへは短い通知だけを送る。
 ファイル全文を読み、Completion contractに従って結果を確定してください。
 ```
 
-対応Agentには `herdr agent send <target> <notice>`、その他には `herdr pane send-text <pane-id> <notice>` を使い、送信後のEnterは `herdr pane send-keys <pane-id> Enter` で分ける。送信直後にsemantic stateが `working` へ遷移するか、画面が処理開始を示すことを確認する。
+新規Agentでは入力可能確認の成功後に限り、対応Agentへの `herdr agent send <target> <notice>`（その他は `herdr pane send-text`）、`herdr pane send-keys <pane-id> Enter`、`working` 遷移確認をこの順の別コマンドで実行する。起動から送信までを `&&` で連結しない。既存idle Agentの再利用でもnoticeとEnterを分け、送信直後にsemantic stateが `working` へ遷移するか、画面が処理開始を示すことを確認する。遷移を確認できなければpaneとtask directoryを保持して失敗終了する。
 
 ## 6. 完了を待つ
 

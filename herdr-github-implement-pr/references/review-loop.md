@@ -21,7 +21,7 @@ PR 作成成功後に読み、`herdr-agent-delegate` のタスク交換、待機
 
 指定された既存 Agent が存在しない、自分自身である、または `idle` でない場合は失敗とする。別 Agent の起動、Codex への切り替え、自動再試行はしない。新規 Agent は `herdr-agent-delegate` の Grid 配置と起動確認に従い、その pane ID を親が管理する。
 
-新規 Agent 用の pane は、親の `workspace_id`・`tab_id` を固定スコープとして `herdr-agent-delegate/scripts/split_scoped_pane.py` で分割前後に検証する。識別子の欠落・型不正・不一致時は Agent を起動せず、安全に帰属できる未起動 pane だけを close する。帰属不能または close 失敗時は pane と task directory を保持して停止する。明示指定された既存 Agent の再利用はこの検証・cleanup の対象外とする。
+新規 Agent 用の pane は、親の `workspace_id`・`tab_id` を固定スコープとして `herdr-agent-delegate/scripts/split_scoped_pane.py` で分割前後に検証する。その後は同スキルの更新済みreadiness契約に従い、pane run、semantic検出、Agent別input-ready確認、notice送信、Enter送信、working遷移確認を別工程で行う。input-readyを確認できなければ何も送信せず、paneとtask directoryを保持して停止する。識別子の欠落・型不正・不一致時は Agent を起動せず、安全に帰属できる未起動 pane だけを close する。帰属不能または close 失敗時は pane と task directory を保持して停止する。明示指定された既存 Agent の再利用は分割検証と新規起動用readiness待機の対象外とする。
 
 ## 3. 初回レビューを同期委譲する
 
@@ -67,7 +67,7 @@ FB 対応タスクに次を含める。
 - Herdr の Completion contract に従って結果を確定すること
 ```
 
-FB 対応 Agent も新規起動する。親と同一 `workspace_id`・`tab_id` への pane 分割は `herdr-agent-delegate/scripts/split_scoped_pane.py` で検証し、失敗時は Agent を起動せず、安全に帰属できる未起動 pane だけを close する。`question` または `blocked` が返った場合は自動対応を止める。正常完了時は `task_exchange.py collect --keep` で結果を検証・回収し、task directory を残したまま、親が子の報告だけでなく次を確認する。
+FB 対応 Agent も新規起動する。親と同一 `workspace_id`・`tab_id` への pane 分割は `herdr-agent-delegate/scripts/split_scoped_pane.py` で検証し、上記と同じ新規起動readiness契約を適用する。分割またはinput-ready確認に失敗した場合は何も送信せず、paneとtask directoryを保持する。安全に帰属できる未起動 pane だけを close する。`question` または `blocked` が返った場合は自動対応を止める。正常完了時は `task_exchange.py collect --keep` で結果を検証・回収し、task directory を残したまま、親が子の報告だけでなく次を確認する。
 
 - 意図した差分だけが含まれる。
 - 必要な検証が成功している。
