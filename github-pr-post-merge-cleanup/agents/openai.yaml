@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub PR Post-Merge Cleanup"
+  short_description: "マージ済みPRの作業ブランチを安全に整理して基準ブランチへ戻す"
+  default_prompt: "Use $github-pr-post-merge-cleanup to return to the merged PR base branch and safely remove its local work branch."
