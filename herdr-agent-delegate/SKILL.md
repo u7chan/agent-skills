@@ -41,7 +41,7 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
 
 親と「今回この親が起動した子」のpane IDだけを候補にする。無関係な既存paneや再利用Agentは候補へ入れない。
 
-1. `herdr pane layout --current` のJSONを一時ファイルへ保存する。
+1. `herdr pane layout --pane "$HERDR_PANE_ID"` のJSONを一時ファイルへ保存する。
 2. 次を実行し、親と同一 `workspace_id`・`tab_id` へ分割されたことを事前・事後に検証済みの新規 pane ID を取得する。子を増やすたび `--child` を追加する。
 
 ```bash

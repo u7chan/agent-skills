@@ -291,7 +291,7 @@ class SplitScopedPaneTest(unittest.TestCase):
         mock = HerdrMock()
         mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
         mock.add(
-            ["pane", "layout", "--current"],
+            ["pane", "layout", "--pane", "w1:p1"],
             MockResult(stdout=json.dumps(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))),
         )
         mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
@@ -306,7 +306,7 @@ class SplitScopedPaneTest(unittest.TestCase):
             result = split_scoped_pane.run(self.args(layout_file=None))
 
         self.assertEqual(result["pane_id"], "w1:p2")
-        self.assertIn(["pane", "layout", "--current"], mock.calls)
+        self.assertIn(["pane", "layout", "--pane", "w1:p1"], mock.calls)
 
     def test_empty_tab_id_in_layout_fails(self):
         self.write_layout(

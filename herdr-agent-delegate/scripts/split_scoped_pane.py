@@ -59,11 +59,11 @@ def get_current_pane(expected_parent_id: str) -> dict[str, str]:
     return pane
 
 
-def get_layout_json(layout_file: Path | None) -> dict[str, Any]:
+def get_layout_json(layout_file: Path | None, parent_pane_id: str) -> dict[str, Any]:
     if layout_file is not None:
         with layout_file.open(encoding="utf-8") as stream:
             return json.load(stream)
-    result = run_herdr(["pane", "layout", "--current"], timeout=10)
+    result = run_herdr(["pane", "layout", "--pane", parent_pane_id], timeout=10)
     if result.returncode != 0:
         raise RuntimeError(f"pane layout failed: {result.stderr.strip()}")
     return json.loads(result.stdout)
@@ -194,7 +194,10 @@ def run(args: argparse.Namespace) -> dict[str, str]:
         fail_with_diagnostics(str(error), diagnostics, task_dir)
 
     try:
-        layout = get_layout_json(Path(args.layout_file) if args.layout_file is not None else None)
+        layout = get_layout_json(
+            Path(args.layout_file) if args.layout_file is not None else None,
+            args.parent_pane_id,
+        )
         diagnostics["layout"] = layout
         validate_layout_scope(layout, expected_scope, args.parent_pane_id)
     except (RuntimeError, ValueError, json.JSONDecodeError, subprocess.TimeoutExpired, OSError) as error:
