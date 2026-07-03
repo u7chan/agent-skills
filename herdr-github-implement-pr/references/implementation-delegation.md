@@ -39,6 +39,8 @@ Herdr 外、CLI 不足、認証・trust 待ちは実装委譲失敗とする。�
 
 指定された既存 Agent が存在しない、自分自身、または `idle` でない場合は失敗とする。別 Agent の起動、Codex への切り替え、自動再試行はしない。新規 Agent は `herdr-agent-delegate` の Grid 配置と起動確認に従い、その pane ID を親が管理する。
 
+新規 Agent 用の pane は、親の `workspace_id`・`tab_id` を固定スコープとして `herdr-agent-delegate/scripts/split_scoped_pane.py` で分割前後に検証する。識別子の欠落・型不正・不一致時は Agent を起動せず、安全に帰属できる未起動 pane だけを close する。帰属不能または close 失敗時は pane と task directory を保持して停止する。明示指定された既存 Agent の再利用はこの検証・cleanup の対象外とする。
+
 ## 4. 実装を同期委譲する
 
 実装タスクに少なくとも次を含める。

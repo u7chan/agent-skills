@@ -41,26 +41,23 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
 
 親と「今回この親が起動した子」のpane IDだけを候補にする。無関係な既存paneや再利用Agentは候補へ入れない。
 
-1. `herdr pane layout --current` のJSONを一時ファイルへ保存する。
-2. 次を実行し、出力された分割対象・方向を使う。子を増やすたび `--child` を追加する。
+1. `herdr pane layout --pane "$HERDR_PANE_ID"` のJSONを一時ファイルへ保存する。
+2. 次を実行し、親と同一 `workspace_id`・`tab_id` へ分割されたことを事前・事後に検証済みの新規 pane ID を取得する。子を増やすたび `--child` を追加する。
 
 ```bash
-<skill-dir>/scripts/choose_layout.py \
+<skill-dir>/scripts/split_scoped_pane.py \
+  --parent-pane-id "$HERDR_PANE_ID" \
+  --task-dir <task-dir> \
+  --cwd <cwd> \
   --layout-file <layout.json> \
-  --parent "$HERDR_PANE_ID" \
   --child <child-pane-id>
 ```
 
-3. 約50%で分割し、レスポンスの `result.pane.pane_id` を新しいIDとして取得する。
-
-```bash
-herdr pane split <target-pane-id> \
-  --direction <right-or-down> --ratio 0.5 --cwd <cwd> --no-focus
-herdr pane run <new-pane-id> '<agent-command>'
-```
-
+3. 検証済みの新規 pane ID へ `herdr pane run <new-pane-id> '<agent-command>'` を実行する。
 4. semantic state対応Agentは `agent-status idle`、その他は画面出力と `pane read` で起動を確認する。確認できない場合は依頼を送らない。
 5. 分割判断に使ったlayout一時ファイルを削除する。
+
+`split_scoped_pane.py` は検証失敗時に Agent を起動しない。事後検証失敗時は、新規 pane が安全に帰属できる場合だけ `herdr pane close` する。帰属不能または close 失敗時は pane と task directory を保持して停止する。診断情報は `<task-dir>/split_scoped_pane.diagnostics.json` に保存する。
 
 ## 5. 依頼を送る
 
