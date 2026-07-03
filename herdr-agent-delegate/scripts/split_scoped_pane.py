@@ -38,10 +38,14 @@ def parse_pane(payload: dict[str, Any], label: str) -> dict[str, str]:
     """Extract pane_id, workspace_id, tab_id from a herdr pane response."""
     try:
         pane = payload["result"]["pane"]
+        for key in ("pane_id", "workspace_id", "tab_id"):
+            value = pane[key]
+            if not isinstance(value, str) or value == "":
+                raise ValueError(f"{label}: {key} is not a non-empty string")
         return {
-            "pane_id": str(pane["pane_id"]),
-            "workspace_id": str(pane["workspace_id"]),
-            "tab_id": str(pane["tab_id"]),
+            "pane_id": pane["pane_id"],
+            "workspace_id": pane["workspace_id"],
+            "tab_id": pane["tab_id"],
         }
     except (KeyError, TypeError, ValueError) as error:
         raise ValueError(f"{label}: invalid pane payload: {error}") from error
@@ -107,7 +111,12 @@ def get_pane(pane_id: str, label: str) -> dict[str, str]:
     result = run_herdr(["pane", "get", pane_id], timeout=10)
     if result.returncode != 0:
         raise RuntimeError(f"pane get {pane_id} failed: {result.stderr.strip()}")
-    return parse_pane(json.loads(result.stdout), label)
+    pane = parse_pane(json.loads(result.stdout), label)
+    if pane["pane_id"] != pane_id:
+        raise ValueError(
+            f"{label}: pane get returned unexpected pane_id: expected {pane_id}, got {pane['pane_id']}"
+        )
+    return pane
 
 
 def validate_scope(pane: dict[str, str], expected: dict[str, str], label: str) -> None:
@@ -179,6 +188,8 @@ def run(args: argparse.Namespace) -> dict[str, str]:
         "parent_pane_id": args.parent_pane_id,
         "cwd": args.cwd,
         "task_dir": str(task_dir),
+        "close_attempted": False,
+        "close_succeeded": None,
     }
 
     try:
@@ -264,17 +275,22 @@ def run(args: argparse.Namespace) -> dict[str, str]:
         diagnostics["close_succeeded"] = None
         if can_close_safely(new_pane, forbidden_ids):
             diagnostics["close_attempted"] = True
-            close_result = close_pane(new_pane["pane_id"])
-            diagnostics["close_exit_code"] = close_result.returncode
-            diagnostics["close_stdout"] = close_result.stdout
-            diagnostics["close_stderr"] = close_result.stderr
-            diagnostics["close_succeeded"] = close_result.returncode == 0
+            try:
+                close_result = close_pane(new_pane["pane_id"])
+                diagnostics["close_exit_code"] = close_result.returncode
+                diagnostics["close_stdout"] = close_result.stdout
+                diagnostics["close_stderr"] = close_result.stderr
+                diagnostics["close_succeeded"] = close_result.returncode == 0
+            except subprocess.TimeoutExpired as error:
+                diagnostics["close_exit_code"] = None
+                diagnostics["close_succeeded"] = False
+                diagnostics["close_timeout_seconds"] = error.timeout
         fail_with_diagnostics("; ".join(post_errors), diagnostics, task_dir)
 
     return {
-        "pane_id": new_pane["pane_id"],
-        "workspace_id": new_pane["workspace_id"],
-        "tab_id": new_pane["tab_id"],
+        "pane_id": new_pane_after["pane_id"],
+        "workspace_id": new_pane_after["workspace_id"],
+        "tab_id": new_pane_after["tab_id"],
     }
 
 

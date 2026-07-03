@@ -33,17 +33,22 @@ class MockResult:
 
 class HerdrMock:
     def __init__(self) -> None:
-        self.responses: list[tuple[list[str], MockResult]] = []
+        self.responses: list[tuple[list[str], MockResult | Exception]] = []
         self.calls: list[list[str]] = []
 
     def add(self, arguments: list[str], result: MockResult) -> None:
         self.responses.append((arguments, result))
+
+    def add_exception(self, arguments: list[str], exception: Exception) -> None:
+        self.responses.append((arguments, exception))
 
     def __call__(self, arguments: list[str], timeout: float | None = None) -> MockResult:
         self.calls.append(arguments)
         for index, (expected, result) in enumerate(self.responses):
             if arguments == expected:
                 self.responses.pop(index)
+                if isinstance(result, Exception):
+                    raise result
                 return result
         raise AssertionError(f"unexpected herdr call: {arguments}")
 
@@ -357,6 +362,7 @@ class SplitScopedPaneTest(unittest.TestCase):
                 split_scoped_pane.run(self.args())
 
         diagnostics = self.diagnostics()
+        self.assertIn("pane_id is not a non-empty string", diagnostics["failure_reason"])
         self.assertFalse(diagnostics["close_attempted"])
         self.assertNotIn(["pane", "close", ""], mock.calls)
 
@@ -402,6 +408,78 @@ class SplitScopedPaneTest(unittest.TestCase):
         self.assertEqual(mock.calls[2][:2], ["pane", "split"])
         self.assertEqual(mock.calls[3], ["pane", "current", "--current"])
         self.assertEqual(mock.calls[4], ["pane", "get", "w1:p2"])
+
+    def test_non_string_pane_id_in_split_response_is_rejected(self):
+        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
+        mock = HerdrMock()
+        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+        mock.add(
+            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
+            MockResult(stdout=json.dumps({"result": {"pane": {"pane_id": None, "workspace_id": "w1", "tab_id": "w1:t1"}}})),
+        )
+
+        with patch.object(split_scoped_pane, "run_herdr", mock):
+            with self.assertRaises(SystemExit):
+                split_scoped_pane.run(self.args())
+
+        self.assertIn("pane_id is not a non-empty string", self.diagnostics()["failure_reason"])
+
+    def test_pane_get_returning_different_id_fails(self):
+        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
+        mock = HerdrMock()
+        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p99"))))
+
+        with patch.object(split_scoped_pane, "run_herdr", mock):
+            with self.assertRaises(SystemExit):
+                split_scoped_pane.run(self.args())
+
+        self.assertIn("unexpected pane_id", self.diagnostics()["failure_reason"])
+
+    def test_success_uses_post_validated_pane_values(self):
+        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
+        mock = HerdrMock()
+        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+        mock.add(
+            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
+            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
+        )
+        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
+
+        with patch.object(split_scoped_pane, "run_herdr", mock):
+            result = split_scoped_pane.run(self.args())
+
+        self.assertEqual(result["pane_id"], "w1:p2")
+        self.assertEqual(result["workspace_id"], "w1")
+        self.assertEqual(result["tab_id"], "w1:t1")
+
+    def test_close_timeout_is_recorded(self):
+        import subprocess as sp
+
+        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
+        mock = HerdrMock()
+        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+        mock.add(
+            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
+            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
+        )
+        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1", workspace_id="w2"))))
+        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
+        mock.add_exception(["pane", "close", "w1:p2"], sp.TimeoutExpired(cmd=["herdr", "pane", "close", "w1:p2"], timeout=10))
+
+        with patch.object(split_scoped_pane, "run_herdr", mock):
+            with self.assertRaises(SystemExit):
+                split_scoped_pane.run(self.args())
+
+        diagnostics = self.diagnostics()
+        self.assertTrue(diagnostics["close_attempted"])
+        self.assertFalse(diagnostics["close_succeeded"])
+        self.assertEqual(diagnostics["close_exit_code"], None)
+        self.assertEqual(diagnostics["close_timeout_seconds"], 10)
 
 
 if __name__ == "__main__":
