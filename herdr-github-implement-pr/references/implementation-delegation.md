@@ -8,7 +8,7 @@
 
 実装担当 Agent に次を行わせない。
 
-- `github-implement-pr` の利用
+- `herdr-github-implement-pr` の利用
 - commit、push、PR 作成
 - 別の実装 Agent への再委譲
 - 指定範囲外の変更や全体品質確認
@@ -49,7 +49,7 @@ Herdr 外、CLI 不足、認証・trust 待ちは実装委譲失敗とする。�
 - 作業ディレクトリの絶対パス
 - 変更してよい範囲
 - 実行すべき、変更に直接関連する検証
-- github-implement-pr を使わないこと
+- herdr-github-implement-pr を使わないこと
 - commit、push、PR 作成を行わないこと
 - 別の実装 Agent へ再委譲しないこと
 - 変更概要、変更ファイル、検証コマンドと結果、未解決事項、ユーザー判断事項を返すこと
