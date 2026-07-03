@@ -409,21 +409,33 @@ class SplitScopedPaneTest(unittest.TestCase):
         self.assertEqual(mock.calls[3], ["pane", "current", "--current"])
         self.assertEqual(mock.calls[4], ["pane", "get", "w1:p2"])
 
-    def test_non_string_pane_id_in_split_response_is_rejected(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps({"result": {"pane": {"pane_id": None, "workspace_id": "w1", "tab_id": "w1:t1"}}})),
-        )
+    def test_non_string_identifier_is_rejected(self):
+        cases = [
+            ("pane_id", None),
+            ("pane_id", 123),
+            ("workspace_id", None),
+            ("workspace_id", 123),
+            ("tab_id", None),
+            ("tab_id", 123),
+        ]
+        for field, bad_value in cases:
+            with self.subTest(field=field, value=bad_value):
+                self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
+                pane = {"pane_id": "w1:p2", "workspace_id": "w1", "tab_id": "w1:t1"}
+                pane[field] = bad_value
+                mock = HerdrMock()
+                mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+                mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+                mock.add(
+                    ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
+                    MockResult(stdout=json.dumps({"result": {"pane": pane}})),
+                )
 
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
+                with patch.object(split_scoped_pane, "run_herdr", mock):
+                    with self.assertRaises(SystemExit):
+                        split_scoped_pane.run(self.args())
 
-        self.assertIn("pane_id is not a non-empty string", self.diagnostics()["failure_reason"])
+                self.assertIn(f"{field} is not a non-empty string", self.diagnostics()["failure_reason"])
 
     def test_pane_get_returning_different_id_fails(self):
         self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
@@ -442,9 +454,10 @@ class SplitScopedPaneTest(unittest.TestCase):
         mock = HerdrMock()
         mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
         mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
+        # split response scope differs from post-validated scope to ensure output comes from post-validation
         mock.add(
             ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
+            MockResult(stdout=json.dumps(pane_payload("w1:p2", workspace_id="w2", tab_id="w2:t1"))),
         )
         mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
         mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
