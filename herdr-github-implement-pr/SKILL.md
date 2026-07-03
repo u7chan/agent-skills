@@ -1,5 +1,5 @@
 ---
-name: github-implement-pr
+name: herdr-github-implement-pr
 description: >
   GitHub Issue や実装タスクについて、作業領域の準備、Herdr Agent による実装、検証、
   commit、push、PR 作成、レビュー、指摘対応、再チェックまでを一連で進める時に使う。
@@ -73,7 +73,7 @@ worktree が明示された場合:
 ### 3. Herdr で実装して検証する
 
 - `references/implementation-delegation.md` に従い、実装担当 Agent を解決して、実装と変更に直接関連する検証を同期委譲する。
-- 実装担当へ `github-implement-pr` を使わせず、commit、push、PR 作成、別の実装 Agent への再委譲を禁止する。
+- 実装担当へ `herdr-github-implement-pr` を使わせず、commit、push、PR 作成、別の実装 Agent への再委譲を禁止する。
 - 成功結果を保持したまま回収し、Completion contract、差分、未追跡ファイル、要求充足、検証結果を親が確認する。
 - 親が formatter、lint、test、build から変更範囲に必要な最終検証を実行する。成果確認と最終検証の成功後だけ task directory を削除し、新規起動した pane を閉じて commit へ進む。
 - ユーザー判断事項があれば同じ実装担当へ回答を返す。失敗時は自動再試行や親による代替実装を行わず停止する。
