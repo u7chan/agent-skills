@@ -55,15 +55,15 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
 
 3. 検証済みの新規 pane ID へ `herdr pane run <new-pane-id> '<agent-command>'` だけを実行する。
 4. 別コマンドの `herdr wait agent-status <new-pane-id> --status idle --timeout 30000` でsemantic stateによるAgent検出を待つ。この時点の `agent_status=idle` は入力可能を意味しない。
-5. Codex、Claude Code、OpenCodeは次を別コマンドで実行し、Agent別の入力欄を `wait output` と `pane read` の両方で確認する。
+5. セッション名が指定されている場合、`herdr agent rename <new-pane-id> '<session-name>'` で名前を設定する。失敗時は pane と task directory を保持して停止する。
+6. Codex、Claude Code、OpenCodeは次を別コマンドで実行し、Agent別の入力欄を `wait output` と `pane read` の両方で確認する。
 
 ```bash
 <skill-dir>/scripts/wait_for_input_ready.py \
   --target <new-pane-id> --agent <codex|claude|opencode> --task-dir <task-dir>
 ```
 
-6. その他のCLIは `references/agent-cli.md` の観測可能な入力可能条件を使う。条件が未定義または確認失敗なら、noticeもEnterも送らずpaneとtask directoryを保持して失敗終了する。
-7. セッション名が指定されている場合、Agent 検出後に入力可能確認を待たず `herdr agent rename <new-pane-id> '<session-name>'` で名前を設定する。失敗時は pane と task directory を保持して停止する。
+7. その他のCLIは `references/agent-cli.md` の観測可能な入力可能条件を使う。条件が未定義または確認失敗なら、noticeもEnterも送らずpaneとtask directoryを保持して失敗終了する。
 8. 分割判断に使ったlayout一時ファイルを削除する。
 
 `split_scoped_pane.py` は検証失敗時に Agent を起動しない。事後検証失敗時は、新規 pane が安全に帰属できる場合だけ `herdr pane close` する。帰属不能または close 失敗時は pane と task directory を保持して停止する。診断情報は `<task-dir>/split_scoped_pane.diagnostics.json` に保存する。
