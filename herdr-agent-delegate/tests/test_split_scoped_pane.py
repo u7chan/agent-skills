@@ -74,6 +74,9 @@ class SplitScopedPaneTest(unittest.TestCase):
             "layout_file": str(self.layout_file),
             "child": [],
             "cell_aspect": 0.5,
+            "max_columns": None,
+            "min_width": None,
+            "min_height": None,
         }
         defaults.update(overrides)
         return Namespace(**defaults)
@@ -281,7 +284,7 @@ class SplitScopedPaneTest(unittest.TestCase):
         mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
         mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
         mock.add(
-            ["pane", "split", "w1:p2", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
+            ["pane", "split", "w1:p2", "--direction", "down", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
             MockResult(stdout=json.dumps(pane_payload("w1:p3"))),
         )
         mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))

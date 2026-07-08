@@ -216,7 +216,15 @@ def run(args: argparse.Namespace) -> dict[str, str]:
 
     children = list(args.child)
     try:
-        choice = choose_layout.choose(layout, args.parent_pane_id, children, args.cell_aspect)
+        choice = choose_layout.choose(
+            layout,
+            args.parent_pane_id,
+            children,
+            args.cell_aspect,
+            max_columns=args.max_columns,
+            min_width=args.min_width,
+            min_height=args.min_height,
+        )
         diagnostics["choice"] = choice
         target_id = choice["target_pane_id"]
     except (ValueError, KeyError, TypeError) as error:
@@ -302,9 +310,14 @@ def main() -> None:
     parser.add_argument("--layout-file", help="herdr pane layout JSON; default: fetch via herdr")
     parser.add_argument("--child", action="append", default=[], help="previously created child pane IDs")
     parser.add_argument("--cell-aspect", type=float, default=0.5)
+    parser.add_argument("--max-columns", type=int, default=None, help="grid column limit (0 means auto)")
+    parser.add_argument("--min-width", type=int, default=None, help="minimum pane width in cells")
+    parser.add_argument("--min-height", type=int, default=None, help="minimum pane height in cells")
     args = parser.parse_args()
     if args.cell_aspect <= 0:
         parser.error("--cell-aspect must be greater than zero")
+    if args.max_columns is not None and args.max_columns < 0:
+        parser.error("--max-columns must be non-negative")
     result = run(args)
     print(json.dumps(result, ensure_ascii=False))
 

@@ -41,6 +41,14 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
 
 親と「今回この親が起動した子」のpane IDだけを候補にする。無関係な既存paneや再利用Agentは候補へ入れない。
 
+グリッドは `HERDR_DELEGATE_GRID_COLUMNS`（0は自動）、`HERDR_DELEGATE_MIN_PANE_WIDTH`、`HERDR_DELEGATE_MIN_PANE_HEIGHT`、`HERDR_DELEGATE_MAX_PANES_PER_TAB` で制御する。
+
+### 4.1 配置を計画する
+
+バッチ委譲時は起動前に `layout_planner.py` で子数とウィンドウサイズから目標列数・slotを計画する。最小paneサイズを下回る場合は追加分割を停止する。計画を `<task-dir>/delegation-plan.md` に表形式（slot, Agent種別, タスク概要, task dir）で出力し、その後自動実行する。
+
+### 4.2 paneを分割する
+
 1. `herdr pane layout --pane "$HERDR_PANE_ID"` のJSONを一時ファイルへ保存する。
 2. 次を実行し、親と同一 `workspace_id`・`tab_id` へ分割されたことを事前・事後に検証済みの新規 pane ID を取得する。子を増やすたび `--child` を追加する。
 
@@ -67,6 +75,14 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
 8. 分割判断に使ったlayout一時ファイルを削除する。
 
 `split_scoped_pane.py` は検証失敗時に Agent を起動しない。事後検証失敗時は、新規 pane が安全に帰属できる場合だけ `herdr pane close` する。帰属不能または close 失敗時は pane と task directory を保持して停止する。診断情報は `<task-dir>/split_scoped_pane.diagnostics.json` に保存する。
+
+### 4.3 追加調査は新規 Delegation Session
+
+途中で追加調査が必要な場合、既存のplan/sessionは変更しない。新しいsession tagを発行し、単発委譲またはミニバッチplan-firstで新規Agentを起動する。追加調査では既存idle Agentを再利用しない。
+
+### 4.4 最終プレビューを出力する
+
+全バッチ完了後、`<task-dir>/delegation-summary.md` を生成する。含める内容：初期planと実際の配置、完了した子数/失敗・blocked数、追加で生成したsession一覧、保持中のtask directory一覧（失敗時）。
 
 ## 5. 依頼を送る
 
