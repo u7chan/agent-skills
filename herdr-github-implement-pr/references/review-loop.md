@@ -21,6 +21,8 @@ PR 作成成功後に読み、`herdr-agent-delegate` のタスク交換、待機
 
 指定された既存 Agent が存在しない、自分自身である、または `idle` でない場合は失敗とする。別 Agent の起動、Codex への切り替え、自動再試行はしない。新規 Agent は `herdr-agent-delegate` の Grid 配置と起動確認に従い、その pane ID を親が管理する。
 
+新規起動するレビュー担当 Agent には `herdr agent rename` で役割と対象 PR を示すセッション名 `review-pr-<number>` を設定する。既存 Agent の再利用時は名前を変更しない。
+
 新規 Agent 用の pane は、親の `workspace_id`・`tab_id` を固定スコープとして `herdr-agent-delegate/scripts/split_scoped_pane.py` で分割前後に検証する。その後は同スキルの更新済みreadiness契約に従い、pane run、semantic検出、Agent別input-ready確認、notice送信、Enter送信、working遷移確認を別工程で行う。input-readyを確認できなければ何も送信せず、paneとtask directoryを保持して停止する。識別子の欠落・型不正・不一致時は Agent を起動せず、安全に帰属できる未起動 pane だけを close する。帰属不能または close 失敗時は pane と task directory を保持して停止する。明示指定された既存 Agent の再利用は分割検証と新規起動用readiness待機の対象外とする。
 
 ## 3. 初回レビューを同期委譲する
@@ -53,6 +55,8 @@ PR 作成成功後に読み、`herdr-agent-delegate` のタスク交換、待機
 ## 5. 専用 Agent へ FB 対応を委譲する
 
 同じ回の `対応可能` な指摘を、毎回新規起動する 1 体の専用 FB 対応 Agent へまとめる。同一ブランチへの並列変更は禁止する。Agent 種別はレビュー Agent と同じ種別を使い、実装 cwd で起動する。
+
+新規起動する FB 対応 Agent には `herdr agent rename` で役割と対象 PR を示すセッション名 `fb-pr-<number>` を設定する。
 
 FB 対応タスクに次を含める。
 
