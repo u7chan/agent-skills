@@ -224,6 +224,7 @@ def run(args: argparse.Namespace) -> dict[str, str]:
             max_columns=args.max_columns,
             min_width=args.min_width,
             min_height=args.min_height,
+            total_children=args.total_children,
         )
         diagnostics["choice"] = choice
         target_id = choice["target_pane_id"]
@@ -313,11 +314,14 @@ def main() -> None:
     parser.add_argument("--max-columns", type=int, default=None, help="grid column limit (0 means auto)")
     parser.add_argument("--min-width", type=int, default=None, help="minimum pane width in cells")
     parser.add_argument("--min-height", type=int, default=None, help="minimum pane height in cells")
+    parser.add_argument("--total-children", type=int, default=None, help="planned total number of children (default: len(--child) + 1)")
     args = parser.parse_args()
     if args.cell_aspect <= 0:
         parser.error("--cell-aspect must be greater than zero")
     if args.max_columns is not None and args.max_columns < 0:
         parser.error("--max-columns must be non-negative")
+    if args.total_children is not None and args.total_children < 1:
+        parser.error("--total-children must be at least 1")
     result = run(args)
     print(json.dumps(result, ensure_ascii=False))
 

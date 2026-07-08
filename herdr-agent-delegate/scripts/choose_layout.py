@@ -32,6 +32,7 @@ def choose(
     max_columns: int | None = None,
     min_width: int | None = None,
     min_height: int | None = None,
+    total_children: int | None = None,
 ) -> dict:
     panes = layout.get("result", {}).get("layout", {}).get("panes", [])
     by_id = {pane.get("pane_id"): pane.get("rect", {}) for pane in panes}
@@ -52,7 +53,7 @@ def choose(
     rect = by_id[target]
     tab_width, tab_height = layout_planner.tab_size_from_layout(layout)
 
-    child_count = len(children) + 1
+    child_count = total_children if total_children is not None else len(children) + 1
     plan = layout_planner.plan_grid(
         child_count,
         tab_width,
@@ -62,6 +63,11 @@ def choose(
         min_width=min_width,
         min_height=min_height,
     )
+    if child_count > plan["capacity"]:
+        raise ValueError(
+            f"splitting child {child_count} would exceed grid capacity {plan['capacity']} "
+            f"(min {plan['min_width']}x{plan['min_height']})"
+        )
 
     columns = plan["columns"] or 1
     rows = plan["rows"] or 1
@@ -94,6 +100,7 @@ def main() -> None:
     parser.add_argument("--max-columns", type=int, default=None)
     parser.add_argument("--min-width", type=int, default=None)
     parser.add_argument("--min-height", type=int, default=None)
+    parser.add_argument("--total-children", type=int, default=None, help="planned total number of children (default: len(children) + 1)")
     args = parser.parse_args()
     if args.cell_aspect <= 0:
         parser.error("--cell-aspect must be greater than zero")
@@ -114,6 +121,7 @@ def main() -> None:
                     max_columns=args.max_columns,
                     min_width=args.min_width,
                     min_height=args.min_height,
+                    total_children=args.total_children,
                 ),
                 ensure_ascii=False,
             )

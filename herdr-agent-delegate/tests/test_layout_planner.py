@@ -87,13 +87,13 @@ class ChooseLayoutTest(unittest.TestCase):
             choose_layout.choose(layout(("w1:p2", 80, 30)), "w1:p1", [], 0.5)
 
     def test_grid_direction_for_four_children(self):
-        # Simulate progressive splits for 4 children.
-        panes = [("w1:p1", 120, 40)]
+        # Simulate progressive splits for 4 children on a large enough tab.
+        panes = [("w1:p1", 240, 80)]
         children = []
         directions = []
         for _ in range(4):
             current = layout(*panes)
-            result = choose_layout.choose(current, "w1:p1", children, 0.5, max_columns=2)
+            result = choose_layout.choose(current, "w1:p1", children, 0.5, max_columns=2, min_width=1, min_height=1)
             directions.append(result["direction"])
             panes.append(("w1:px", 0, 0))
             children.append("w1:px")
@@ -104,6 +104,24 @@ class ChooseLayoutTest(unittest.TestCase):
         value = layout(("w1:p1", 120, 40))
         result = choose_layout.choose(value, "w1:p1", [], 0.5, max_columns=1)
         self.assertEqual(result["plan"]["columns"], 1)
+
+    def test_max_columns_zero_means_auto(self):
+        # 120x40, 0.5 aspect -> estimated columns for 4 children should be 2, not 1.
+        plan = layout_planner.plan_grid(4, 120, 40, cell_aspect=0.5, max_columns=0, min_width=1)
+        self.assertGreater(plan["columns"], 1)
+
+    def test_capacity_exceeded_raises(self):
+        # A tiny tab fits at most 1 child; requesting 2 should fail.
+        value = layout(("w1:p1", 40, 20))
+        with self.assertRaises(ValueError):
+            choose_layout.choose(value, "w1:p1", [], 0.5, min_width=30, min_height=15, total_children=2)
+
+    def test_total_children_affects_plan(self):
+        # Pre-plan for 4 total children while only one child exists so far.
+        value = layout(("w1:p1", 240, 80))
+        result = choose_layout.choose(value, "w1:p1", ["w1:p2"], 0.5, max_columns=2, total_children=4, min_width=1, min_height=1)
+        self.assertEqual(result["plan"]["columns"], 2)
+        self.assertEqual(result["plan"]["rows"], 2)
 
 
 if __name__ == "__main__":

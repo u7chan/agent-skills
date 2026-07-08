@@ -11,7 +11,7 @@ from typing import Any
 DEFAULT_MIN_WIDTH = int(os.environ.get("HERDR_DELEGATE_MIN_PANE_WIDTH", "80"))
 DEFAULT_MIN_HEIGHT = int(os.environ.get("HERDR_DELEGATE_MIN_PANE_HEIGHT", "24"))
 DEFAULT_MAX_COLUMNS_ENV = os.environ.get("HERDR_DELEGATE_GRID_COLUMNS", "0")
-DEFAULT_MAX_COLUMNS = int(DEFAULT_MAX_COLUMNS_ENV) if DEFAULT_MAX_COLUMNS_ENV else 3
+DEFAULT_MAX_COLUMNS = int(DEFAULT_MAX_COLUMNS_ENV) if DEFAULT_MAX_COLUMNS_ENV else 0
 DEFAULT_MAX_PANES_PER_TAB = int(os.environ.get("HERDR_DELEGATE_MAX_PANES_PER_TAB", "6"))
 
 
@@ -27,7 +27,9 @@ def compute_columns(
     """Choose the number of columns for a grid of ``child_count`` panes."""
     if child_count <= 0:
         return 0
-    max_columns = max(1, max_columns)
+    if max_columns <= 0:
+        # 0 means unlimited / auto: allow up to one column per child.
+        max_columns = child_count
     tab_width = max(1, tab_width)
     tab_height = max(1, tab_height)
     # Estimate columns that produce cells close to the desired aspect ratio.
