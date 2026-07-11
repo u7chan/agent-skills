@@ -79,7 +79,6 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
 - 新規タブ内の分割：`herdr pane split <new-tab-pane-id> --direction right --ratio 0.5 --cwd <cwd> --no-focus`
 - 新規タブは完全に委譲専用のため、無関係ペインは存在しない
 
-
 1. `herdr pane layout --pane "$HERDR_PANE_ID"` のJSONを一時ファイルへ保存する。
 2. 次を実行し、親と同一 `workspace_id`・`tab_id` へ分割されたことを事前・事後に検証済みの新規 pane ID を取得する。子を増やすたび `--child` を追加する。
 
