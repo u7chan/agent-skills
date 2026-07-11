@@ -13,6 +13,7 @@ DEFAULT_MIN_HEIGHT = int(os.environ.get("HERDR_DELEGATE_MIN_PANE_HEIGHT", "24"))
 DEFAULT_MAX_COLUMNS_ENV = os.environ.get("HERDR_DELEGATE_GRID_COLUMNS", "0")
 DEFAULT_MAX_COLUMNS = int(DEFAULT_MAX_COLUMNS_ENV) if DEFAULT_MAX_COLUMNS_ENV else 0
 DEFAULT_MAX_PANES_PER_TAB = int(os.environ.get("HERDR_DELEGATE_MAX_PANES_PER_TAB", "6"))
+AUTO_DEDICATED_TAB = os.environ.get("HERDR_DELEGATE_AUTO_DEDICATED_TAB", "1") != "0"
 
 
 def compute_columns(
@@ -122,3 +123,70 @@ def tab_size_from_layout(layout: dict[str, Any]) -> tuple[int, int]:
     max_width = max(int(p.get("rect", {}).get("width", 0)) for p in panes)
     max_height = max(int(p.get("rect", {}).get("height", 0)) for p in panes)
     return max_width, max_height
+
+
+def detect_existing_panes(
+    layout: dict[str, Any],
+    parent_id: str | None = None,
+    children: list[str] | None = None,
+) -> dict[str, Any]:
+    """Detect unrelated panes in a herdr pane layout.
+
+    Returns ``{"has_unrelated": bool, "unrelated_count": int}``.
+    Panes whose IDs match *parent_id* or any element of *children* are
+    considered related; all others are unrelated.
+    """
+    panes = layout.get("result", {}).get("layout", {}).get("panes", [])
+    related: set[str] = set()
+    if parent_id:
+        related.add(parent_id)
+    if children:
+        related.update(children)
+    unrelated_count = 0
+    for pane in panes:
+        pane_id = pane.get("pane_id", "")
+        if pane_id and pane_id not in related:
+            unrelated_count += 1
+    return {"has_unrelated": unrelated_count > 0, "unrelated_count": unrelated_count}
+
+
+def should_use_dedicated_tab(
+    child_count: int,
+    tab_width: int,
+    tab_height: int,
+    existing_pane_info: dict[str, Any],
+    min_width: int = DEFAULT_MIN_WIDTH,
+    min_height: int = DEFAULT_MIN_HEIGHT,
+    max_panes_per_tab: int = DEFAULT_MAX_PANES_PER_TAB,
+) -> bool:
+    """Decide whether a dedicated tab should be used for the delegation batch."""
+    if not AUTO_DEDICATED_TAB:
+        return False
+    if child_count >= max_panes_per_tab:
+        return True
+    if existing_pane_info.get("has_unrelated"):
+        return True
+    capacity = fit_capacity(
+        tab_width, tab_height, cell_aspect=0.5, max_columns=0,
+        min_width=min_width, min_height=min_height,
+    )
+    if capacity < child_count:
+        return True
+    return False
+
+
+def plan_dedicated_tab(
+    child_count: int,
+    tab_width: int,
+    tab_height: int,
+    cell_aspect: float = 0.5,
+    max_columns: int | None = None,
+    min_width: int | None = None,
+    min_height: int | None = None,
+) -> dict[str, Any]:
+    """Plan a grid in a dedicated tab (all space reserved for delegates)."""
+    return plan_grid(
+        child_count, tab_width, tab_height,
+        cell_aspect=cell_aspect, max_columns=max_columns,
+        min_width=min_width, min_height=min_height,
+    )

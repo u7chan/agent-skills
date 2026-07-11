@@ -52,7 +52,36 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
 
 バッチ委譲時は起動前に `layout_planner.py` で子数とウィンドウサイズから目標列数・slotを計画する。最小paneサイズを下回る場合は追加分割を停止する。計画を `<task-dir>/delegation-plan.md` に表形式（slot, Agent種別, タスク概要, task dir）で出力し、その後自動実行する。
 
+#### 専用タブ選択条件
+
+以下のいずれかの条件に該当する場合、既存タブ内の分割ではなく専用の新規タブを作成して委譲する（`HERDR_DELEGATE_AUTO_DEDICATED_TAB` で制御、既定 `1` = 有効、`0` = 常に同一タブ試行）：
+
+- **起動数超過**：起動予定Agent数が `HERDR_DELEGATE_MAX_PANES_PER_TAB`（既定 `6`）以上
+- **既存無関係ペイン混在**：親と今回起動する子以外のペインが同一タブ内に存在する
+- **最小サイズ制約不足**：タブの幅・高さでは最小paneサイズ制約を満たせず、起動予定数を収容できない
+
+#### ペインライフサイクル方針
+
+委譲先Agentのペインは以下の方針で管理する。親や無関係な既存ペインを無断で移動・closeしない。
+
+- **完了時**：既定でペインを保持する。明示的なclose方針がある場合のみcloseする。
+- **失敗時**：診断・再開のためペインとtask directoryを保持する。自動closeしない。
+- **blocked時**：保持または明示的な退避対象とする。自動closeしない。
+- **親・無関係ペインの保護**：親ペインおよび今回の委譲と無関係な既存ペインの移動・closeを一切行わない。
+
 ### 4.2 paneを分割する
+
+分割判断に使ったlayout一時ファイルを削除する。
+
+#### 容量不足時のフォールバック
+
+同一タブ内で分割不能な場合（capacity超過）、`split_scoped_pane.py` は自動的に新規タブを作成して委譲専用にする。フォールバック時は中途半端な配置を残さず、新規タブ内で完全な分割手順（pre-split検証→split→post-split検証）を実行する。
+
+- 新規タブの作成：`herdr tab new --cwd <cwd>`
+- 新規タブ内の分割：`herdr pane split <new-tab-pane-id> --direction right --ratio 0.5 --cwd <cwd> --no-focus`
+- 新規タブは完全に委譲専用のため、無関係ペインは存在しない
+
+
 
 1. `herdr pane layout --pane "$HERDR_PANE_ID"` のJSONを一時ファイルへ保存する。
 2. 次を実行し、親と同一 `workspace_id`・`tab_id` へ分割されたことを事前・事後に検証済みの新規 pane ID を取得する。子を増やすたび `--child` を追加する。
