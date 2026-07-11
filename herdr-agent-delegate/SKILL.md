@@ -24,8 +24,9 @@ description: Herdr上でCodex、Claude Code、OpenCode、その他のCLI Agent�
   --context-file <absolute-context-path>
 ```
 
+入力用 `request.md` は、委譲元のワークスペース内の一時領域（例: `.herdr-agent-delegate/` 配下）へ作成し、本文が失われないようにする。`task.md` へのコピーを確認後、入力用に作った `request.md` は削除する。
+
 JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する。これはCLI結果であり、Agent間Payloadではない。
-`task.md` へのコピーを確認後、入力用に作った `request.md` は削除する。
 
 ## 3. 宛先を解決する
 

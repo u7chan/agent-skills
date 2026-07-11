@@ -3,7 +3,7 @@
 ## 保存形式
 
 ```text
-/tmp/herdr-agent-delegate/<uid>/<tag>/
+<workspace>/.herdr-agent-delegate/<uid>/<tag>/
 ├── task.md
 ├── marker
 ├── result.md
@@ -11,8 +11,16 @@
 └── reply.md
 ```
 
+`<workspace>` は以下の優先順位で決まる。
+
+1. `HERDR_AGENT_DELEGATE_ROOT` が設定済みならその絶対パス
+2. `HERDR_AGENT_DELEGATE_WORKSPACE` が設定済みなら `<workspace>/.herdr-agent-delegate/`
+3. どちらも未設定ならカレントディレクトリをワークスペースとして `<cwd>/.herdr-agent-delegate/`
+
+`HERDR_AGENT_DELEGATE_ROOT` による明示的な保存先上書きは維持される。保存ルート直下にはユーザーごとの `<uid>` ディレクトリを作り、さらにその下に一意な `<tag>` ディレクトリを作成する。
+
 `task_exchange.py create` がユーザーごとの保存ルート、tag、`task.md`、markerを作る。Agent間では `task.md` の絶対パスだけを通知する。CLIが返すJSONは呼び出し元が各パスを取得するための結果であり、保存・配送するPayloadではない。
-入力用に別途作った依頼Markdownは `task.md` へのコピー確認後に呼び出し元が削除する。
+入力用に別途作った依頼Markdownは、委譲元ワークスペース内の専用領域へ作成し、`task.md` へのコピーを確認後に呼び出し元が削除する。
 
 ## 子Agentの完了
 

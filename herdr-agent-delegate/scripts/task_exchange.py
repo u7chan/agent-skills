@@ -22,7 +22,15 @@ def die(message: str) -> NoReturn:
 
 def storage_root() -> Path:
     configured = os.environ.get("HERDR_AGENT_DELEGATE_ROOT")
-    return Path(configured) if configured else Path("/tmp/herdr-agent-delegate") / str(os.getuid())
+    if configured:
+        base = Path(configured)
+    else:
+        workspace = os.environ.get("HERDR_AGENT_DELEGATE_WORKSPACE")
+        if workspace:
+            base = Path(workspace) / ".herdr-agent-delegate"
+        else:
+            base = Path.cwd() / ".herdr-agent-delegate"
+    return base / str(os.getuid())
 
 
 def ensure_directory(path: Path, *, create: bool = False) -> Path:

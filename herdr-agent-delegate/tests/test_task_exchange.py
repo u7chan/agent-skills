@@ -21,18 +21,51 @@ class TaskExchangeTest(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
-    def run_script(self, *arguments, check=True):
+    def run_script(self, *arguments, env=None, cwd=None, check=True):
         return subprocess.run(
             [sys.executable, str(SCRIPT), *arguments],
-            env=self.env,
+            env=env if env is not None else self.env,
+            cwd=cwd,
             check=check,
             capture_output=True,
             text=True,
         )
 
-    def create(self):
-        result = self.run_script("create", "--task-file", str(self.input))
+    def create(self, env=None, cwd=None):
+        result = self.run_script(
+            "create", "--task-file", str(self.input), env=env, cwd=cwd
+        )
         return json.loads(result.stdout)
+
+    def test_create_uses_configured_root_when_set(self):
+        exchange = self.create()
+        task_dir = Path(exchange["task_dir"])
+        self.assertTrue(str(task_dir).startswith(str(self.root)))
+
+    def test_create_uses_cwd_when_no_env_set(self):
+        cwd = Path(self.temporary.name) / "cwd"
+        cwd.mkdir()
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in ("HERDR_AGENT_DELEGATE_ROOT", "HERDR_AGENT_DELEGATE_WORKSPACE")
+        }
+        exchange = self.create(env=env, cwd=str(cwd))
+        expected = cwd / ".herdr-agent-delegate" / str(os.getuid())
+        self.assertTrue(str(Path(exchange["task_dir"])).startswith(str(expected)))
+
+    def test_create_uses_workspace_when_set(self):
+        workspace = Path(self.temporary.name) / "workspace"
+        workspace.mkdir()
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in ("HERDR_AGENT_DELEGATE_ROOT", "HERDR_AGENT_DELEGATE_WORKSPACE")
+        }
+        env["HERDR_AGENT_DELEGATE_WORKSPACE"] = str(workspace)
+        exchange = self.create(env=env)
+        expected = workspace / ".herdr-agent-delegate" / str(os.getuid())
+        self.assertTrue(str(Path(exchange["task_dir"])).startswith(str(expected)))
 
     def test_create_complete_collect_and_cleanup(self):
         exchange = self.create()
@@ -55,9 +88,45 @@ class TaskExchangeTest(unittest.TestCase):
         self.assertEqual(collected.stdout, "# Result\n\n完了\n")
         self.assertFalse(task_dir.exists())
 
+    def test_create_complete_collect_under_cwd(self):
+        cwd = Path(self.temporary.name) / "cwd"
+        cwd.mkdir()
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in ("HERDR_AGENT_DELEGATE_ROOT", "HERDR_AGENT_DELEGATE_WORKSPACE")
+        }
+        exchange = self.create(env=env, cwd=str(cwd))
+        task_dir = Path(exchange["task_dir"])
+        self.assertTrue(task_dir.exists())
+        self.assertTrue(
+            str(task_dir).startswith(str(cwd / ".herdr-agent-delegate" / str(os.getuid())))
+        )
+
+        result_file = Path(self.temporary.name) / "result.md"
+        result_file.write_text("# Result\n\n完了\n", encoding="utf-8")
+        completed = self.run_script(
+            "complete",
+            "--task-dir",
+            str(task_dir),
+            "--reply-file",
+            str(result_file),
+            env=env,
+            cwd=str(cwd),
+        )
+        self.assertEqual(completed.stdout.strip(), exchange["marker"])
+
+        collected = self.run_script(
+            "collect", "--task-dir", str(task_dir), env=env, cwd=str(cwd)
+        )
+        self.assertEqual(collected.stdout, "# Result\n\n完了\n")
+        self.assertFalse(task_dir.exists())
+
     def test_missing_reply_is_retained(self):
         exchange = self.create()
-        failed = self.run_script("collect", "--task-dir", exchange["task_dir"], check=False)
+        failed = self.run_script(
+            "collect", "--task-dir", exchange["task_dir"], check=False
+        )
         self.assertNotEqual(failed.returncode, 0)
         self.assertTrue(Path(exchange["task_dir"]).exists())
 
@@ -68,6 +137,23 @@ class TaskExchangeTest(unittest.TestCase):
         failed = self.run_script("collect", "--task-dir", str(task_dir), check=False)
         self.assertNotEqual(failed.returncode, 0)
         self.assertTrue(task_dir.exists())
+
+    def test_empty_reply_is_rejected_and_retained(self):
+        exchange = self.create()
+        task_dir = Path(exchange["task_dir"])
+        empty_result = Path(self.temporary.name) / "empty.md"
+        empty_result.write_text("", encoding="utf-8")
+        failed = self.run_script(
+            "complete",
+            "--task-dir",
+            str(task_dir),
+            "--reply-file",
+            str(empty_result),
+            check=False,
+        )
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertTrue(task_dir.exists())
+        self.assertFalse((task_dir / "reply.md").exists())
 
     def test_only_one_concurrent_complete_succeeds(self):
         exchange = self.create()
@@ -99,7 +185,10 @@ class TaskExchangeTest(unittest.TestCase):
         results = [process.communicate() for process in processes]
 
         self.assertEqual(sorted(process.returncode for process in processes), [0, 1])
-        self.assertIn((task_dir / "reply.md").read_text(encoding="utf-8"), {"result 0\n", "result 1\n"})
+        self.assertIn(
+            (task_dir / "reply.md").read_text(encoding="utf-8"),
+            {"result 0\n", "result 1\n"},
+        )
         self.assertEqual(sum(exchange["marker"] in stdout for stdout, _ in results), 1)
 
 
