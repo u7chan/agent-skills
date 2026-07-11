@@ -38,7 +38,7 @@
 
 | Skill | Description |
 |-------|-------------|
-| [grilling](grilling/SKILL.md) | 計画や設計を実装前に徹底的に壁打ちし、意思決定と前提を明確にする |
+| [grilling](grilling/SKILL.md) | 計画・デザインを一問ずつ深掘りし、本格的な構築前にストレステストする |
 | [grill-with-docs](grill-with-docs/SKILL.md) | 既存ドキュメントと照合しながら設計を厳しく壁打ちする |
 
 ### 文章チェック / 校正
