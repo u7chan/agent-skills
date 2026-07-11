@@ -20,6 +20,8 @@ description: Herdr上でCodex、Claude Code、OpenCode、その他のCLI Agent�
 
 `task_exchange.py create` を呼ぶ前に、親Agentは `HERDR_AGENT_DELEGATE_WORKSPACE` を委譲元ワークスペースの絶対パスで設定する。相対パスはcwdの変化により保存先が不一致になるため許可されず、検証でエラーとなる。
 
+`HERDR_AGENT_DELEGATE_ROOT` と `HERDR_AGENT_DELEGATE_WORKSPACE` の両方が未設定の場合、`task_exchange.py` は実行時のカレントディレクトリをワークスペースとしてフォールバックする。このとき `create` で使用したcwdと `complete`/`collect` でのcwdが異なると、タスクディレクトリが保存ルートの外にあると判定され失敗する。Herdr 経由の委譲では、子Agentは親と同一の環境変数・cwdで起動されるため、必ず `HERDR_AGENT_DELEGATE_WORKSPACE` を絶対パスで設定すること。これは運用上の推奨ではなく、正確な保存先を保証するため実質的に必須である。未設定時は `task_exchange.py` がstderrに警告を出力する。
+
 ```bash
 <skill-dir>/scripts/task_exchange.py create \
   --task-file <request.md> \

@@ -25,6 +25,10 @@ def _require_absolute(path: str, name: str) -> None:
         die(f"{name} must be an absolute path: {path}")
 
 
+def warn(message: str) -> None:
+    print(f"WARNING: {message}", file=sys.stderr)
+
+
 def storage_root() -> Path:
     configured = os.environ.get("HERDR_AGENT_DELEGATE_ROOT")
     if configured:
@@ -36,7 +40,15 @@ def storage_root() -> Path:
             _require_absolute(workspace, "HERDR_AGENT_DELEGATE_WORKSPACE")
             base = Path(workspace) / ".herdr-agent-delegate"
         else:
-            base = Path.cwd() / ".herdr-agent-delegate"
+            cwd = Path.cwd()
+            warn(
+                "HERDR_AGENT_DELEGATE_WORKSPACE is not set; falling back to the current "
+                f"directory as the workspace ({cwd}). complete/collect may fail if the "
+                "working directory changes between create and those commands. When "
+                "delegating through Herdr, set HERDR_AGENT_DELEGATE_WORKSPACE to the "
+                "absolute path of the workspace."
+            )
+            base = cwd / ".herdr-agent-delegate"
     return base / str(os.getuid())
 
 
