@@ -20,13 +20,20 @@ def die(message: str) -> NoReturn:
     raise SystemExit(1)
 
 
+def _require_absolute(path: str, name: str) -> None:
+    if not os.path.isabs(path):
+        die(f"{name} must be an absolute path: {path}")
+
+
 def storage_root() -> Path:
     configured = os.environ.get("HERDR_AGENT_DELEGATE_ROOT")
     if configured:
+        _require_absolute(configured, "HERDR_AGENT_DELEGATE_ROOT")
         base = Path(configured)
     else:
         workspace = os.environ.get("HERDR_AGENT_DELEGATE_WORKSPACE")
         if workspace:
+            _require_absolute(workspace, "HERDR_AGENT_DELEGATE_WORKSPACE")
             base = Path(workspace) / ".herdr-agent-delegate"
         else:
             base = Path.cwd() / ".herdr-agent-delegate"

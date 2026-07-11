@@ -17,10 +17,12 @@
 2. `HERDR_AGENT_DELEGATE_WORKSPACE` が設定済みなら `<workspace>/.herdr-agent-delegate/`
 3. どちらも未設定ならカレントディレクトリをワークスペースとして `<cwd>/.herdr-agent-delegate/`
 
-`HERDR_AGENT_DELEGATE_ROOT` による明示的な保存先上書きは維持される。保存ルート直下にはユーザーごとの `<uid>` ディレクトリを作り、さらにその下に一意な `<tag>` ディレクトリを作成する。
+`HERDR_AGENT_DELEGATE_ROOT` と `HERDR_AGENT_DELEGATE_WORKSPACE` は両方とも絶対パスで指定する。相対パスはcwdの変化により保存先が不一致になるため許可されず、`task_exchange.py` はエラーで終了する。
+
+`HERDR_AGENT_DELEGATE_ROOT` による明示的な保存先上書きは維持される。`HERDR_AGENT_DELEGATE_WORKSPACE` を使う場合、保存先をワークスペース基準にする責務は親Agentが負う。保存ルート直下にはユーザーごとの `<uid>` ディレクトリを作り、さらにその下に一意な `<tag>` ディレクトリを作成する。
 
 `task_exchange.py create` がユーザーごとの保存ルート、tag、`task.md`、markerを作る。Agent間では `task.md` の絶対パスだけを通知する。CLIが返すJSONは呼び出し元が各パスを取得するための結果であり、保存・配送するPayloadではない。
-入力用に別途作った依頼Markdownは、委譲元ワークスペース内の専用領域へ作成し、`task.md` へのコピーを確認後に呼び出し元が削除する。
+入力用に別途作った依頼Markdownは、委譲元ワークスペース内の専用領域（例: `.herdr-agent-delegate/requests/`）へ作成し、`task.md` へのコピーを確認後に呼び出し元が削除する。
 
 ## 子Agentの完了
 

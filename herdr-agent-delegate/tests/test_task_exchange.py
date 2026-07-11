@@ -42,6 +42,34 @@ class TaskExchangeTest(unittest.TestCase):
         task_dir = Path(exchange["task_dir"])
         self.assertTrue(str(task_dir).startswith(str(self.root)))
 
+    def test_create_rejects_relative_root(self):
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in ("HERDR_AGENT_DELEGATE_ROOT", "HERDR_AGENT_DELEGATE_WORKSPACE")
+        }
+        env["HERDR_AGENT_DELEGATE_ROOT"] = "relative/path"
+        failed = self.run_script(
+            "create", "--task-file", str(self.input), env=env, check=False
+        )
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertIn("HERDR_AGENT_DELEGATE_ROOT must be an absolute path", failed.stderr)
+
+    def test_create_rejects_relative_workspace(self):
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in ("HERDR_AGENT_DELEGATE_ROOT", "HERDR_AGENT_DELEGATE_WORKSPACE")
+        }
+        env["HERDR_AGENT_DELEGATE_WORKSPACE"] = "relative/workspace"
+        failed = self.run_script(
+            "create", "--task-file", str(self.input), env=env, check=False
+        )
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertIn(
+            "HERDR_AGENT_DELEGATE_WORKSPACE must be an absolute path", failed.stderr
+        )
+
     def test_create_uses_cwd_when_no_env_set(self):
         cwd = Path(self.temporary.name) / "cwd"
         cwd.mkdir()
