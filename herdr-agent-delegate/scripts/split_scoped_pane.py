@@ -197,6 +197,10 @@ def fallback_to_new_tab(
 
     tab_pane_verified = get_pane(new_tab_pane["pane_id"], "fallback_tab_pre_split")
     diagnostics["fallback_tab_pre_split"] = tab_pane_verified
+    if tab_pane_verified.get("tab_id") == expected_scope["tab_id"]:
+        raise RuntimeError(
+            f"fallback new tab has same tab_id as parent ({expected_scope['tab_id']}); scope isolation failed"
+        )
 
     new_pane = split_pane(new_tab_pane["pane_id"], "right", cwd)
     diagnostics["fallback_split_response"] = new_pane

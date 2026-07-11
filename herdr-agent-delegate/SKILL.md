@@ -71,8 +71,6 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
 
 ### 4.2 paneを分割する
 
-分割判断に使ったlayout一時ファイルを削除する。
-
 #### 容量不足時のフォールバック
 
 同一タブ内で分割不能な場合（capacity超過）、`split_scoped_pane.py` は自動的に新規タブを作成して委譲専用にする。フォールバック時は中途半端な配置を残さず、新規タブ内で完全な分割手順（pre-split検証→split→post-split検証）を実行する。
@@ -80,7 +78,6 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
 - 新規タブの作成：`herdr tab new --cwd <cwd>`
 - 新規タブ内の分割：`herdr pane split <new-tab-pane-id> --direction right --ratio 0.5 --cwd <cwd> --no-focus`
 - 新規タブは完全に委譲専用のため、無関係ペインは存在しない
-
 
 
 1. `herdr pane layout --pane "$HERDR_PANE_ID"` のJSONを一時ファイルへ保存する。
