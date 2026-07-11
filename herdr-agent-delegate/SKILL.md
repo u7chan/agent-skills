@@ -18,14 +18,19 @@ description: Herdr上でCodex、Claude Code、OpenCode、その他のCLI Agent�
 
 依頼本文を読み取り可能な一時Markdownへ保存し、本文をコマンド引数へ直接埋め込まず次を実行する。追加コンテキストは読み取り可能な絶対パスで繰り返し指定する。
 
+`task_exchange.py create` を呼ぶ前に、親Agentは `HERDR_AGENT_DELEGATE_WORKSPACE` を委譲元ワークスペースの絶対パスで設定する。相対パスはcwdの変化により保存先が不一致になるため許可されず、検証でエラーとなる。
+
+`HERDR_AGENT_DELEGATE_ROOT` と `HERDR_AGENT_DELEGATE_WORKSPACE` の両方が未設定の場合、`task_exchange.py` は実行時のカレントディレクトリをワークスペースとしてフォールバックする。このとき `create` で使用したcwdと `complete`/`collect` でのcwdが異なると、タスクディレクトリが保存ルートの外にあると判定され失敗する。Herdr 経由の委譲では、子Agentは親と同一の環境変数・cwdで起動されるため、必ず `HERDR_AGENT_DELEGATE_WORKSPACE` を絶対パスで設定すること。これは運用上の推奨ではなく、正確な保存先を保証するため実質的に必須である。未設定時は `task_exchange.py` がstderrに警告を出力する。
+
 ```bash
 <skill-dir>/scripts/task_exchange.py create \
   --task-file <request.md> \
   --context-file <absolute-context-path>
 ```
 
+入力用 `request.md` は、委譲元のワークスペース内の専用領域（例: `.herdr-agent-delegate/requests/`）へ作成し、本文が失われないようにする。`task.md` へのコピーを確認後、入力用に作った `request.md` は削除する。
+
 JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する。これはCLI結果であり、Agent間Payloadではない。
-`task.md` へのコピーを確認後、入力用に作った `request.md` は削除する。
 
 ## 3. 宛先を解決する
 
@@ -61,7 +66,7 @@ JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する
   --child <child-pane-id>
 ```
 
-3. 検証済みの新規 pane ID へ `herdr pane run <new-pane-id> '<agent-command>'` だけを実行する。
+3. 検証済みの新規 pane ID へ `herdr pane run <new-pane-id> '<agent-command>'` だけを実行する。子Agentは親と同一のcwd・環境変数で起動されるため、`HERDR_AGENT_DELEGATE_WORKSPACE` などは子の `complete` / `collect` 実行時もそのまま引き継がれる。
 4. 別コマンドの `herdr wait agent-status <new-pane-id> --status idle --timeout 30000` でsemantic stateによるAgent検出を待つ。この時点の `agent_status=idle` は入力可能を意味しない。
 5. セッション名が指定されている場合、`herdr agent rename <new-pane-id> '<session-name>'` で名前を設定する。失敗時は pane と task directory を保持して停止する。
 6. Codex、Claude Code、OpenCodeは次を別コマンドで実行し、Agent別の入力欄を `wait output` と `pane read` の両方で確認する。
