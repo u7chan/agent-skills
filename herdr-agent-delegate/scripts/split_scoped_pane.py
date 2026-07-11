@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -179,6 +180,41 @@ def fail_with_diagnostics(
     raise SystemExit(exit_code)
 
 
+def fallback_to_new_tab(
+    cwd: str,
+    expected_scope: dict[str, str],
+    args: argparse.Namespace,
+    diagnostics: dict[str, Any],
+    task_dir: Path,
+) -> dict[str, str]:
+    """Create a new dedicated tab and split a child pane inside it."""
+    diagnostics["fallback_attempted"] = True
+    result = run_herdr(["tab", "new", "--cwd", cwd], timeout=10)
+    if result.returncode != 0:
+        raise RuntimeError(f"tab new failed: {result.stderr.strip()}")
+    new_tab_pane = parse_pane(json.loads(result.stdout), "new tab pane")
+    diagnostics["fallback_tab_pane"] = new_tab_pane
+
+    tab_pane_verified = get_pane(new_tab_pane["pane_id"], "fallback_tab_pre_split")
+    diagnostics["fallback_tab_pre_split"] = tab_pane_verified
+    if tab_pane_verified.get("tab_id") == expected_scope["tab_id"]:
+        raise RuntimeError(
+            f"fallback new tab has same tab_id as parent ({expected_scope['tab_id']}); scope isolation failed"
+        )
+
+    new_pane = split_pane(new_tab_pane["pane_id"], "right", cwd)
+    diagnostics["fallback_split_response"] = new_pane
+
+    new_pane_after = get_pane(new_pane["pane_id"], "fallback_new_pane_after")
+    diagnostics["fallback_new_pane_after"] = new_pane_after
+
+    return {
+        "pane_id": new_pane_after["pane_id"],
+        "workspace_id": new_pane_after["workspace_id"],
+        "tab_id": new_pane_after["tab_id"],
+    }
+
+
 def run(args: argparse.Namespace) -> dict[str, str]:
     task_dir = Path(args.task_dir).resolve()
     if not task_dir.is_dir():
@@ -215,6 +251,7 @@ def run(args: argparse.Namespace) -> dict[str, str]:
         fail_with_diagnostics(str(error), diagnostics, task_dir)
 
     children = list(args.child)
+    capacity_error: Exception | None = None
     try:
         choice = choose_layout.choose(
             layout,
@@ -228,8 +265,29 @@ def run(args: argparse.Namespace) -> dict[str, str]:
         )
         diagnostics["choice"] = choice
         target_id = choice["target_pane_id"]
-    except (ValueError, KeyError, TypeError) as error:
+    except ValueError as error:
+        if "capacity" in str(error):
+            capacity_error = error
+        else:
+            fail_with_diagnostics(str(error), diagnostics, task_dir)
+        target_id = ""  # not used when falling back
+    except (KeyError, TypeError) as error:
         fail_with_diagnostics(str(error), diagnostics, task_dir)
+
+    if capacity_error is not None:
+        auto_dedicated = os.environ.get("HERDR_DELEGATE_AUTO_DEDICATED_TAB", "1")
+        if auto_dedicated == "0":
+            fail_with_diagnostics(str(capacity_error), diagnostics, task_dir)
+        try:
+            return fallback_to_new_tab(
+                args.cwd, expected_scope, args, diagnostics, task_dir
+            )
+        except (RuntimeError, ValueError, json.JSONDecodeError, subprocess.TimeoutExpired) as fb_error:
+            fail_with_diagnostics(
+                f"capacity exceeded ({capacity_error}); fallback failed: {fb_error}",
+                diagnostics,
+                task_dir,
+            )
 
     try:
         target_before = get_pane(target_id, "split_target_before")

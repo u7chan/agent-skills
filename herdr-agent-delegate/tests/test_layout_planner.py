@@ -1,6 +1,7 @@
 import importlib.util
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 SCRIPTS_DIR = Path(__file__).parents[1] / "scripts"
@@ -124,5 +125,90 @@ class ChooseLayoutTest(unittest.TestCase):
         self.assertEqual(result["plan"]["rows"], 2)
 
 
-if __name__ == "__main__":
-    unittest.main()
+class DetectExistingPanesTest(unittest.TestCase):
+    def test_detect_existing_panes_unrelated(self):
+        value = layout(
+            ("w1:p1", 60, 40),
+            ("w1:p2", 60, 40),
+            ("w1:p9", 120, 40),
+        )
+        info = layout_planner.detect_existing_panes(value, parent_id="w1:p1", children=["w1:p2"])
+        self.assertTrue(info["has_unrelated"])
+        self.assertEqual(info["unrelated_count"], 1)
+
+    def test_detect_existing_panes_no_unrelated(self):
+        value = layout(
+            ("w1:p1", 60, 40),
+            ("w1:p2", 60, 40),
+        )
+        info = layout_planner.detect_existing_panes(value, parent_id="w1:p1", children=["w1:p2"])
+        self.assertFalse(info["has_unrelated"])
+        self.assertEqual(info["unrelated_count"], 0)
+
+    def test_detect_existing_panes_empty(self):
+        value = layout()
+        info = layout_planner.detect_existing_panes(value, parent_id="w1:p1")
+        self.assertFalse(info["has_unrelated"])
+        self.assertEqual(info["unrelated_count"], 0)
+
+
+class ShouldUseDedicatedTabTest(unittest.TestCase):
+    def test_should_use_dedicated_tab_with_unrelated(self):
+        info = {"has_unrelated": True, "unrelated_count": 1}
+        result = layout_planner.should_use_dedicated_tab(2, 120, 40, info)
+        self.assertTrue(result)
+
+    def test_should_use_dedicated_tab_capacity_shortage(self):
+        info = {"has_unrelated": False, "unrelated_count": 0}
+        result = layout_planner.should_use_dedicated_tab(4, 40, 20, info, min_width=30, min_height=15)
+        self.assertTrue(result)
+
+    def test_should_use_dedicated_tab_high_count(self):
+        info = {"has_unrelated": False, "unrelated_count": 0}
+        result = layout_planner.should_use_dedicated_tab(
+            6, 1000, 1000, info, max_panes_per_tab=6
+        )
+        self.assertTrue(result)
+
+    def test_should_not_use_dedicated_tab_normal(self):
+        info = {"has_unrelated": False, "unrelated_count": 0}
+        result = layout_planner.should_use_dedicated_tab(3, 240, 80, info)
+        self.assertFalse(result)
+
+    def test_should_not_use_dedicated_tab_when_auto_disabled(self):
+        info = {"has_unrelated": True, "unrelated_count": 5}
+        with mock.patch.object(layout_planner, "AUTO_DEDICATED_TAB", False):
+            result = layout_planner.should_use_dedicated_tab(2, 120, 40, info)
+            self.assertFalse(result)
+
+
+class PlanDedicatedTabTest(unittest.TestCase):
+    def test_plan_dedicated_tab(self):
+        plan = layout_planner.plan_dedicated_tab(4, 240, 80, cell_aspect=0.5, max_columns=2, min_width=1)
+        self.assertEqual(plan["columns"], 2)
+        self.assertEqual(plan["rows"], 2)
+        self.assertEqual(len(plan["slots"]), 4)
+
+    def test_plan_dedicated_tab_single(self):
+        plan = layout_planner.plan_dedicated_tab(1, 120, 40)
+        self.assertEqual(plan["columns"], 1)
+        self.assertEqual(plan["rows"], 1)
+
+
+class LayoutForAgentCountTest(unittest.TestCase):
+    def test_layout_for_1_agent(self):
+        plan = layout_planner.plan_grid(1, 120, 40, cell_aspect=0.5, max_columns=0, min_width=1, min_height=1)
+        self.assertEqual(plan["columns"], 1)
+        self.assertEqual(plan["rows"], 1)
+        self.assertEqual(plan["slots"], [{"row": 0, "col": 0}])
+
+    def test_layout_for_2_agents(self):
+        plan = layout_planner.plan_grid(2, 240, 80, cell_aspect=0.5, max_columns=2, min_width=1, min_height=1)
+        self.assertGreaterEqual(plan["capacity"], 2)
+        self.assertIn(plan["columns"], [1, 2])
+
+    def test_layout_for_3_plus_agents(self):
+        plan = layout_planner.plan_grid(4, 240, 80, cell_aspect=0.5, max_columns=2, min_width=1, min_height=1)
+        self.assertEqual(plan["columns"], 2)
+        self.assertEqual(plan["rows"], 2)
+        self.assertEqual(len(plan["slots"]), 4)
