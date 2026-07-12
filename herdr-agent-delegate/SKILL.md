@@ -1,6 +1,6 @@
 ---
 name: herdr-agent-delegate
-description: Herdr上でCLI Agentへタスクを委譲し、公式プリミティブによる4pane単位の配置、送信、完了待機、出力回収を行う。「別Agentに任せて」「複数Agentへ並列委譲」「子Agentの結果を回収」などで使う。
+description: Herdr上でCLI Agentへタスクを委譲し、公式プリミティブによる1タブあたり最大4paneの配置、送信、完了待機、出力回収を行う。「別Agentに任せて」「複数Agentへ並列委譲」「子Agentの結果を回収」などで使う。
 ---
 
 # Herdr Agent Delegate
