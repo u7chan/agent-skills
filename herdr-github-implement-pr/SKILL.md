@@ -61,7 +61,7 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 
 worktree が明示された場合:
 
-- `git-worktree-create` を適用し、現在の作業ツリーでは `git switch` しない。
+- `git-worktree-create` を適用し、`git worktree add` ではなく `herdr worktree create --path <絶対パス> --branch <ブランチ名>` で Herdr 管理の worktree と workspace を作成する。現在の作業ツリーでは `git switch` しない。
 - Issue があればブランチ名に `issue-123` を含め、以降は作成した worktree で行う。
 
 それ以外の場合:

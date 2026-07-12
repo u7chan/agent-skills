@@ -1,4 +1,4 @@
 interface:
   display_name: "Git Worktree Create"
-  short_description: "コーディングエージェント用の独立したgit worktreeを作成する"
-  default_prompt: "Use $git-worktree-create to create an isolated git worktree for a coding agent."
+  short_description: "Herdr公式コマンドで独立したworktreeを作成する"
+  default_prompt: "Use $git-worktree-create to create a Herdr-managed isolated worktree for a coding agent."

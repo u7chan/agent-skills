@@ -11,7 +11,7 @@
 | Skill | Description |
 |-------|-------------|
 | [git-branch-create](git-branch-create/SKILL.md) | ブランチ名を提案し、ブランチを作成する |
-| [git-worktree-create](git-worktree-create/SKILL.md) | 独立した git worktree を作成し、並列作業用の作業領域を用意する |
+| [git-worktree-create](git-worktree-create/SKILL.md) | Herdr 公式コマンドで独立した worktree と workspace を作成する |
 | [git-commit-message](git-commit-message/SKILL.md) | コミットメッセージを提案する |
 
 ### GitHub Issue / PR
