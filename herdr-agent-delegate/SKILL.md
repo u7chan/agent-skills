@@ -83,7 +83,7 @@ herdr pane run <pane-id> "<依頼本文>"
 
 既存idle Agentの再利用時も同様に `herdr pane run` で直接送る。送信後は `herdr wait agent-status <pane-id> --status working --timeout 30000` で開始を確認する。依頼ファイル、replyファイル、完了markerは作らない。
 
-30秒以内に `working` へ遷移しなかった場合、同じ依頼の `pane run` 再実行やEnter追送は二重実行の可能性があるため自動で行わない。代わりに読み取り専用の診断で状態を取得し、異常を報告して停止する。
+30秒以内に `working` へ遷移しなかった場合、同じ依頼の `pane run` 再実行やEnter追送は二重実行の可能性があるため自動で行わない。代わりに読み取り専用の診断で状態を取得し、異常を報告してこの依頼の送信を中止する。以降の完了待機や出力回収も行わず、人間の判断を待つ。
 
 ```bash
 herdr pane get <pane-id>

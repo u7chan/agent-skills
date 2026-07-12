@@ -27,7 +27,7 @@
 herdr pane run <pane-id> "<依頼本文>"
 ```
 
-送信後は `herdr wait agent-status <pane-id> --status working --timeout 30000` で開始を確認する。30秒以内に `working` へ遷移しなかった場合、同じ依頼の `pane run` 再実行や `send-keys Enter` による自動復旧は行わず、`herdr pane get` と `herdr pane read <pane-id> --source recent-unwrapped --lines 80` で状態を取得して報告する。
+送信後は `herdr wait agent-status <pane-id> --status working --timeout 30000` で開始を確認する。30秒以内に `working` へ遷移しなかった場合、同じ依頼の `pane run` 再実行やEnter追送は行わず、`herdr pane get` と `herdr pane read <pane-id> --source recent-unwrapped --lines 80` で状態を取得して報告し、異常を報告してこの依頼の送信を停止する。
 
 ## 完了と回収
 

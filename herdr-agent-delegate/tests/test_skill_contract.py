@@ -129,29 +129,79 @@ fi
             for term in removed_terms:
                 self.assertNotIn(term, text)
 
+    @staticmethod
+    def _request_delivery_section(text, section_title):
+        lines = text.splitlines()
+        in_section = False
+        section_lines = []
+        for line in lines:
+            if line.startswith("##") and section_title in line:
+                in_section = True
+                continue
+            if in_section and line.startswith("##") and section_title not in line:
+                break
+            if in_section:
+                section_lines.append(line)
+        section_text = "\n".join(section_lines)
+        if not section_text:
+            raise AssertionError(
+                f"'{section_title}' セクションが見つかりません"
+            )
+        if "```bash" not in section_text:
+            raise AssertionError(
+                f"'{section_title}' セクションに bash コードブロックがありません"
+            )
+        return section_text
+
+    @classmethod
+    def _request_delivery_command_block(cls, text, section_title):
+        section = cls._request_delivery_section(text, section_title)
+        match = re.search(r"```bash\n(.*?)\n```", section, re.DOTALL)
+        if match is None:
+            raise AssertionError(
+                f"'{section_title}' セクションの bash コードブロックが取得できません"
+            )
+        return match.group(1)
+
     def test_request_delivery_uses_pane_run_only(self):
-        for text in (self.skill, self.reference):
-            self.assertIn("herdr pane run", text)
-            self.assertIn("herdr wait agent-status", text)
-            self.assertIn("--status working", text)
+        skill_block = self._request_delivery_command_block(
+            self.skill, "依頼を直接送る"
+        )
+        reference_block = self._request_delivery_command_block(
+            self.reference, "依頼送信"
+        )
+        for block in (skill_block, reference_block):
+            # 実行例は pane run のみ
+            self.assertIn("herdr pane run", block)
+            self.assertNotIn("herdr agent send", block)
 
     def test_agent_send_is_not_used_for_request_execution(self):
         for text in (self.skill, self.reference):
-            self.assertIn("agent send", text)
             self.assertIn("Enterを送らない", text)
             self.assertNotIn(
-                "herdr agent send <pane-id> \"<依頼本文>\"", text
+                'herdr agent send <pane-id> "<依頼本文>"', text
             )
 
     def test_timeout_diagnosis_is_read_only_and_does_not_resend(self):
-        self.assertIn("herdr pane get", self.skill)
-        self.assertIn("herdr pane read", self.skill)
-        self.assertIn("recent-unwrapped", self.skill)
+        skill_section = self._request_delivery_section(
+            self.skill, "依頼を直接送る"
+        )
+        reference_section = self._request_delivery_section(
+            self.reference, "依頼送信"
+        )
+
+        for section in (skill_section, reference_section):
+            self.assertIn("herdr pane get", section)
+            self.assertIn("herdr pane read", section)
+            self.assertIn("recent-unwrapped", section)
+
+        # SKILL.md 側は「依頼の送信を中止」「以降の完了待機や出力回収も行わない」
         self.assertIn("二重実行", self.skill)
         self.assertIn("自動で行わない", self.skill)
+        self.assertIn("この依頼の送信を中止する", self.skill)
+        self.assertIn("以降の完了待機や出力回収も行わず", self.skill)
         self.assertNotIn("send-keys", self.skill)
 
-        self.assertIn("herdr pane get", self.reference)
-        self.assertIn("herdr pane read", self.reference)
-        self.assertIn("recent-unwrapped", self.reference)
-        self.assertIn("自動復旧は行わず", self.reference)
+        # references/agent-cli.md 側も同じく停止を明記
+        self.assertIn("この依頼の送信を停止する", self.reference)
+        self.assertNotIn("send-keys", self.reference)
