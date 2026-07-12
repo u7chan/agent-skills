@@ -21,13 +21,23 @@
 
 ## 依頼送信
 
-入力可能を確認してから、Enter込みの公式操作を直接使う。Herdr 0.7.3 のCLI契約では `herdr agent send <pane-id> "<文字列>"` は文字列入力のみを行いEnterを送らないため、実行開始が必要な依頼送信には使わない。
+入力可能を確認してから、Enter込みの公式操作を直接使う。`herdr agent send <pane-id> "<文字列>"` は文字列入力のみを行いEnterを送らないため、実行開始が必要な依頼送信には使わない。Agent種別ごとの差異は `../scripts/send_request.py` で吸収する。
 
 ```bash
-herdr pane run <pane-id> "<依頼本文>"
+<skill-dir>/scripts/send_request.py \
+  --target <pane-id> \
+  --agent <codex|claude|opencode> \
+  --prompt "<依頼本文>"
 ```
 
-送信後は `herdr wait agent-status <pane-id> --status working --timeout 30000` で開始を確認する。30秒以内に `working` へ遷移しなかった場合、同じ依頼の `pane run` 再実行やEnter追送は行わず、`herdr pane get` と `herdr pane read <pane-id> --source recent-unwrapped --lines 80` で状態を取得して報告し、異常を報告してこの依頼の送信を停止する。以降の完了待機や出力回収も行わず、人間の判断を待つ。
+`send_request.py` は `herdr pane run` で依頼を送信し、30秒以内の `working` 遷移を待つ。Claude Code のみ、長文ペーストが `[Pasted text #1]` として入力欄に留まることがあるため、活性化用の短いプロンプトを追加送信して再び `working` を待つ。
+
+30秒以内に `working` へ遷移しなかった場合、読み取り専用で状態を取得して報告し、異常を報告してこの依頼の送信を停止する。以降の完了待機や出力回収も行わず、人間の判断を待つ。
+
+```bash
+herdr pane get <pane-id>
+herdr pane read <pane-id> --source recent-unwrapped --lines 80
+```
 
 ## 完了と回収
 

@@ -75,15 +75,20 @@ description: Herdr上でCLI Agentへタスクを委譲し、公式プリミテ�
 
 ## 5. 依頼を直接送る
 
-入力可能を確認した新規Agentには、依頼本文をEnter込みで原子的に送る。Herdr 0.7.3 のCLI契約では `herdr agent send <pane-id> "<文字列>"` は文字列入力のみを行いEnterを送らないため、依頼の実行開始が必要な送信には使わない。
+入力可能を確認した新規Agentには、依頼本文をEnter込みで原子的に送る。`herdr agent send <pane-id> "<文字列>"` は文字列入力のみを行いEnterを送らないため、依頼の実行開始が必要な送信には使わない。Agent種別ごとの差異は `send_request.py` で吸収する。
 
 ```bash
-herdr pane run <pane-id> "<依頼本文>"
+<skill-dir>/scripts/send_request.py \
+  --target <pane-id> \
+  --agent <codex|claude|opencode> \
+  --prompt "<依頼本文>"
 ```
 
-既存idle Agentの再利用時も同様に `herdr pane run` で直接送る。送信後は `herdr wait agent-status <pane-id> --status working --timeout 30000` で開始を確認する。依頼ファイル、replyファイル、完了markerは作らない。
+既存idle Agentの再利用時も同じく `send_request.py` を使う。依頼ファイル、replyファイル、完了markerは作らない。
 
-30秒以内に `working` へ遷移しなかった場合、同じ依頼の `pane run` 再実行やEnter追送は二重実行の可能性があるため自動で行わない。代わりに読み取り専用の診断で状態を取得し、異常を報告してこの依頼の送信を中止する。以降の完了待機や出力回収も行わず、人間の判断を待つ。
+`send_request.py` は `herdr pane run` で依頼を送信し、30秒以内の `working` 遷移を待つ。Claude Code のみ、長文ペーストが `[Pasted text #1]` として入力欄に留まり実行されない場合があるため、活性化用の短いプロンプトを `herdr pane run` で追加送信し、再び `working` を待つ。同じ依頼本文の `pane run` による再送信やEnter追送は二重実行の可能性があるため自動で行わない。
+
+送信が失敗した場合、読み取り専用で状態を取得し、異常を報告してこの依頼の送信を中止する。以降の完了待機や出力回収も行わず、人間の判断を待つ。
 
 ```bash
 herdr pane get <pane-id>
