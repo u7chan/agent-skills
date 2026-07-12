@@ -26,7 +26,15 @@ description: Herdr上でCLI Agentへタスクを委譲し、公式プリミテ�
 
 ## 3. 新規paneを配置する
 
-`MAX_PANES_PER_TAB = 4` とし、親と今回この親が作った子だけを配置対象にする。分割順序は次に固定する。
+`MAX_PANES_PER_TAB = 4` とし、実Agent数として数える。親と今回この親が作った子だけを配置対象にする。分割順序は次に固定する。
+
+1. 子1（新規タブ）: `tab create` のroot paneをAgent起動先として使う（splitしない）
+2. 子2: 子1（root pane）を下分割
+3. 子3: 子2を右分割
+4. 子4: 子3を下分割
+5. 子5以降: 新規タブで子1から繰り返す
+
+既存groupに追加する場合:
 
 1. 子1: 親を右分割
 2. 子2: 子1を下分割
@@ -45,7 +53,7 @@ description: Herdr上でCLI Agentへタスクを委譲し、公式プリミテ�
   --child <child-pane-id>
 ```
 
-事前配置で新しいgroupを始める場合は `--new-tab` を付ける。返却JSONの `pane_id` を子1、`anchor_pane_id` をそのgroupの親として保持し、以後はそのgroup内で同じ固定順序を繰り返す。
+事前配置で新しいgroupを始める場合は `--new-tab` を付ける。返却JSONの `pane_id`（= `group_parent_pane_id`）を子1兼そのgroupの親として保持し、以後はそのgroup内で同じ固定順序を繰り返す。互換用に `anchor_pane_id` も同じpane IDを指す。新規タブではroot paneを直接Agent起動先として使うため、Agent未起動の空Bashアンカーpaneを生成しない。
 
 スクリプトは最小サイズ不足、4pane超過、無関係pane混在時に新規タブへフォールバックする。分割後は `herdr pane get` で新規paneの `workspace_id` / `tab_id` を検証する。検証失敗時にcloseできるのは今回のsplitが返した新規paneだけで、親・既存の子・無関係paneは操作しない。
 
