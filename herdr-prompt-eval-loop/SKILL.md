@@ -7,7 +7,7 @@ description: Herdr上の独立した新規Agentで、スキル、コマンドプ
 
 対象プロンプトを独立Agentで反復実行し、親Agentだけが知る要件チェックリストで評価する。成果物の好みや表現品質を採点せず、指示の明確さと再現性だけを改善する。
 
-最初に `references/evaluation-protocol.md` と `references/herdr-execution.md` を最後まで読む。Herdr操作前に `../herdr-agent-delegate/SKILL.md` と `../herdr-agent-delegate/references/agent-cli.md` を読み、Agent起動、input-ready、直接送信、完了待機、出力回収の契約をそのまま適用する。本スキル固有のworktree分離、新規Agent、cleanup規則を優先する。
+最初に `references/evaluation-protocol.md` と `references/herdr-execution.md` を最後まで読む。Herdr操作前に `../herdr-worktree-create/SKILL.md`、`../herdr-agent-delegate/SKILL.md`、`../herdr-agent-delegate/references/agent-cli.md` を読む。worktreeの作成元解決、base解決、衝突確認、公式create、返却workspace検証は `herdr-worktree-create` を適用し、Agent起動、input-ready、直接送信、完了待機、出力回収は `herdr-agent-delegate` を適用する。本スキル固有の一時path、評価branch、シナリオごとの分離、新規Agent、cleanup規則を優先する。
 
 ## 1. 評価条件を固定する
 

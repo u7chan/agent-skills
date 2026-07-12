@@ -1,12 +1,15 @@
 # Herdr独立実行
 
+worktreeの作成元解決、base解決、衝突確認、公式create、返却workspace検証は `../../herdr-worktree-create/SKILL.md` を適用する。そのスキルと衝突する場合、本ワークフロー固有の `/tmp` 配置、`eval/` branch、シナリオごとの別worktree・workspace、成功時cleanup規則を優先する。
+
 ## 1. プリフライトする
 
 1. `HERDR_ENV=1`、空でない`HERDR_PANE_ID`、`herdr`、`jq`、固定したAgent CLIを確認する。自動インストールや別種別への切替をしない。
 2. `herdr pane current --current`から親のAgent種別とIDを取得する。ユーザー指定がなければこの種別を固定する。
-3. ユーザー指定の実行用Gitリポジトリ、または`git -C "$PWD" rev-parse --show-toplevel`の結果を使う。単体プロンプトがGit管理外でも、worktreeの基点にするリポジトリは必要とする。
-4. リポジトリ、対象ファイル、参照ファイルの絶対パスと開始時OIDを記録する。既存のbranch、worktree、workspace、tab、paneを一覧化し、今回の資源と区別する。
-5. 実行が外部送信、課金、公開、削除、認証変更などworktree外の副作用を起こし得る場合は、シナリオ用の安全な代替へ隔離する。隔離できなければ停止する。
+3. ユーザー指定の実行用Gitリポジトリ、または`git -C "$PWD" rev-parse --show-toplevel`の結果から、`herdr-worktree-create` に従ってrepo parent workspaceのcheckout rootを解決する。単体プロンプトがGit管理外でも、worktreeの作成元にするリポジトリは必要とする。
+4. ユーザー指定baseを優先し、未指定なら `herdr-worktree-create` の優先順でbaseを解決する。解決したbaseとOIDを開始時に固定し、全イテレーション・シナリオ・hold-outで同じbaseを使う。
+5. リポジトリ、対象ファイル、参照ファイルの絶対パスと開始時OIDを記録する。`herdr worktree list --cwd <repo-root> --json` で既存のbranch、worktree、workspaceを確認し、tab、paneと合わせて今回の資源から区別する。
+6. 実行が外部送信、課金、公開、削除、認証変更などworktree外の副作用を起こし得る場合は、シナリオ用の安全な代替へ隔離する。隔離できなければ停止する。
 
 いずれかを満たせず独立Agentを起動できない場合は、自己評価や現在Agent内の模擬実行を行わず、`empirical evaluation skipped: independent execution unavailable`と表示する。
 
@@ -26,14 +29,15 @@ run ID、iteration、scenario slugを含む安全な`/tmp`配下のpathと、一
 
 ```bash
 herdr worktree create \
+  --cwd <absolute-repo-parent-checkout-root> \
   --path <absolute-scenario-path> \
   --branch <unique-eval-branch> \
+  --base <fixed-evaluation-base> \
   --no-focus \
-  --json \
-  --cwd <absolute-execution-repository>
+  --json
 ```
 
-`--cwd`で実行用Gitリポジトリを作成元に固定し、別workspaceのfocusに依存させない。返却JSONの`result.workspace`、`result.tab`、`result.root_pane`を取得する。各objectのID、cwd、相互のworkspace/tab対応が欠ける、型が違う、指定pathと一致しない場合はAgentを起動せず、その資源を保持して停止する。IDを順番や名前から推測しない。
+`--cwd`でrepo parent workspaceのcheckout rootを作成元に、`--base`で固定済みの評価baseを明示し、別workspaceのfocusに依存させない。返却JSONの`result.workspace`、`result.tab`、`result.root_pane`を取得する。各objectのID、cwd、相互のworkspace/tab対応が欠ける、型が違う、指定pathと一致しない場合はAgentを起動せず、その資源を保持して停止する。IDを順番や名前から推測しない。
 
 各シナリオは別workspaceかつ別worktreeであることを全件相互確認する。通常の`pane split`は使わない。
 
