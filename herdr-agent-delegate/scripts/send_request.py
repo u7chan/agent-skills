@@ -27,13 +27,21 @@ DEFAULT_ACTIVATION_TEXT: Final = "実行して"
 def run_herdr(
     arguments: list[str], timeout: float | None = None
 ) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["herdr", *arguments],
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-    )
+    try:
+        return subprocess.run(
+            ["herdr", *arguments],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        return subprocess.CompletedProcess(
+            cmd=exc.cmd if isinstance(exc.cmd, list) else ["herdr", *arguments],
+            returncode=124,
+            stdout="",
+            stderr=f"herdr command timed out after {timeout}s",
+        )
 
 
 def wait_for_working(target: str, timeout_ms: int) -> bool:
@@ -116,7 +124,12 @@ def send_request(args: argparse.Namespace) -> int:
         return 1
 
     # First wait: give the agent a chance to start normally.
-    first_wait_ms = max(0, min(activation_timeout_ms, total_timeout_ms))
+    # Non-Claude agents always wait the full timeout; Claude uses the shorter
+    # activation window first so we can detect the stuck paste state early.
+    first_wait_ms = (
+        activation_timeout_ms if args.agent == "claude" else total_timeout_ms
+    )
+    first_wait_ms = max(0, min(first_wait_ms, total_timeout_ms))
     if wait_for_working(args.target, first_wait_ms):
         return 0
 
@@ -145,6 +158,12 @@ def send_request(args: argparse.Namespace) -> int:
                 print(json.dumps(diagnostics, ensure_ascii=False), file=sys.stderr)
                 return 1
 
+            elapsed_ms = int((time.monotonic() - started) * 1000)
+            remaining_ms = max(0, total_timeout_ms - elapsed_ms)
+            if wait_for_working(args.target, remaining_ms):
+                return 0
+        else:
+            # No placeholder yet: keep waiting for the rest of the total timeout.
             elapsed_ms = int((time.monotonic() - started) * 1000)
             remaining_ms = max(0, total_timeout_ms - elapsed_ms)
             if wait_for_working(args.target, remaining_ms):
@@ -195,8 +214,8 @@ def main() -> None:
         parser.error("--timeout must be greater than zero")
     if args.activation_timeout <= 0:
         parser.error("--activation-timeout must be greater than zero")
-    if args.activation_timeout > args.timeout:
-        parser.error("--activation-timeout must not exceed --timeout")
+    if args.activation_timeout >= args.timeout:
+        parser.error("--activation-timeout must be shorter than --timeout")
     if not args.prompt:
         parser.error("--prompt must not be empty")
 

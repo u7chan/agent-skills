@@ -91,12 +91,27 @@ class SendRequestTest(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertEqual(stderr, "")
 
-    def test_claude_long_paste_without_placeholder_diagnoses(self):
+    def test_claude_no_placeholder_waits_remaining_timeout_and_succeeds(self):
         rc, stderr = self._run(
             [
                 CompletedProcess(["pane", "run"], 0, "", ""),
                 CompletedProcess(["wait", "agent-status"], 1, "", ""),
                 CompletedProcess(["pane", "read"], 0, "no placeholder here", ""),
+                CompletedProcess(["wait", "agent-status"], 0, "", ""),
+            ],
+            agent="claude",
+            prompt="x" * 4000,
+        )
+        self.assertEqual(rc, 0)
+        self.assertEqual(stderr, "")
+
+    def test_claude_long_paste_without_placeholder_diagnoses_after_full_timeout(self):
+        rc, stderr = self._run(
+            [
+                CompletedProcess(["pane", "run"], 0, "", ""),
+                CompletedProcess(["wait", "agent-status"], 1, "", ""),
+                CompletedProcess(["pane", "read"], 0, "no placeholder here", ""),
+                CompletedProcess(["wait", "agent-status"], 1, "", ""),
                 CompletedProcess(["pane", "get"], 0, "{}", ""),
                 CompletedProcess(["pane", "read"], 0, "still idle", ""),
             ],
@@ -107,6 +122,21 @@ class SendRequestTest(unittest.TestCase):
         diagnostics = stderr
         self.assertIn("request_delivery_failed", diagnostics)
         self.assertIn("still idle", diagnostics)
+
+    def test_codex_slow_start_waits_full_timeout_then_diagnoses(self):
+        rc, stderr = self._run(
+            [
+                CompletedProcess(["pane", "run"], 0, "", ""),
+                CompletedProcess(["wait", "agent-status"], 1, "", ""),
+                CompletedProcess(["pane", "get"], 0, "{}", ""),
+                CompletedProcess(["pane", "read"], 0, "still idle", ""),
+            ],
+            agent="codex",
+            prompt="x" * 4000,
+        )
+        self.assertEqual(rc, 1)
+        self.assertIn("request_delivery_failed", stderr)
+        self.assertIn("still idle", stderr)
 
     def test_claude_activation_fails_then_diagnoses(self):
         rc, stderr = self._run(
@@ -143,10 +173,36 @@ class SendRequestTest(unittest.TestCase):
         self.assertIn("pane not found", stderr)
 
     def test_argument_validation(self):
-        with patch.object(sys, "argv", ["send_request.py", "--target", "w1:p2", "--agent", "claude", "--prompt", "x", "--activation-timeout", "40000"]):
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "send_request.py",
+                "--target",
+                "w1:p2",
+                "--agent",
+                "claude",
+                "--prompt",
+                "x",
+                "--activation-timeout",
+                "40000",
+            ],
+        ):
             with self.assertRaises(SystemExit) as ctx:
                 send_request.main()
         self.assertNotEqual(ctx.exception.code, 0)
+
+    def test_opencode_starts_immediately_without_activation(self):
+        rc, stderr = self._run(
+            [
+                CompletedProcess(["pane", "run"], 0, "", ""),
+                CompletedProcess(["wait", "agent-status"], 0, "", ""),
+            ],
+            agent="opencode",
+            prompt="self introduction",
+        )
+        self.assertEqual(rc, 0)
+        self.assertEqual(stderr, "")
 
 
 if __name__ == "__main__":
