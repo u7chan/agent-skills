@@ -131,14 +131,18 @@ fi
 
     @staticmethod
     def _request_delivery_section(text, section_title):
+        escaped = re.escape(section_title)
+        section_pattern = re.compile(
+            rf"^##+\s+(?:\d+\.\s+)?{escaped}(?:\s|$)"
+        )
         lines = text.splitlines()
         in_section = False
         section_lines = []
         for line in lines:
-            if line.startswith("##") and section_title in line:
+            if section_pattern.match(line):
                 in_section = True
                 continue
-            if in_section and line.startswith("##") and section_title not in line:
+            if in_section and line.startswith("##"):
                 break
             if in_section:
                 section_lines.append(line)
@@ -154,26 +158,31 @@ fi
         return section_text
 
     @classmethod
-    def _request_delivery_command_block(cls, text, section_title):
+    def _request_delivery_command_blocks(cls, text, section_title):
         section = cls._request_delivery_section(text, section_title)
-        match = re.search(r"```bash\n(.*?)\n```", section, re.DOTALL)
-        if match is None:
+        blocks = re.findall(r"```bash\n(.*?)\n```", section, re.DOTALL)
+        if not blocks:
             raise AssertionError(
-                f"'{section_title}' セクションの bash コードブロックが取得できません"
+                f"'{section_title}' セクションから bash コードブロックを取得できません"
             )
-        return match.group(1)
+        return blocks
 
     def test_request_delivery_uses_pane_run_only(self):
-        skill_block = self._request_delivery_command_block(
+        skill_blocks = self._request_delivery_command_blocks(
             self.skill, "依頼を直接送る"
         )
-        reference_block = self._request_delivery_command_block(
+        reference_blocks = self._request_delivery_command_blocks(
             self.reference, "依頼送信"
         )
-        for block in (skill_block, reference_block):
-            # 実行例は pane run のみ
-            self.assertIn("herdr pane run", block)
-            self.assertNotIn("herdr agent send", block)
+        for blocks in (skill_blocks, reference_blocks):
+            # 少なくとも1つの実行例で pane run を使う
+            self.assertTrue(
+                any("herdr pane run" in block for block in blocks),
+                "依頼送信セクションに pane run の実行例がありません",
+            )
+            # セクション内の全 bash コードブロックに agent send が混入していない
+            for block in blocks:
+                self.assertNotIn("herdr agent send", block)
 
     def test_agent_send_is_not_used_for_request_execution(self):
         for text in (self.skill, self.reference):
@@ -202,6 +211,7 @@ fi
         self.assertIn("以降の完了待機や出力回収も行わず", self.skill)
         self.assertNotIn("send-keys", self.skill)
 
-        # references/agent-cli.md 側も同じく停止を明記
+        # references/agent-cli.md 側も同じく停止と後続工程の中止を明記
         self.assertIn("この依頼の送信を停止する", self.reference)
+        self.assertIn("以降の完了待機や出力回収も行わず", self.reference)
         self.assertNotIn("send-keys", self.reference)
