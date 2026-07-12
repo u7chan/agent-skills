@@ -1,6 +1,5 @@
 import importlib.util
 import json
-import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
@@ -14,593 +13,191 @@ assert SPEC.loader
 SPEC.loader.exec_module(split_scoped_pane)
 
 
-def pane_payload(pane_id: str, workspace_id: str = "w1", tab_id: str = "w1:t1", **extra: object) -> dict:
-    return {"result": {"pane": {"pane_id": pane_id, "workspace_id": workspace_id, "tab_id": tab_id, **extra}}}
+def pane_payload(pane_id, workspace_id="w1", tab_id="w1:t1"):
+    return {
+        "result": {
+            "pane": {
+                "pane_id": pane_id,
+                "workspace_id": workspace_id,
+                "tab_id": tab_id,
+            }
+        }
+    }
 
 
-def layout_payload(
-    panes: list[dict], workspace_id: str = "w1", tab_id: str = "w1:t1"
-) -> dict:
-    return {"result": {"layout": {"workspace_id": workspace_id, "tab_id": tab_id, "panes": panes}}}
+def tab_payload(pane_id, workspace_id="w1", tab_id="w1:t2"):
+    return {"result": {"root_pane": pane_payload(pane_id, workspace_id, tab_id)["result"]["pane"]}}
 
 
-class MockResult:
-    def __init__(self, returncode: int = 0, stdout: str = "", stderr: str = ""):
+def layout_payload(pane_ids, width=160, height=80):
+    return {
+        "result": {
+            "layout": {
+                "panes": [
+                    {
+                        "pane_id": pane_id,
+                        "rect": {"width": width, "height": height},
+                    }
+                    for pane_id in pane_ids
+                ]
+            }
+        }
+    }
+
+
+class Result:
+    def __init__(self, payload=None, returncode=0, stderr=""):
         self.returncode = returncode
-        self.stdout = stdout
+        self.stdout = "" if payload is None else json.dumps(payload)
         self.stderr = stderr
 
 
 class HerdrMock:
-    def __init__(self) -> None:
-        self.responses: list[tuple[list[str], MockResult | Exception]] = []
-        self.calls: list[list[str]] = []
+    def __init__(self, responses):
+        self.responses = list(responses)
+        self.calls = []
 
-    def add(self, arguments: list[str], result: MockResult) -> None:
-        self.responses.append((arguments, result))
-
-    def add_exception(self, arguments: list[str], exception: Exception) -> None:
-        self.responses.append((arguments, exception))
-
-    def __call__(self, arguments: list[str], timeout: float | None = None) -> MockResult:
+    def __call__(self, arguments, timeout=None):
         self.calls.append(arguments)
-        for index, (expected, result) in enumerate(self.responses):
-            if arguments == expected:
-                self.responses.pop(index)
-                if isinstance(result, Exception):
-                    raise result
-                return result
-        raise AssertionError(f"unexpected herdr call: {arguments}")
+        expected, result = self.responses.pop(0)
+        if arguments != expected:
+            raise AssertionError(f"expected {expected}, got {arguments}")
+        return result
+
+
+def args(children=None, new_tab=False):
+    return Namespace(
+        parent_pane_id="w1:p1",
+        cwd="/work",
+        child=children or [],
+        new_tab=new_tab,
+    )
 
 
 class SplitScopedPaneTest(unittest.TestCase):
-    def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory()
-        self.task_dir = Path(self.temporary.name) / "task"
-        self.task_dir.mkdir()
-        self.layout_file = Path(self.temporary.name) / "layout.json"
-
-    def tearDown(self):
-        self.temporary.cleanup()
-
-    def write_layout(self, payload: dict) -> None:
-        self.layout_file.write_text(json.dumps(payload), encoding="utf-8")
-
-    def args(self, **overrides) -> Namespace:
-        defaults = {
-            "parent_pane_id": "w1:p1",
-            "task_dir": str(self.task_dir),
-            "cwd": "/work",
-            "layout_file": str(self.layout_file),
-            "child": [],
-            "cell_aspect": 0.5,
-            "max_columns": None,
-            "min_width": None,
-            "min_height": None,
-            "total_children": None,
-        }
-        defaults.update(overrides)
-        return Namespace(**defaults)
-
-    def diagnostics(self) -> dict:
-        path = self.task_dir / "split_scoped_pane.diagnostics.json"
-        return json.loads(path.read_text(encoding="utf-8"))
-
-    def test_successful_split_returns_verified_pane(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
-        )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            result = split_scoped_pane.run(self.args())
-
-        self.assertEqual(result, {"pane_id": "w1:p2", "workspace_id": "w1", "tab_id": "w1:t1"})
-        self.assertFalse((self.task_dir / "split_scoped_pane.diagnostics.json").exists())
-
-    def test_parent_mismatch_fails_before_split(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p9"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        self.assertIn("w1:p9", self.diagnostics()["failure_reason"])
-        self.assertNotIn(["pane", "split", "w1:p1", "--direction", "right"], mock.calls)
-
-    def test_missing_workspace_id_in_parent_fails(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(
-            ["pane", "current", "--current"],
-            MockResult(stdout=json.dumps({"result": {"pane": {"pane_id": "w1:p1", "tab_id": "w1:t1"}}})),
-        )
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        self.assertIn("workspace_id", self.diagnostics()["failure_reason"])
-        self.assertNotIn(["pane", "split", "w1:p1"], [c[:3] for c in mock.calls])
-
-    def test_layout_scope_mismatch_fails_before_split(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}], workspace_id="w2"))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        self.assertIn("layout workspace_id mismatch", self.diagnostics()["failure_reason"])
-        self.assertNotIn(["pane", "split", "w1:p1"], [c[:3] for c in mock.calls])
-
-    def test_layout_missing_parent_fails_before_split(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p9", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        self.assertIn("parent pane is not present", self.diagnostics()["failure_reason"])
-
-    def test_target_scope_mismatch_fails_before_split(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1", workspace_id="w2"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        self.assertIn("split_target_before", self.diagnostics()["failure_reason"])
-        self.assertNotIn(["pane", "split", "w1:p1"], [c[:3] for c in mock.calls])
-
-    def test_split_command_failure_does_not_close(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(returncode=1, stderr="split rejected"),
-        )
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        self.assertIn("split rejected", self.diagnostics()["failure_reason"])
-        self.assertNotIn(["pane", "close", "w1:p2"], mock.calls)
-
-    def test_parent_moved_after_split_triggers_safe_close(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
-        )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1", workspace_id="w2"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
-        mock.add(["pane", "close", "w1:p2"], MockResult())
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        diagnostics = self.diagnostics()
-        self.assertIn("parent_after", diagnostics["failure_reason"])
-        self.assertTrue(diagnostics["close_attempted"])
-        self.assertTrue(diagnostics["close_succeeded"])
-        self.assertEqual(["pane", "close", "w1:p2"], mock.calls[-1])
-
-    def test_new_pane_scope_mismatch_triggers_safe_close(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
-        )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2", workspace_id="w2"))))
-        mock.add(["pane", "close", "w1:p2"], MockResult())
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        diagnostics = self.diagnostics()
-        self.assertIn("new_pane_after", diagnostics["failure_reason"])
-        self.assertTrue(diagnostics["close_attempted"])
-        self.assertTrue(diagnostics["close_succeeded"])
-
-    def test_duplicate_new_pane_id_is_not_closed(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p1"))),
-        )
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        diagnostics = self.diagnostics()
-        self.assertIn("already present before the split", diagnostics["failure_reason"])
-        self.assertFalse(diagnostics["close_attempted"])
-        self.assertNotIn(["pane", "close", "w1:p1"], mock.calls)
-
-    def test_close_failure_is_recorded_without_retry(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
-        )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1", workspace_id="w2"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
-        mock.add(["pane", "close", "w1:p2"], MockResult(returncode=1, stderr="close rejected"))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        diagnostics = self.diagnostics()
-        self.assertTrue(diagnostics["close_attempted"])
-        self.assertFalse(diagnostics["close_succeeded"])
-        self.assertEqual(diagnostics["close_stderr"], "close rejected")
-        close_calls = [c for c in mock.calls if c[:2] == ["pane", "close"]]
-        self.assertEqual(len(close_calls), 1)
-
-    def test_child_candidate_is_preferred_and_verified(self):
-        self.write_layout(
-            layout_payload(
+    def split_responses(self, children, direction, child_id="w1:new"):
+        target = "w1:p1" if not children else children[-1]
+        pane_ids = ["w1:p1", *children]
+        return [
+            (["pane", "current", "--current"], Result(pane_payload("w1:p1"))),
+            (["pane", "layout", "--pane", "w1:p1"], Result(layout_payload(pane_ids))),
+            (["pane", "get", target], Result(pane_payload(target))),
+            (
                 [
-                    {"pane_id": "w1:p1", "rect": {"width": 60, "height": 40}},
-                    {"pane_id": "w1:p2", "rect": {"width": 120, "height": 40}},
-                ]
-            )
-        )
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
-        mock.add(
-            ["pane", "split", "w1:p2", "--direction", "down", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p3"))),
-        )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p3"], MockResult(stdout=json.dumps(pane_payload("w1:p3"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            result = split_scoped_pane.run(self.args(child=["w1:p2"], min_width=1, min_height=1))
-
-        self.assertEqual(result["pane_id"], "w1:p3")
-
-    def test_layout_fetched_via_herdr_when_file_not_given(self):
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "layout", "--pane", "w1:p1"],
-            MockResult(stdout=json.dumps(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))),
-        )
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
-        )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            result = split_scoped_pane.run(self.args(layout_file=None))
-
-        self.assertEqual(result["pane_id"], "w1:p2")
-        self.assertIn(["pane", "layout", "--pane", "w1:p1"], mock.calls)
-
-    def test_empty_tab_id_in_layout_fails(self):
-        self.write_layout(
-            {"result": {"layout": {"workspace_id": "w1", "tab_id": "", "panes": [{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]}}}
-        )
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        self.assertIn("layout tab_id", self.diagnostics()["failure_reason"])
-
-    def test_tab_id_mismatch_in_new_pane_triggers_close(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
-        )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2", tab_id="w1:t2"))))
-        mock.add(["pane", "close", "w1:p2"], MockResult())
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        diagnostics = self.diagnostics()
-        self.assertIn("new_pane_after", diagnostics["failure_reason"])
-        self.assertTrue(diagnostics["close_attempted"])
-
-    def test_empty_new_pane_id_is_not_closed(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps({"result": {"pane": {"pane_id": "", "workspace_id": "w1", "tab_id": "w1:t1"}}})),
-        )
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        diagnostics = self.diagnostics()
-        self.assertIn("pane_id is not a non-empty string", diagnostics["failure_reason"])
-        self.assertFalse(diagnostics["close_attempted"])
-        self.assertNotIn(["pane", "close", ""], mock.calls)
-
-    def test_post_validation_pane_get_failure_triggers_safe_close(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
-        )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(returncode=1, stderr="pane vanished"))
-        mock.add(["pane", "close", "w1:p2"], MockResult())
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        diagnostics = self.diagnostics()
-        self.assertIn("pane get w1:p2 failed", diagnostics["failure_reason"])
-        self.assertTrue(diagnostics["close_attempted"])
-        self.assertTrue(diagnostics["close_succeeded"])
-
-    def test_command_order_is_pre_validation_split_post_validation(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
-        )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            split_scoped_pane.run(self.args())
-
-        self.assertEqual(mock.calls[0], ["pane", "current", "--current"])
-        self.assertEqual(mock.calls[1], ["pane", "get", "w1:p1"])
-        self.assertEqual(mock.calls[2][:2], ["pane", "split"])
-        self.assertEqual(mock.calls[3], ["pane", "current", "--current"])
-        self.assertEqual(mock.calls[4], ["pane", "get", "w1:p2"])
-
-    def test_non_string_identifier_is_rejected(self):
-        cases = [
-            ("pane_id", None),
-            ("pane_id", 123),
-            ("workspace_id", None),
-            ("workspace_id", 123),
-            ("tab_id", None),
-            ("tab_id", 123),
+                    "pane",
+                    "split",
+                    target,
+                    "--direction",
+                    direction,
+                    "--ratio",
+                    "0.5",
+                    "--cwd",
+                    "/work",
+                    "--no-focus",
+                ],
+                Result(pane_payload(child_id)),
+            ),
+            (["pane", "get", child_id], Result(pane_payload(child_id))),
         ]
-        for field, bad_value in cases:
-            with self.subTest(field=field, value=bad_value):
-                self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-                pane = {"pane_id": "w1:p2", "workspace_id": "w1", "tab_id": "w1:t1"}
-                pane[field] = bad_value
-                mock = HerdrMock()
-                mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-                mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-                mock.add(
-                    ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-                    MockResult(stdout=json.dumps({"result": {"pane": pane}})),
-                )
 
-                with patch.object(split_scoped_pane, "run_herdr", mock):
-                    with self.assertRaises(SystemExit):
-                        split_scoped_pane.run(self.args())
+    def test_fixed_incremental_split_sequence(self):
+        directions = ["right", "down", "right", "down"]
+        for count, direction in enumerate(directions):
+            children = [f"w1:p{number}" for number in range(2, count + 2)]
+            mock = HerdrMock(self.split_responses(children, direction))
+            with self.subTest(child=count + 1), patch.object(
+                split_scoped_pane, "run_herdr", mock
+            ):
+                result = split_scoped_pane.run(args(children))
+                self.assertFalse(result["new_tab"])
+                self.assertEqual(mock.responses, [])
 
-                self.assertIn(f"{field} is not a non-empty string", self.diagnostics()["failure_reason"])
-
-    def test_capacity_exceeded_fails_before_split_when_fallback_disabled(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 40, "height": 20}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock), \
-             patch.dict("os.environ", {"HERDR_DELEGATE_AUTO_DEDICATED_TAB": "0"}, clear=False):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args(min_width=30, min_height=15, total_children=2))
-
-        self.assertIn("capacity", self.diagnostics()["failure_reason"])
-        self.assertNotIn(["pane", "split", "w1:p1"], [c[:3] for c in mock.calls])
-
-    def test_total_children_propagated_to_choose(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 240, "height": 80}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
+    def test_fifth_child_starts_new_tab(self):
+        children = ["w1:p2", "w1:p3", "w1:p4", "w1:p5"]
+        mock = HerdrMock(
+            [
+                (["pane", "current", "--current"], Result(pane_payload("w1:p1"))),
+                (
+                    ["pane", "layout", "--pane", "w1:p1"],
+                    Result(layout_payload(["w1:p1", *children])),
+                ),
+                (["tab", "create", "--workspace", "w1", "--cwd", "/work", "--no-focus"], Result(tab_payload("w1:p10"))),
+                (["pane", "get", "w1:p10"], Result(pane_payload("w1:p10", tab_id="w1:t2"))),
+                (
+                    ["pane", "split", "w1:p10", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
+                    Result(pane_payload("w1:p11", tab_id="w1:t2")),
+                ),
+                (["pane", "get", "w1:p11"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
+            ]
         )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
-
         with patch.object(split_scoped_pane, "run_herdr", mock):
-            result = split_scoped_pane.run(self.args(total_children=4, min_width=1, min_height=1))
+            result = split_scoped_pane.run(args(children))
+        self.assertTrue(result["new_tab"])
+        self.assertEqual(result["anchor_pane_id"], "w1:p10")
 
-        self.assertEqual(result["pane_id"], "w1:p2")
-
-    def test_pane_get_returning_different_id_fails(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p99"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
-
-        self.assertIn("unexpected pane_id", self.diagnostics()["failure_reason"])
-
-    def test_success_uses_post_validated_pane_values(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        # split response scope differs from post-validated scope to ensure output comes from post-validation
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2", workspace_id="w2", tab_id="w2:t1"))),
+    def test_unrelated_pane_uses_new_tab_without_touching_it(self):
+        mock = HerdrMock(
+            [
+                (["pane", "current", "--current"], Result(pane_payload("w1:p1"))),
+                (["pane", "layout", "--pane", "w1:p1"], Result(layout_payload(["w1:p1", "w1:p9"]))),
+                (["tab", "create", "--workspace", "w1", "--cwd", "/work", "--no-focus"], Result(tab_payload("w1:p10"))),
+                (["pane", "get", "w1:p10"], Result(pane_payload("w1:p10", tab_id="w1:t2"))),
+                (["pane", "split", "w1:p10", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
+                (["pane", "get", "w1:p11"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
+            ]
         )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
-
         with patch.object(split_scoped_pane, "run_herdr", mock):
-            result = split_scoped_pane.run(self.args())
+            split_scoped_pane.run(args())
+        self.assertFalse(any(call[:2] == ["pane", "close"] for call in mock.calls))
 
-        self.assertEqual(result["pane_id"], "w1:p2")
-        self.assertEqual(result["workspace_id"], "w1")
-        self.assertEqual(result["tab_id"], "w1:t1")
-
-    def test_close_timeout_is_recorded(self):
-        import subprocess as sp
-
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 120, "height": 40}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["pane", "get", "w1:p1"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["pane", "split", "w1:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w1:p2"))),
+    def test_new_pane_scope_is_verified_and_only_new_child_is_closed(self):
+        responses = self.split_responses([], "right")[:-1]
+        responses.extend(
+            [
+                (["pane", "get", "w1:new"], Result(pane_payload("w1:new", tab_id="w1:t9"))),
+                (["pane", "close", "w1:new"], Result()),
+            ]
         )
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1", workspace_id="w2"))))
-        mock.add(["pane", "get", "w1:p2"], MockResult(stdout=json.dumps(pane_payload("w1:p2"))))
-        mock.add_exception(["pane", "close", "w1:p2"], sp.TimeoutExpired(cmd=["herdr", "pane", "close", "w1:p2"], timeout=10))
-
+        mock = HerdrMock(responses)
         with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args())
+            with self.assertRaisesRegex(ValueError, "tab_id mismatch"):
+                split_scoped_pane.run(args())
+        self.assertEqual(mock.calls[-1], ["pane", "close", "w1:new"])
 
-        diagnostics = self.diagnostics()
-        self.assertTrue(diagnostics["close_attempted"])
-        self.assertFalse(diagnostics["close_succeeded"])
-        self.assertEqual(diagnostics["close_exit_code"], None)
-        self.assertEqual(diagnostics["close_timeout_seconds"], 10)
-
-    def test_capacity_exceeded_falls_back_to_new_tab(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 40, "height": 20}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["tab", "new", "--cwd", "/work"],
-            MockResult(stdout=json.dumps(pane_payload("w2:p1", workspace_id="w2", tab_id="w2:t1"))),
+    def test_minimum_size_falls_back_to_new_tab(self):
+        mock = HerdrMock(
+            [
+                (["pane", "current", "--current"], Result(pane_payload("w1:p1"))),
+                (["pane", "layout", "--pane", "w1:p1"], Result(layout_payload(["w1:p1"], width=60, height=20))),
+                (["pane", "get", "w1:p1"], Result(pane_payload("w1:p1"))),
+                (["tab", "create", "--workspace", "w1", "--cwd", "/work", "--no-focus"], Result(tab_payload("w1:p10"))),
+                (["pane", "get", "w1:p10"], Result(pane_payload("w1:p10", tab_id="w1:t2"))),
+                (["pane", "split", "w1:p10", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
+                (["pane", "get", "w1:p11"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
+            ]
         )
-        mock.add(["pane", "get", "w2:p1"], MockResult(stdout=json.dumps(pane_payload("w2:p1", workspace_id="w2", tab_id="w2:t1"))))
-        mock.add(
-            ["pane", "split", "w2:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w2:p2", workspace_id="w2", tab_id="w2:t1"))),
-        )
-        mock.add(["pane", "get", "w2:p2"], MockResult(stdout=json.dumps(pane_payload("w2:p2", workspace_id="w2", tab_id="w2:t1"))))
-
         with patch.object(split_scoped_pane, "run_herdr", mock):
-            result = split_scoped_pane.run(self.args(min_width=30, min_height=15, total_children=2))
+            result = split_scoped_pane.run(args())
+        self.assertTrue(result["new_tab"])
 
-        self.assertEqual(result["pane_id"], "w2:p2")
-        self.assertEqual(result["workspace_id"], "w2")
-        self.assertEqual(result["tab_id"], "w2:t1")
-        self.assertIn(["tab", "new", "--cwd", "/work"], mock.calls)
-
-    def test_fallback_tab_creation_mocked(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 40, "height": 20}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(["tab", "new", "--cwd", "/work"], MockResult(returncode=1, stderr="tab create failed"))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args(min_width=30, min_height=15, total_children=2))
-
-        diagnostics = self.diagnostics()
-        self.assertTrue(diagnostics["fallback_attempted"])
-        self.assertIn("fallback failed", diagnostics["failure_reason"])
-
-    def test_fallback_scope_validation(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 40, "height": 20}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-        mock.add(
-            ["tab", "new", "--cwd", "/work"],
-            MockResult(stdout=json.dumps(pane_payload("w2:p1", workspace_id="w2", tab_id="w2:t1"))),
+    def test_new_tab_anchor_can_be_used_as_next_group_parent(self):
+        mock = HerdrMock(
+            [
+                (["pane", "current", "--current"], Result(pane_payload("w1:p1"))),
+                (["pane", "get", "w1:p10"], Result(pane_payload("w1:p10", tab_id="w1:t2"))),
+                (["pane", "layout", "--pane", "w1:p10"], Result(layout_payload(["w1:p10", "w1:p11"]))),
+                (["pane", "get", "w1:p11"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
+                (["pane", "split", "w1:p11", "--direction", "down", "--ratio", "0.5", "--cwd", "/work", "--no-focus"], Result(pane_payload("w1:p12", tab_id="w1:t2"))),
+                (["pane", "get", "w1:p12"], Result(pane_payload("w1:p12", tab_id="w1:t2"))),
+            ]
         )
-        mock.add(["pane", "get", "w2:p1"], MockResult(stdout=json.dumps(pane_payload("w2:p1", workspace_id="w2", tab_id="w2:t1"))))
-        mock.add(
-            ["pane", "split", "w2:p1", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-            MockResult(stdout=json.dumps(pane_payload("w2:p2", workspace_id="w2", tab_id="w2:t1"))),
+        group_args = Namespace(
+            parent_pane_id="w1:p10",
+            cwd="/work",
+            child=["w1:p11"],
+            new_tab=False,
         )
-        mock.add(["pane", "get", "w2:p2"], MockResult(stdout=json.dumps(pane_payload("w2:p2", workspace_id="w2", tab_id="w2:t1"))))
-
         with patch.object(split_scoped_pane, "run_herdr", mock):
-            result = split_scoped_pane.run(self.args(min_width=30, min_height=15, total_children=2))
-
-        self.assertEqual(result["workspace_id"], "w2")
-        self.assertEqual(result["tab_id"], "w2:t1")
-        self.assertNotEqual(result["tab_id"], "w1:t1")
-
-    def test_capacity_exceeded_without_fallback_when_disabled(self):
-        self.write_layout(layout_payload([{"pane_id": "w1:p1", "rect": {"width": 40, "height": 20}}]))
-        mock = HerdrMock()
-        mock.add(["pane", "current", "--current"], MockResult(stdout=json.dumps(pane_payload("w1:p1"))))
-
-        with patch.object(split_scoped_pane, "run_herdr", mock), \
-             patch.dict("os.environ", {"HERDR_DELEGATE_AUTO_DEDICATED_TAB": "0"}, clear=False):
-            with self.assertRaises(SystemExit):
-                split_scoped_pane.run(self.args(min_width=30, min_height=15, total_children=2))
-
-        diagnostics = self.diagnostics()
-        self.assertIn("capacity", diagnostics["failure_reason"])
-        self.assertNotIn("fallback", diagnostics)
-
-
-if __name__ == "__main__":
-    unittest.main()
+            result = split_scoped_pane.run(group_args)
+        self.assertFalse(result["new_tab"])
+        self.assertEqual(result["pane_id"], "w1:p12")

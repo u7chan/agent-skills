@@ -1,6 +1,6 @@
 # Herdr 実装委譲
 
-作業領域の準備後に読み、`herdr-agent-delegate` のタスク交換、待機、回収手順を適用する。この文書と参照スキルが衝突する場合、このワークフロー固有の責務境界、Agent 解決、成果確認、cleanup 規則を優先する。
+作業領域の準備後に読み、`herdr-agent-delegate` の直接送信、待機、出力回収手順を適用する。この文書と参照スキルが衝突する場合、このワークフロー固有の責務境界、Agent 解決、成果確認、cleanup 規則を優先する。
 
 ## 1. 責務を分離する
 
@@ -37,7 +37,7 @@ Herdr 外、CLI 不足、認証・trust 待ちは実装委譲失敗とする。�
 | 既存 Agent 名または ID | `herdr agent get <target>` で解決し、`idle` の場合だけ再利用する | cwd は変えず、タスクに実装 cwd の絶対パスを書く |
 | 指定なし | 現在動作しているエージェントと同じ種別を同一 tab へ新規起動する | 準備済み実装 cwd で起動する |
 
-指定された既存 Agent が存在しない、自分自身、または `idle` でない場合は失敗とする。別 Agent の起動、別の Agent 種別への切り替え、自動再試行はしない。新規 Agent は `herdr-agent-delegate` の Grid 配置と起動確認に従い、その pane ID を親が管理する。
+指定された既存 Agent が存在しない、自分自身、または `idle` でない場合は失敗とする。別 Agent の起動、別の Agent 種別への切り替え、自動再試行はしない。新規 Agent は `herdr-agent-delegate` の4pane単位の固定配置と起動確認に従い、その pane ID を親が管理する。
 
 新規起動する実装担当 Agent には `herdr agent rename` で役割と作業対象を示すセッション名を設定する。既存 Agent の再利用時は名前を変更しない。
 
@@ -47,7 +47,7 @@ Herdr 外、CLI 不足、認証・trust 待ちは実装委譲失敗とする。�
 | Issue 番号がなくブランチ名から抽出できる | `implement-<branch-keyword>` |
 | いずれも特定できない | `implement` |
 
-新規 Agent 用の pane は、親の `workspace_id`・`tab_id` を固定スコープとして `herdr-agent-delegate/scripts/split_scoped_pane.py` で分割前後に検証する。その後は同スキルの更新済みreadiness契約に従い、pane run、semantic検出、Agent別input-ready確認、notice送信、Enter送信、working遷移確認を別工程で行う。input-readyを確認できなければ何も送信せず、paneとtask directoryを保持して停止する。識別子の欠落・型不正・不一致時は Agent を起動せず、安全に帰属できる未起動 pane だけを close する。帰属不能または close 失敗時は pane と task directory を保持して停止する。明示指定された既存 Agent の再利用は分割検証と新規起動用readiness待機の対象外とする。
+新規 Agent 用の pane は `herdr-agent-delegate/scripts/split_scoped_pane.py` で作り、新規pane作成後の `workspace_id`・`tab_id` を検証する。その後は同スキルのreadiness契約に従い、Agent起動、semantic検出、Agent別input-ready確認、依頼の直接送信、working遷移確認を別工程で行う。input-readyを確認できなければ何も送信せずpaneを保持する。識別子の欠落・型不正・不一致時にcloseできるのは今回作成した未起動paneだけである。明示指定された既存 Agent の再利用は分割検証と新規起動用readiness待機の対象外とする。
 
 ## 4. 実装を同期委譲する
 
@@ -66,17 +66,17 @@ Herdr 外、CLI 不足、認証・trust 待ちは実装委譲失敗とする。�
 - Herdr の Completion contract に従って結果を確定すること
 ```
 
-タスク交換を作り、通知を送信して処理開始を確認し、完了まで待つ。`blocked`、`timeout`、`reply_missing` は成功扱いせず、pane、task directory、作業ツリーを保持して停止する。
+依頼本文を `herdr pane run` または `herdr agent send` で直接送り、処理開始を確認して完了まで待つ。`blocked` とtimeoutは成功扱いせず、paneと作業ツリーを保持して停止する。
 
 ## 5. ユーザー判断事項を処理する
 
-実装担当がユーザー判断事項を返した場合、pane と task directory を保持し、親がユーザーへ一度に必要な判断だけを確認する。回答後は同じ実装担当へ新しいタスク交換で決定内容を返す。
+実装担当がユーザー判断事項を返した場合、paneを保持し、親がユーザーへ一度に必要な判断だけを確認する。回答後は同じ実装担当へ決定内容を直接送る。
 
-別 Agent や親の直接実装へ切り替えない。元の task directory は診断と経緯確認のため、新しい結果の成果確認が終わるまで保持する。
+別 Agent や親の直接実装へ切り替えない。元paneの出力は診断と経緯確認のため、新しい結果の成果確認が終わるまで保持する。
 
 ## 6. 親が成果を確認する
 
-正常完了時は `task_exchange.py collect --keep` で結果を検証・回収し、task directory を残したまま、子の報告と作業ツリーから次を確認する。
+正常完了時は `herdr pane read --source recent-unwrapped` で結果を回収し、子の報告と作業ツリーから次を確認する。
 
 - 変更概要、変更ファイル、検証コマンドと結果、未解決事項、ユーザー判断事項が明記されている。
 - 委譲前の状態と比較して、差分と未追跡ファイルが要求範囲内に限られる。
@@ -87,19 +87,19 @@ Herdr 外、CLI 不足、認証・trust 待ちは実装委譲失敗とする。�
 
 成果確認後、親が formatter、lint、test、build から変更範囲に必要な最終検証を実行する。失敗時は原因と実装差分の関係を調べるが、親がコードを修正して続行しない。
 
-成果確認と最終検証が成功した場合だけ、`task_exchange.py collect` を再実行して task directory を削除する。親が新規起動した実装担当の pane を閉じ、commit へ進む。再利用した既存 Agent の pane は閉じない。
+成果確認と最終検証が成功した場合だけ、親が新規起動した実装担当のpaneを閉じ、commitへ進む。再利用した既存 Agent の pane は閉じない。
 
 ## 7. 失敗状態を保持する
 
 次の場合は自動再試行せず停止する。
 
 - Agent の解決、起動、送信、処理開始確認、待機、回収に失敗した。
-- `blocked`、`timeout`、`reply_missing` になった。
+- `blocked` またはtimeoutになった。
 - 部分実装、Completion contract 違反、要求範囲外の変更がある。
 - 必要な検証または親の最終検証が失敗した。
 - 実装担当が commit、push、PR 作成、再委譲を行った。
 
-失敗時は pane と task directory を閉じたり削除したりせず、作業ツリーも変更しない。Agent / pane、状態、経過、task directory、差分、検証結果、未解決事項、次に必要な判断を報告する。
+失敗時はpaneを閉じず、作業ツリーも変更しない。Agent / pane、状態、経過、差分、検証結果、未解決事項、次に必要な判断を報告する。
 
 ## 8. 後続工程へ引き渡す
 

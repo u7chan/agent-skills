@@ -25,8 +25,8 @@ def run_herdr(arguments: list[str], timeout: float | None = None) -> subprocess.
     )
 
 
-def write_diagnostics(task_dir: Path, payload: dict[str, object]) -> None:
-    (task_dir / "input_readiness.diagnostics.json").write_text(
+def write_diagnostics(diagnostics_dir: Path, payload: dict[str, object]) -> None:
+    (diagnostics_dir / "input_readiness.diagnostics.json").write_text(
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
 
@@ -55,7 +55,8 @@ def wait_for_input_ready(args: argparse.Namespace) -> int:
         "wait_stderr": waited.stderr, "read_returncode": read.returncode,
         "read_output": read.stdout, "read_stderr": read.stderr,
     }
-    write_diagnostics(Path(args.task_dir), diagnostics)
+    if args.diagnostics_dir:
+        write_diagnostics(Path(args.diagnostics_dir), diagnostics)
     print(json.dumps(diagnostics, ensure_ascii=False), file=sys.stderr)
     return 2
 
@@ -64,7 +65,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target", required=True)
     parser.add_argument("--agent", required=True, choices=sorted(READY_RULES))
-    parser.add_argument("--task-dir", required=True)
+    parser.add_argument(
+        "--diagnostics-dir",
+        help="optional existing directory for failure diagnostics",
+    )
     parser.add_argument("--timeout", type=int, default=30_000)
     parser.add_argument("--lines", type=int, default=80)
     args = parser.parse_args()

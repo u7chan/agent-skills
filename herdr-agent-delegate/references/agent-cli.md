@@ -1,44 +1,48 @@
 # Agent CLI運用差分
 
-## 起動コマンド
+## 起動と入力可能確認
 
-| Agent | 起動コマンド | 完了待機 |
+| Agent | 起動コマンド | `wait_for_input_ready.py` の表示条件 |
 | --- | --- | --- |
-| Codex | `codex` | semantic state |
-| Claude Code | `claude` | semantic state |
-| OpenCode | `opencode` | semantic state |
-| その他 | ユーザー指定のコマンド | output marker。`agent get` が安定して識別できる場合だけsemantic state |
+| Codex | `codex` | 行頭の入力プロンプト `›` |
+| Claude Code | `claude` | 行頭の入力プロンプト `❯` |
+| OpenCode | `opencode` | 入力欄フッター `ctrl+p commands` |
+| その他 | ユーザー指定 | 事前に定義できる固有プロンプト |
 
-ユーザーが指定した引数は該当コマンドへ渡す。指定されていない引数を補わない。シェル展開が必要な文字列を組み立てず、コマンドは `herdr pane run` の1引数として渡す。
+ユーザー指定の引数だけを起動コマンドへ渡す。コマンドはシェル文字列を組み立てず、`herdr pane run <pane-id> '<command>'` の1引数として送る。
 
-## 新規起動の入力可能確認
+新規起動は次の公式プリミティブを順に使う。
 
 1. `herdr pane split` のJSONから新規 `pane_id` を読む。
-2. `herdr pane run <pane-id> '<command>'` を実行する。
-3. 対応Agentではsemantic stateで対象Agentが検出されるまで待つ。`agent_status=idle` だけでは入力可能と判定しない。
-4. `wait_for_input_ready.py` で次の表示を `herdr wait output` と直後の `pane read` の両方から確認する。
+2. `herdr pane run <pane-id> '<command>'` でAgentを起動する。
+3. `herdr wait agent-status <pane-id> --status idle --timeout 30000` で検出を待つ。
+4. `wait_for_input_ready.py` が内部で使う `herdr wait output` と `herdr pane read --source recent-unwrapped` の両方で入力欄を確認する。
+5. trust、login、初期設定画面なら自動承認せず、paneを保持して報告する。
 
-| Agent | 新規起動時の入力可能表示 |
-| --- | --- |
-| Codex | 行頭の入力プロンプト `›` |
-| Claude Code | 行頭の入力プロンプト `❯` |
-| OpenCode | 入力欄フッター `ctrl+p commands` |
+## 依頼送信
 
-5. trust、login、初期設定などのダイアログがあれば自動承認しない。入力可能失敗としてpaneとtask directoryを保持し、内容を報告する。
+入力可能を確認してから、Enter込みの公式操作を直接使う。
 
-新規起動では `pane run`、semantic検出、入力可能確認、notice送信、Enter送信、`working` 遷移確認を別々に実行する。入力可能を確認できなければnoticeもEnterも送らない。未対応CLIは観測可能な固有プロンプトを事前に定義できる場合だけ同じ二重確認を行い、未定義なら失敗とする。
+```bash
+herdr pane run <pane-id> "<依頼本文>"
+# または対応Agentへ
+herdr agent send <pane-id> "<依頼本文>"
+```
 
-## 既存idle Agentの再利用
+送信後は `herdr wait agent-status <pane-id> --status working --timeout 30000` で開始を確認する。
 
-明示指定された既存Agentは、`herdr agent get` で操作直前に `idle` と確認できれば再利用できる。すでに起動済みのTUIなので新規起動用の入力可能待機は行わない。ただしnotice送信とEnter送信は分離し、直後の `working` 遷移を必ず確認する。`done`、`blocked`、`working`、`unknown` は再利用しない。
+## 完了と回収
 
-## IDと送信
+`herdr tab list` で対象tabの `focused` を確認し、foregroundなら `idle`、backgroundなら `done` を `herdr wait agent-status` で待つ。waitの終了後は成否にかかわらず `herdr pane get` を実行し、最終状態が `idle` または `done` の場合だけ完了として、次を実行する。
 
-- pane IDはcloseなどで変化しうる。`agent list`、`agent get`、`pane current`、create/splitレスポンスから都度読む。
-- `agent send` と `pane send-text` はEnterを送らない。`pane send-keys <pane-id> Enter` を別に実行する。
-- シェルへコマンドを送る時だけ `pane run` を使う。Agentの入力欄へ依頼を送る時はtextとEnterを分離する。
-- 新規起動の工程を単一の `&&` チェーンにまとめない。各観測結果を確認してから次へ進む。
+```bash
+herdr pane read <pane-id> --source recent-unwrapped --lines 120
+```
 
-## semantic待機の判定
+実行可能な分岐と最終確認は `../SKILL.md` の `completion-wait-contract` に従う。waitがtimeoutしても最終状態では `idle` と `done` の双方を完了扱いにし、`working`、`blocked`、`unknown`、取得不能は未完了とする。独自ポーリング、marker、replyファイルによる判定は追加しない。
 
-`agent get` が対象をAgentとして解決し、処理開始後に `working`、完了時に `idle` または `done` を返す場合にsemantic待機を使う。`unknown` のまま安定しないCLIはmarker待機へ切り替える。marker一致だけでは成功とせず、必ず同じtask directoryの `reply.md` も検証する。
+## 既存Agentの再利用
+
+明示された対象を `herdr agent get` で操作直前に確認し、`idle` の時だけ再利用する。自分自身、`done`、`blocked`、`working`、`unknown` は再利用しない。
+
+pane IDはcloseなどで変化し得る。`agent get`、`pane current`、create/splitレスポンスから都度読む。
