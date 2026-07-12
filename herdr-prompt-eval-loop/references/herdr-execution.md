@@ -45,7 +45,7 @@ herdr worktree create \
 
 各`root_pane`へ固定種別のCLIを`herdr pane run <pane-id> '<agent-command>'`で起動する。シナリオごと・イテレーションごと・hold-outで必ず新規Agentを使い、既存Agentや前回Agentを再利用しない。
 
-起動後は`../herdr-agent-delegate/SKILL.md`の契約どおり、agent-status検出、Agent別input-ready、直接送信、working遷移を別々に確認する。依頼は同スキルの`scripts/send_request.py`で送る。全シナリオへ送信してから個別にCompletion contractで待ち、`recent-unwrapped`出力を回収する。
+起動後は`../../herdr-agent-delegate/SKILL.md`の契約どおり、agent-status検出、Agent別input-ready、直接送信、working遷移を別々に確認する。依頼は同スキルの`scripts/send_request.py`で送る。全シナリオへ送信してから個別にCompletion contractで待ち、`recent-unwrapped`出力を回収する。
 
 依頼には次だけを含める。
 
