@@ -30,7 +30,7 @@ class WaitForInputReadyTest(unittest.TestCase):
         self.temporary.cleanup()
 
     def args(self, agent="codex"):
-        return Namespace(target="w1:p2", agent=agent, task_dir=str(self.task_dir),
+        return Namespace(target="w1:p2", agent=agent, diagnostics_dir=str(self.task_dir),
                          timeout=1_000, lines=80)
 
     def test_semantic_idle_does_not_trigger_notice_or_enter(self):

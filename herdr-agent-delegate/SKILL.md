@@ -1,168 +1,107 @@
 ---
 name: herdr-agent-delegate
-description: Herdr上でCodex、Claude Code、OpenCode、その他のCLI Agentへタスクを委譲し、同一TabへのGrid状起動、明示したidle Agentの再利用、依頼送信、完了待機、結果回収まで行う。「別Agentに任せて」「Codex/Claude/OpenCodeを起動して調査」「複数Agentへ並列委譲」「子Agentの結果を回収」など、Herdr内のAgent委譲で使う。
+description: Herdr上でCLI Agentへタスクを委譲し、公式プリミティブによる4pane単位の配置、送信、完了待機、出力回収を行う。「別Agentに任せて」「複数Agentへ並列委譲」「子Agentの結果を回収」などで使う。
 ---
 
 # Herdr Agent Delegate
 
-このスキルのディレクトリを `<skill-dir>` として絶対パスで解決する。詳細なCLI差分が必要なら `references/agent-cli.md`、タスクファイルの安全条件やネスト規則が必要なら `references/task-protocol.md` を読む。
+このスキルのディレクトリを `<skill-dir>` として絶対パスで解決する。Agent別の起動・入力可能条件は `references/agent-cli.md` を読む。
 
 ## 1. プリフライト
 
-1. `HERDR_ENV=1` と空でない `HERDR_PANE_ID` を確認する。満たさない場合はHerdr外から対象を推測せず終了する。
+1. `HERDR_ENV=1` と空でない `HERDR_PANE_ID` を確認する。満たさなければHerdr外から対象を推測せず終了する。
 2. `command -v herdr` と利用するAgent CLIを確認する。自動インストールしない。
-3. `herdr pane current --current` を実行し、現在の `pane_id`、`tab_id`、`cwd`、Agent種別を取得する。記憶したIDを使い回さない。
-4. ユーザー指定がなければ現在のAgent種別とcwdを引き継ぐ。現在のAgent種別も不明なら起動対象を確認する。起動オプションは明示されたものだけを使う。
+3. `herdr pane current --current` から現在の `pane_id`、`workspace_id`、`tab_id`、`cwd` を取得する。IDは応答から都度読み、推測・永続化しない。
+4. ユーザー指定がなければ現在のAgent種別とcwdを引き継ぐ。Agent種別も不明なら確認する。起動オプションは明示されたものだけを使う。
 
-## 2. タスク交換を作る
-
-依頼本文を読み取り可能な一時Markdownへ保存し、本文をコマンド引数へ直接埋め込まず次を実行する。追加コンテキストは読み取り可能な絶対パスで繰り返し指定する。
-
-`task_exchange.py create` を呼ぶ前に、親Agentは `HERDR_AGENT_DELEGATE_WORKSPACE` を委譲元ワークスペースの絶対パスで設定する。相対パスはcwdの変化により保存先が不一致になるため許可されず、検証でエラーとなる。
-
-`HERDR_AGENT_DELEGATE_ROOT` と `HERDR_AGENT_DELEGATE_WORKSPACE` の両方が未設定の場合、`task_exchange.py` は実行時のカレントディレクトリをワークスペースとしてフォールバックする。このとき `create` で使用したcwdと `complete`/`collect` でのcwdが異なると、タスクディレクトリが保存ルートの外にあると判定され失敗する。Herdr 経由の委譲では、子Agentは親と同一の環境変数・cwdで起動されるため、必ず `HERDR_AGENT_DELEGATE_WORKSPACE` を絶対パスで設定すること。これは運用上の推奨ではなく、正確な保存先を保証するため実質的に必須である。未設定時は `task_exchange.py` がstderrに警告を出力する。
-
-```bash
-<skill-dir>/scripts/task_exchange.py create \
-  --task-file <request.md> \
-  --context-file <absolute-context-path>
-```
-
-入力用 `request.md` は、委譲元のワークスペース内の専用領域（例: `.herdr-agent-delegate/requests/`）へ作成し、本文が失われないようにする。`task.md` へのコピーを確認後、入力用に作った `request.md` は削除する。
-
-JSON出力の `task_dir`、`task_path`、`reply_path`、`marker` を保持する。これはCLI結果であり、Agent間Payloadではない。
-
-## 3. 宛先を解決する
+## 2. 宛先を解決する
 
 明示的な宛先がある場合だけ既存Agentの再利用を試す。
 
-1. `herdr agent get <target>` で毎回解決する。
+1. `herdr agent get <target>` で操作直前に解決する。
 2. 解決した `pane_id` が自分自身なら拒否する。
-3. `agent_status` が `idle` の時だけ再利用する。`working`、`blocked`、`done`、`unknown` には送信せず状態を報告する。
+3. `agent_status=idle` の時だけ再利用する。`working`、`blocked`、`done`、`unknown` には送信せず報告する。
 
-明示的な宛先がない場合、または対象が存在しない場合は同一Tabへ新規Agentを作る。存在するがidleでない明示宛先を無断で新規Agentへ置き換えない。
+宛先がない、または存在しない場合は新規Agentを起動する。idleでない明示宛先を無断で新規Agentへ置き換えない。
 
-## 4. 新規AgentをGrid状に起動する
+## 3. 新規paneを配置する
 
-親と「今回この親が起動した子」のpane IDだけを候補にする。無関係な既存paneや再利用Agentは候補へ入れない。
+`MAX_PANES_PER_TAB = 4` とし、親と今回この親が作った子だけを配置対象にする。分割順序は次に固定する。
 
-グリッドは `HERDR_DELEGATE_GRID_COLUMNS`（0は自動）、`HERDR_DELEGATE_MIN_PANE_WIDTH`、`HERDR_DELEGATE_MIN_PANE_HEIGHT`、`HERDR_DELEGATE_MAX_PANES_PER_TAB` で制御する。
+1. 子1: 親を右分割
+2. 子2: 子1を下分割
+3. 子3: 子2を右分割
+4. 子4: 子3を下分割
+5. 子5以降: 新規タブで子1から繰り返す
 
-### 4.1 配置を計画する
+起動数が事前に分かる場合、4体以下は同一タブ、5体以上は `layout_planner.py` の4体単位の結果に従って必要な新規タブを最初に用意する。現在タブに親と今回の子以外のpaneがあれば、体数にかかわらず新規タブを使う。
 
-バッチ委譲時は起動前に `layout_planner.py` で子数とウィンドウサイズから目標列数・slotを計画する。最小paneサイズを下回る場合は追加分割を停止する。計画を `<task-dir>/delegation-plan.md` に表形式（slot, Agent種別, タスク概要, task dir）で出力し、その後自動実行する。
-
-#### 専用タブ選択条件
-
-以下のいずれかの条件に該当する場合、既存タブ内の分割ではなく専用の新規タブを作成して委譲する（`HERDR_DELEGATE_AUTO_DEDICATED_TAB` で制御、既定 `1` = 有効、`0` = 常に同一タブ試行）：
-
-- **起動数超過**：起動予定Agent数が `HERDR_DELEGATE_MAX_PANES_PER_TAB`（既定 `6`）以上
-- **既存無関係ペイン混在**：親と今回起動する子以外のペインが同一タブ内に存在する
-- **最小サイズ制約不足**：タブの幅・高さでは最小paneサイズ制約を満たせず、起動予定数を収容できない
-
-#### ペインライフサイクル方針
-
-委譲先Agentのペインは以下の方針で管理する。親や無関係な既存ペインを無断で移動・closeしない。
-
-- **完了時**：既定でペインを保持する。明示的なclose方針がある場合のみcloseする。
-- **失敗時**：診断・再開のためペインとtask directoryを保持する。自動closeしない。
-- **blocked時**：保持または明示的な退避対象とする。自動closeしない。
-- **親・無関係ペインの保護**：親ペインおよび今回の委譲と無関係な既存ペインの移動・closeを一切行わない。
-
-### 4.2 paneを分割する
-
-#### 容量不足時のフォールバック
-
-同一タブ内で分割不能な場合（capacity超過）、`split_scoped_pane.py` は自動的に新規タブを作成して委譲専用にする。フォールバック時は中途半端な配置を残さず、新規タブ内で完全な分割手順（pre-split検証→split→post-split検証）を実行する。
-
-- 新規タブの作成：`herdr tab new --cwd <cwd>`
-- 新規タブ内の分割：`herdr pane split <new-tab-pane-id> --direction right --ratio 0.5 --cwd <cwd> --no-focus`
-- 新規タブは完全に委譲専用のため、無関係ペインは存在しない
-
-1. `herdr pane layout --pane "$HERDR_PANE_ID"` のJSONを一時ファイルへ保存する。
-2. 次を実行し、親と同一 `workspace_id`・`tab_id` へ分割されたことを事前・事後に検証済みの新規 pane ID を取得する。子を増やすたび `--child` を追加する。
+通常は、現在のgroupで作成済みの子を `--child` で順に渡す。
 
 ```bash
 <skill-dir>/scripts/split_scoped_pane.py \
   --parent-pane-id "$HERDR_PANE_ID" \
-  --task-dir <task-dir> \
   --cwd <cwd> \
-  --layout-file <layout.json> \
   --child <child-pane-id>
 ```
 
-3. 検証済みの新規 pane ID へ `herdr pane run <new-pane-id> '<agent-command>'` だけを実行する。子Agentは親と同一のcwd・環境変数で起動されるため、`HERDR_AGENT_DELEGATE_WORKSPACE` などは子の `complete` / `collect` 実行時もそのまま引き継がれる。
-4. 別コマンドの `herdr wait agent-status <new-pane-id> --status idle --timeout 30000` でsemantic stateによるAgent検出を待つ。この時点の `agent_status=idle` は入力可能を意味しない。
-5. セッション名が指定されている場合、`herdr agent rename <new-pane-id> '<session-name>'` で名前を設定する。失敗時は pane と task directory を保持して停止する。
-6. Codex、Claude Code、OpenCodeは次を別コマンドで実行し、Agent別の入力欄を `wait output` と `pane read` の両方で確認する。
+事前配置で新しいgroupを始める場合は `--new-tab` を付ける。返却JSONの `pane_id` を子1、`anchor_pane_id` をそのgroupの親として保持し、以後はそのgroup内で同じ固定順序を繰り返す。
+
+スクリプトは最小サイズ不足、4pane超過、無関係pane混在時に新規タブへフォールバックする。分割後は `herdr pane get` で新規paneの `workspace_id` / `tab_id` を検証する。検証失敗時にcloseできるのは今回のsplitが返した新規paneだけで、親・既存の子・無関係paneは操作しない。
+
+## 4. Agentを起動して入力可能まで待つ
+
+1. 分割レスポンスの `pane_id` に対して `herdr pane run <pane-id> '<agent-command>'` を実行する。
+2. `herdr wait agent-status <pane-id> --status idle --timeout 30000` を別コマンドで実行する。このidleだけでは入力可能と判定しない。
+3. Codex、Claude Code、OpenCodeは次で入力欄を確認する。
 
 ```bash
 <skill-dir>/scripts/wait_for_input_ready.py \
-  --target <new-pane-id> --agent <codex|claude|opencode> --task-dir <task-dir>
+  --target <pane-id> --agent <codex|claude|opencode>
 ```
 
-7. その他のCLIは `references/agent-cli.md` の観測可能な入力可能条件を使う。条件が未定義または確認失敗なら、noticeもEnterも送らずpaneとtask directoryを保持して失敗終了する。
-8. 分割判断に使ったlayout一時ファイルを削除する。
+4. その他のCLIは `references/agent-cli.md` の条件を使う。条件が未定義、またはtrust/login/初期設定画面なら自動承認せず停止する。
+5. セッション名が指定されていれば `herdr agent rename <pane-id> '<name>'` を実行する。
 
-`split_scoped_pane.py` は検証失敗時に Agent を起動しない。事後検証失敗時は、新規 pane が安全に帰属できる場合だけ `herdr pane close` する。帰属不能または close 失敗時は pane と task directory を保持して停止する。診断情報は `<task-dir>/split_scoped_pane.diagnostics.json` に保存する。
+起動、semantic検出、入力可能確認は別々に行う。バックグラウンド操作には `--no-focus` を使い、別クライアントのフォーカスに依存しない。
 
-### 4.3 追加調査は新規 Delegation Session
+## 5. 依頼を直接送る
 
-途中で追加調査が必要な場合、既存のplan/sessionは変更しない。新しいsession tagを発行し、単発委譲またはミニバッチplan-firstで新規Agentを起動する。追加調査では既存idle Agentを再利用しない。
-
-### 4.4 最終プレビューを出力する
-
-全バッチ完了後、`<task-dir>/delegation-summary.md` を生成する。含める内容：初期planと実際の配置、完了した子数/失敗・blocked数、追加で生成したsession一覧、保持中のtask directory一覧（失敗時）。
-
-## 5. 依頼を送る
-
-Agentへは短い通知だけを送る。
-
-```text
-次の委譲タスクを処理してください: <task_path>
-ファイル全文を読み、Completion contractに従って結果を確定してください。
-```
-
-新規Agentでは入力可能確認の成功後に限り、対応Agentへの `herdr agent send <target> <notice>`（その他は `herdr pane send-text`）、`herdr pane send-keys <pane-id> Enter`、`working` 遷移確認をこの順の別コマンドで実行する。起動から送信までを `&&` で連結しない。既存idle Agentの再利用でもnoticeとEnterを分け、送信直後にsemantic stateが `working` へ遷移するか、画面が処理開始を示すことを確認する。遷移を確認できなければpaneとtask directoryを保持して失敗終了する。
-
-## 6. 完了を待つ
-
-Codex、Claude Code、OpenCodeなど `agent get` でAgentとして解決できる対象はsemantic待機を使う。
+入力可能を確認した新規Agentには、依頼本文をEnter込みで原子的に送る。
 
 ```bash
-<skill-dir>/scripts/wait_for_completion.py \
-  --target <pane-id> --reply-path <reply-path> semantic
+herdr pane run <pane-id> "<依頼本文>"
 ```
 
-未対応CLIはタスク固有markerを待つ。
+対応Agentには `herdr agent send <pane-id> "<依頼本文>"` を使ってもよい。既存idle Agentの再利用時も同様に直接送る。送信後は `herdr wait agent-status <pane-id> --status working --timeout 30000` で開始を確認する。依頼ファイル、replyファイル、完了markerは作らない。
+
+## 6. 完了を待って出力を回収する
+
+公式のイベント駆動待機を直接使う。
 
 ```bash
-<skill-dir>/scripts/wait_for_completion.py \
-  --target <pane-id> --reply-path <reply-path> marker --marker <marker>
+herdr wait agent-status <pane-id> --status done --timeout 120000
 ```
 
-既定timeoutは1時間。長時間待機をバックグラウンド実行できる環境では待機を張って制御を返し、終了後に続行する。`blocked`、`timeout`、`reply_missing` は成功扱いしない。
+background tabでは `done`、foreground tabでは `idle` になり得る。`idle` と `done` はattention stateだけが異なるため、**常に双方を完了扱い**にする。`working`、`blocked`、timeoutは完了扱いしない。
 
-## 7. 回収する
-
-完了時だけ次を実行する。通常ファイル、所有者、保存ルート、非空を検証して内容を出力し、成功後にtask directoryを削除する。
+完了後は公式の読み取りを直接使う。
 
 ```bash
-<skill-dir>/scripts/task_exchange.py collect --task-dir <task-dir>
+herdr pane read <pane-id> --source recent-unwrapped --lines 120
 ```
 
-失敗時はcollectや手動削除をせず、`herdr agent get` と `herdr agent read --source recent-unwrapped --lines 80` で診断する。対象、状態、経過、保持した `task_dir` を報告する。
+`recent-unwrapped` はソフトラップを結合する。必要な結果を親が統合し、paneは既定で保持する。ユーザーの明示がない限りcloseしない。
 
 ## ネストと並列委譲
 
-- 各Agentは直下の子だけを管理する。孫は子へ返し、子が統合して親へ返す。
-- 子がさらに委譲する時は新しいtask directoryとmarkerを作る。親のものを共有しない。
-- 複数子は独立したtask directoryで起動してから個別に待つ。結果の混在を避ける。
-- 子や孫からrootへ直接通知しない。失敗も直上へ要約してホップ単位で伝播する。
+- 各Agentは直下の子だけを管理する。孫の結果は子が統合して直上の親へ返す。
+- 複数の子へ先に依頼を送り、その後に各paneを個別に待つ。
+- 追加調査は新しいpaneで行い、既存のworking Agentへ割り込まない。
+- 子や孫からrootへ直接通知しない。失敗も直上へ要約して伝播する。
 
 ## 禁止事項
 
-- JSON Payload、グローバルtrace、独自watchdogを追加しない。
-- `working` Agentへ割り込まない。ユーザーが明示しても、このスキルでは中断操作を扱わない。
-- pane IDを推測・永続化しない。操作直前に再取得する。
-- 失敗・blocked・timeout時のtask directoryを削除しない。
+- JSON Payload、ファイル交換プロトコル、独自watchdogや完了待機ラッパーを追加しない。
+- 自分が作っていないworkspace、tab、pane、sessionをcloseしない。
+- 変更操作後のIDを推測せず、JSON応答またはgetコマンドから再取得する。

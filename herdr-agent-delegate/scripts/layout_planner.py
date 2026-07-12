@@ -1,128 +1,69 @@
 #!/usr/bin/env python3
-"""Plan a constrained grid layout for delegated herdr panes."""
+"""Plan delegated Herdr panes with a small, deterministic rule set."""
 
 from __future__ import annotations
 
-import math
-import os
 from typing import Any
 
 
-DEFAULT_MIN_WIDTH = int(os.environ.get("HERDR_DELEGATE_MIN_PANE_WIDTH", "80"))
-DEFAULT_MIN_HEIGHT = int(os.environ.get("HERDR_DELEGATE_MIN_PANE_HEIGHT", "24"))
-DEFAULT_MAX_COLUMNS_ENV = os.environ.get("HERDR_DELEGATE_GRID_COLUMNS", "0")
-DEFAULT_MAX_COLUMNS = int(DEFAULT_MAX_COLUMNS_ENV) if DEFAULT_MAX_COLUMNS_ENV else 0
-DEFAULT_MAX_PANES_PER_TAB = int(os.environ.get("HERDR_DELEGATE_MAX_PANES_PER_TAB", "6"))
-AUTO_DEDICATED_TAB = os.environ.get("HERDR_DELEGATE_AUTO_DEDICATED_TAB", "1") != "0"
+MAX_PANES_PER_TAB = 4
+SPLIT_DIRECTIONS = ("right", "down", "right", "down")
 
 
-def compute_columns(
-    child_count: int,
-    tab_width: int,
-    tab_height: int,
-    cell_aspect: float,
-    max_columns: int,
-    min_width: int,
-    min_height: int,
-) -> int:
-    """Choose the number of columns for a grid of ``child_count`` panes."""
-    if child_count <= 0:
-        return 0
-    if max_columns <= 0:
-        # 0 means unlimited / auto: allow up to one column per child.
-        max_columns = child_count
-    tab_width = max(1, tab_width)
-    tab_height = max(1, tab_height)
-    # Estimate columns that produce cells close to the desired aspect ratio.
-    # cols / rows ~= (W/H) / aspect  and  cols * rows >= child_count
-    # => cols ~= sqrt(child_count * (H/W) / aspect)
-    ratio = tab_height / tab_width
-    estimated = max(1, round(math.sqrt(child_count * ratio / cell_aspect)))
-    columns = min(max_columns, estimated)
-    # Do not let cells fall below the minimum size.
-    while columns > 1 and (tab_width // columns) < min_width:
-        columns -= 1
-    return columns
-
-
-def compute_rows(child_count: int, columns: int) -> int:
-    """Return the number of rows required for ``child_count`` cells."""
-    if child_count <= 0 or columns <= 0:
-        return 0
-    return math.ceil(child_count / columns)
-
-
-def target_slot(index: int, columns: int) -> dict[str, int]:
-    """Return the (row, col) slot for the zero-based child ``index``."""
-    if columns <= 0:
-        return {"row": 0, "col": index}
-    return {"row": index // columns, "col": index % columns}
-
-
-def fit_capacity(
-    tab_width: int,
-    tab_height: int,
-    cell_aspect: float,
-    max_columns: int,
-    min_width: int,
-    min_height: int,
-) -> int:
-    """Return the maximum number of children that fit without breaking min size."""
-    tab_width = max(1, tab_width)
-    tab_height = max(1, tab_height)
-    for count in range(1, DEFAULT_MAX_PANES_PER_TAB + 1):
-        columns = compute_columns(count, tab_width, tab_height, cell_aspect, max_columns, min_width, min_height)
-        rows = compute_rows(count, columns)
-        cell_w = tab_width // columns if columns else tab_width
-        cell_h = tab_height // rows if rows else tab_height
-        if cell_w < min_width or cell_h < min_height:
-            return count - 1
-    return DEFAULT_MAX_PANES_PER_TAB
-
-
-def plan_grid(
-    child_count: int,
-    tab_width: int,
-    tab_height: int,
-    cell_aspect: float = 0.5,
-    max_columns: int | None = None,
-    min_width: int | None = None,
-    min_height: int | None = None,
-) -> dict[str, Any]:
-    """Plan a grid for ``child_count`` children inside the given tab size."""
-    max_columns = max_columns if max_columns is not None else DEFAULT_MAX_COLUMNS
-    min_width = min_width if min_width is not None else DEFAULT_MIN_WIDTH
-    min_height = min_height if min_height is not None else DEFAULT_MIN_HEIGHT
-
-    columns = compute_columns(
-        child_count, tab_width, tab_height, cell_aspect, max_columns, min_width, min_height
-    )
-    rows = compute_rows(child_count, columns)
-    slots = [target_slot(i, columns) for i in range(child_count)]
-    capacity = fit_capacity(
-        tab_width, tab_height, cell_aspect, max_columns, min_width, min_height
-    )
-
+def incremental_slot(child_number: int) -> dict[str, Any]:
+    """Return the tab, slot, and split direction for a one-based child number."""
+    if child_number < 1:
+        raise ValueError("child_number must be at least 1")
+    zero_based = child_number - 1
+    slot = zero_based % MAX_PANES_PER_TAB
     return {
-        "columns": columns,
-        "rows": rows,
-        "slots": slots,
-        "capacity": capacity,
-        "min_width": min_width,
-        "min_height": min_height,
-        "max_columns": max_columns,
-        "cell_aspect": cell_aspect,
+        "tab_index": zero_based // MAX_PANES_PER_TAB,
+        "slot": slot + 1,
+        "direction": SPLIT_DIRECTIONS[slot],
+        "starts_new_tab": zero_based >= MAX_PANES_PER_TAB and slot == 0,
     }
 
 
+def plan_tabs(child_count: int) -> list[dict[str, Any]]:
+    """Group a known batch into tabs of at most four delegated panes."""
+    if child_count < 0:
+        raise ValueError("child_count must not be negative")
+    tabs: list[dict[str, Any]] = []
+    for first in range(1, child_count + 1, MAX_PANES_PER_TAB):
+        count = min(MAX_PANES_PER_TAB, child_count - first + 1)
+        tabs.append(
+            {
+                "tab_index": len(tabs),
+                "first_child": first,
+                "child_count": count,
+                "directions": list(SPLIT_DIRECTIONS[:count]),
+            }
+        )
+    return tabs
+
+
 def tab_size_from_layout(layout: dict[str, Any]) -> tuple[int, int]:
-    """Estimate the tab size from a herdr pane layout payload."""
-    panes = layout.get("result", {}).get("layout", {}).get("panes", [])
+    """Return the enclosing width and height from a Herdr layout payload."""
+    layout_data = layout.get("result", {}).get("layout", {})
+    area = layout_data.get("area", {})
+    if int(area.get("width", 0)) > 0 and int(area.get("height", 0)) > 0:
+        return int(area["width"]), int(area["height"])
+    panes = layout_data.get("panes", [])
     if not panes:
         return 0, 0
-    max_width = max(int(p.get("rect", {}).get("width", 0)) for p in panes)
-    max_height = max(int(p.get("rect", {}).get("height", 0)) for p in panes)
-    return max_width, max_height
+    left = min(int(pane.get("rect", {}).get("x", 0)) for pane in panes)
+    top = min(int(pane.get("rect", {}).get("y", 0)) for pane in panes)
+    right = max(
+        int(pane.get("rect", {}).get("x", 0))
+        + int(pane.get("rect", {}).get("width", 0))
+        for pane in panes
+    )
+    bottom = max(
+        int(pane.get("rect", {}).get("y", 0))
+        + int(pane.get("rect", {}).get("height", 0))
+        for pane in panes
+    )
+    return right - left, bottom - top
 
 
 def detect_existing_panes(
@@ -130,63 +71,23 @@ def detect_existing_panes(
     parent_id: str | None = None,
     children: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Detect unrelated panes in a herdr pane layout.
-
-    Returns ``{"has_unrelated": bool, "unrelated_count": int}``.
-    Panes whose IDs match *parent_id* or any element of *children* are
-    considered related; all others are unrelated.
-    """
+    """Report panes unrelated to the parent and children created by this run."""
+    related = {pane_id for pane_id in [parent_id, *(children or [])] if pane_id}
     panes = layout.get("result", {}).get("layout", {}).get("panes", [])
-    related: set[str] = set()
-    if parent_id:
-        related.add(parent_id)
-    if children:
-        related.update(children)
-    unrelated_count = 0
-    for pane in panes:
-        pane_id = pane.get("pane_id", "")
-        if pane_id and pane_id not in related:
-            unrelated_count += 1
-    return {"has_unrelated": unrelated_count > 0, "unrelated_count": unrelated_count}
+    unrelated = [
+        pane.get("pane_id")
+        for pane in panes
+        if pane.get("pane_id") and pane.get("pane_id") not in related
+    ]
+    return {"has_unrelated": bool(unrelated), "unrelated_count": len(unrelated)}
 
 
-def should_use_dedicated_tab(
-    child_count: int,
-    tab_width: int,
-    tab_height: int,
-    existing_pane_info: dict[str, Any],
-    min_width: int = DEFAULT_MIN_WIDTH,
-    min_height: int = DEFAULT_MIN_HEIGHT,
-    max_panes_per_tab: int = DEFAULT_MAX_PANES_PER_TAB,
+def should_use_dedicated_tabs(
+    child_count: int, existing_pane_info: dict[str, Any]
 ) -> bool:
-    """Decide whether a dedicated tab should be used for the delegation batch."""
-    if not AUTO_DEDICATED_TAB:
-        return False
-    if child_count >= max_panes_per_tab:
-        return True
-    if existing_pane_info.get("has_unrelated"):
-        return True
-    capacity = fit_capacity(
-        tab_width, tab_height, cell_aspect=0.5, max_columns=0,
-        min_width=min_width, min_height=min_height,
-    )
-    if capacity < child_count:
-        return True
-    return False
-
-
-def plan_dedicated_tab(
-    child_count: int,
-    tab_width: int,
-    tab_height: int,
-    cell_aspect: float = 0.5,
-    max_columns: int | None = None,
-    min_width: int | None = None,
-    min_height: int | None = None,
-) -> dict[str, Any]:
-    """Plan a grid in a dedicated tab (all space reserved for delegates)."""
-    return plan_grid(
-        child_count, tab_width, tab_height,
-        cell_aspect=cell_aspect, max_columns=max_columns,
-        min_width=min_width, min_height=min_height,
+    """Use new tabs for known batches over four or tabs with unrelated panes."""
+    if child_count < 0:
+        raise ValueError("child_count must not be negative")
+    return child_count > MAX_PANES_PER_TAB or bool(
+        existing_pane_info.get("has_unrelated")
     )
