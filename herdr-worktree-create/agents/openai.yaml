@@ -1,0 +1,4 @@
+interface:
+  display_name: "Herdr Worktree Create"
+  short_description: "Herdr公式コマンドで独立したworktreeを作成する"
+  default_prompt: "Use $herdr-worktree-create to create a Herdr-managed isolated worktree for a coding agent."
