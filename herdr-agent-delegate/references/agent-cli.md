@@ -33,12 +33,13 @@ herdr agent send <pane-id> "<依頼本文>"
 
 ## 完了と回収
 
+`herdr tab list` で対象tabの `focused` を確認し、foregroundなら `idle`、backgroundなら `done` を `herdr wait agent-status` で待つ。waitの終了後は成否にかかわらず `herdr pane get` を実行し、最終状態が `idle` または `done` の場合だけ完了として、次を実行する。
+
 ```bash
-herdr wait agent-status <pane-id> --status done --timeout 120000
 herdr pane read <pane-id> --source recent-unwrapped --lines 120
 ```
 
-foreground tabのAgentは完了時に `idle`、background tabでは `done` になり得る。どちらも意味的に完了であり、常に双方を完了扱いにする。独自ポーリング、marker、replyファイルによる判定は追加しない。
+実行可能な分岐と最終確認は `../SKILL.md` の `completion-wait-contract` に従う。waitがtimeoutしても最終状態では `idle` と `done` の双方を完了扱いにし、`working`、`blocked`、`unknown`、取得不能は未完了とする。独自ポーリング、marker、replyファイルによる判定は追加しない。
 
 ## 既存Agentの再利用
 

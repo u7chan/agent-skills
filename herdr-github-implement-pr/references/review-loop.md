@@ -110,7 +110,6 @@ FB 対応 Agent も新規起動する。`herdr-agent-delegate/scripts/split_scop
 - 親が新規起動した FB 対応 Agent は、正常完了、結果回収、親の成果確認後に閉じる。
 - 親が新規起動したレビュー Agent は、初回レビューに指摘がある間は閉じず、指摘なし、最終再チェック完了、またはユーザーが残件へ対応しないと決めた後の結果回収時に閉じる。
 - 明示指定により再利用した既存 Agent は閉じない。
-- 失敗、`blocked`、`timeout`、ユーザー判断待ち、診断中の pane と task directory は保持する。
-- task directory は成功結果を collect した時だけ削除する。失敗時に手動削除しない。
+- 失敗、`blocked`、`timeout`、ユーザー判断待ち、診断中の pane は保持する。
 
-工程失敗時は自動再試行せず、PR URL、成功済み工程、失敗工程、Agent / pane、状態、経過、task directory、未解決指摘、次に必要な判断を報告する。
+工程失敗時は自動再試行せず、PR URL、成功済み工程、失敗工程、Agent / pane、状態、経過、未解決指摘、次に必要な判断を報告する。

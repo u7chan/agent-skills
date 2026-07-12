@@ -43,11 +43,11 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 - 既存ブランチ、worktree、未コミット変更が今回専用か判断できず、安全に分離できない。
 - `git fetch origin`、品質確認、`gh` 認証、push、PR 作成が失敗し、自力で解消できない。
 - 実装委譲で Herdr 外、CLI 不足、指定 Agent の不存在・非 idle、起動・送信・待機・回収の失敗、部分実装、成果確認の失敗、または Completion contract 違反が起きる。
-- 実装担当が `blocked`、`timeout`、`reply_missing`、またはユーザー判断事項を返す。
+- 実装担当が `blocked`、`timeout`、またはユーザー判断事項を返す。
 - レビュー工程で Herdr 外、CLI 不足、指定 Agent の不存在・非 idle、起動・送信・待機・投稿・回収・成果確認の失敗、または Completion contract 違反が起きる。
-- FB 対応または再チェックが `question`、`blocked`、`timeout`、`reply_missing`、上限到達、同一指摘の連続未解消に至る。
+- FB 対応または再チェックが `question`、`blocked`、`timeout`、上限到達、同一指摘の連続未解消に至る。
 
-実装委譲の停止では作業ツリー、pane、task directory を保持する。レビュー工程の停止では作成済み PR と、失敗した pane、task directory を診断用に保持する。
+実装委譲の停止では作業ツリーと pane を保持する。レビュー工程の停止では作成済み PR と失敗した pane を診断用に保持する。
 
 ## ワークフロー
 
@@ -75,7 +75,7 @@ worktree が明示された場合:
 - `references/implementation-delegation.md` に従い、実装担当 Agent を解決して、実装と変更に直接関連する検証を同期委譲する。
 - 実装担当へ `herdr-github-implement-pr` を使わせず、commit、push、PR 作成、別の実装 Agent への再委譲を禁止する。
 - 成功結果を保持したまま回収し、Completion contract、差分、未追跡ファイル、要求充足、検証結果を親が確認する。
-- 親が formatter、lint、test、build から変更範囲に必要な最終検証を実行する。成果確認と最終検証の成功後だけ task directory を削除し、新規起動した pane を閉じて commit へ進む。
+- 親が formatter、lint、test、build から変更範囲に必要な最終検証を実行する。成果確認と最終検証の成功後だけ新規起動した pane を閉じて commit へ進む。
 - ユーザー判断事項があれば同じ実装担当へ回答を返す。失敗時は自動再試行や親による代替実装を行わず停止する。
 
 ### 4. commit する
@@ -124,7 +124,7 @@ worktree が明示された場合:
 
 - 変更概要、検証結果、PR URL を報告する。
 - `実装委譲`、`親の成果確認・最終検証`、`PR 作成`、`レビュー`、`FB 対応`、`再チェック` を別々の状態として示す。
-- 未解決指摘、分類、試行回数、失敗理由、保持した pane / task directory、必要な判断があれば明記する。
+- 未解決指摘、分類、試行回数、失敗理由、保持した pane、必要な判断があれば明記する。
 
 ## 品質チェック
 

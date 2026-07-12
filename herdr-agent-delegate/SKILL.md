@@ -10,7 +10,7 @@ description: Herdr上でCLI Agentへタスクを委譲し、公式プリミテ�
 ## 1. プリフライト
 
 1. `HERDR_ENV=1` と空でない `HERDR_PANE_ID` を確認する。満たさなければHerdr外から対象を推測せず終了する。
-2. `command -v herdr` と利用するAgent CLIを確認する。自動インストールしない。
+2. `command -v herdr`、`command -v jq`、利用するAgent CLIを確認する。自動インストールしない。
 3. `herdr pane current --current` から現在の `pane_id`、`workspace_id`、`tab_id`、`cwd` を取得する。IDは応答から都度読み、推測・永続化しない。
 4. ユーザー指定がなければ現在のAgent種別とcwdを引き継ぐ。Agent種別も不明なら確認する。起動オプションは明示されたものだけを使う。
 
@@ -77,13 +77,43 @@ herdr pane run <pane-id> "<依頼本文>"
 
 ## 6. 完了を待って出力を回収する
 
-公式のイベント駆動待機を直接使う。
+対象tabのattention stateを確認し、公式のイベント駆動待機を直接使う。`<pane-id>` は回収対象の実際のpane IDへ置き換える。
 
+<!-- completion-wait-contract:start -->
 ```bash
-herdr wait agent-status <pane-id> --status done --timeout 120000
-```
+(
+target_pane_id="<pane-id>"
+target_pane_json="$(herdr pane get "$target_pane_id")"
+target_tab_id="$(printf '%s' "$target_pane_json" | jq -r '.result.pane.tab_id // empty')"
+tab_list_json="$(herdr tab list)"
+tab_focused="$(printf '%s' "$tab_list_json" | jq -r --arg tab_id "$target_tab_id" \
+  '.result.tabs[] | select(.tab_id == $tab_id) | .focused')"
 
-background tabでは `done`、foreground tabでは `idle` になり得る。`idle` と `done` はattention stateだけが異なるため、**常に双方を完了扱い**にする。`working`、`blocked`、timeoutは完了扱いしない。
+case "$tab_focused" in
+  true) wait_status=idle ;;
+  false) wait_status=done ;;
+  *) exit 1 ;;
+esac
+
+wait_rc=0
+herdr wait agent-status "$target_pane_id" --status "$wait_status" --timeout 120000 || wait_rc=$?
+final_pane_json="$(herdr pane get "$target_pane_id")"
+final_status="$(printf '%s' "$final_pane_json" | jq -r '.result.pane.agent_status // empty')"
+
+case "$final_status" in
+  idle|done) ;;
+  *)
+    if [ "$wait_rc" -ne 0 ]; then
+      exit "$wait_rc"
+    fi
+    exit 1
+    ;;
+esac
+)
+```
+<!-- completion-wait-contract:end -->
+
+foreground tabは `idle`、background tabは `done` を待つ。待機中にattention stateが変わる可能性があるため、waitがtimeoutしても直ちに未完了とせず、最後の `pane get` では `idle` と `done` の双方を完了扱いにする。最終状態が `working`、`blocked`、`unknown`、または取得不能なら完了扱いしない。
 
 完了後は公式の読み取りを直接使う。
 
