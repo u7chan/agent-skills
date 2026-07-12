@@ -24,7 +24,7 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 
 ## 参照するスキル
 
-- worktree: `../git-worktree-create/SKILL.md`
+- worktree: `../herdr-worktree-create/SKILL.md`
 - ブランチ: `../git-branch-create/SKILL.md`
 - commit: `../git-commit-message/SKILL.md`
 - push / PR 作成: `../github-pr-create/SKILL.md`
@@ -61,7 +61,7 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 
 worktree が明示された場合:
 
-- `git-worktree-create` を適用し、現在の作業ツリーでは `git switch` しない。
+- `herdr-worktree-create` を適用し、`herdr worktree create --cwd <repo-root> --path <絶対パス> --branch <ブランチ名> --base <base>` で Herdr 管理の worktree と workspace を作成する。現在の作業ツリーでは `git switch` しない。
 - Issue があればブランチ名に `issue-123` を含め、以降は作成した worktree で行う。
 
 それ以外の場合:
