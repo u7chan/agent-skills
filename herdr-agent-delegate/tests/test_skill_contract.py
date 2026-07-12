@@ -128,3 +128,30 @@ fi
             self.assertIn("pane", text)
             for term in removed_terms:
                 self.assertNotIn(term, text)
+
+    def test_request_delivery_uses_pane_run_only(self):
+        for text in (self.skill, self.reference):
+            self.assertIn("herdr pane run", text)
+            self.assertIn("herdr wait agent-status", text)
+            self.assertIn("--status working", text)
+
+    def test_agent_send_is_not_used_for_request_execution(self):
+        for text in (self.skill, self.reference):
+            self.assertIn("agent send", text)
+            self.assertIn("Enterを送らない", text)
+            self.assertNotIn(
+                "herdr agent send <pane-id> \"<依頼本文>\"", text
+            )
+
+    def test_timeout_diagnosis_is_read_only_and_does_not_resend(self):
+        self.assertIn("herdr pane get", self.skill)
+        self.assertIn("herdr pane read", self.skill)
+        self.assertIn("recent-unwrapped", self.skill)
+        self.assertIn("二重実行", self.skill)
+        self.assertIn("自動で行わない", self.skill)
+        self.assertNotIn("send-keys", self.skill)
+
+        self.assertIn("herdr pane get", self.reference)
+        self.assertIn("herdr pane read", self.reference)
+        self.assertIn("recent-unwrapped", self.reference)
+        self.assertIn("自動復旧は行わず", self.reference)
