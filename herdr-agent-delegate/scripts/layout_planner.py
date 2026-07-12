@@ -11,21 +11,30 @@ SPLIT_DIRECTIONS = ("right", "down", "right", "down")
 
 
 def incremental_slot(child_number: int) -> dict[str, Any]:
-    """Return the tab, slot, and split direction for a one-based child number."""
+    """Return the tab, slot, and split direction for a one-based child number.
+
+    The first child in every tab (slot 1) uses the root pane directly and
+    does not need a split.  Its direction is ``None``.
+    """
     if child_number < 1:
         raise ValueError("child_number must be at least 1")
     zero_based = child_number - 1
     slot = zero_based % MAX_PANES_PER_TAB
+    starts_new_tab = zero_based >= MAX_PANES_PER_TAB and slot == 0
     return {
         "tab_index": zero_based // MAX_PANES_PER_TAB,
         "slot": slot + 1,
-        "direction": SPLIT_DIRECTIONS[slot],
-        "starts_new_tab": zero_based >= MAX_PANES_PER_TAB and slot == 0,
+        "direction": SPLIT_DIRECTIONS[slot] if slot > 0 else None,
+        "starts_new_tab": starts_new_tab,
     }
 
 
 def plan_tabs(child_count: int) -> list[dict[str, Any]]:
-    """Group a known batch into tabs of at most four delegated panes."""
+    """Group a known batch into tabs of at most four delegated panes.
+
+    The first child of every tab is placed on the root pane (no split).
+    Only children 2‑4 receive split directions (``down / right / down``).
+    """
     if child_count < 0:
         raise ValueError("child_count must not be negative")
     tabs: list[dict[str, Any]] = []
@@ -36,7 +45,7 @@ def plan_tabs(child_count: int) -> list[dict[str, Any]]:
                 "tab_index": len(tabs),
                 "first_child": first,
                 "child_count": count,
-                "directions": list(SPLIT_DIRECTIONS[:count]),
+                "directions": list(SPLIT_DIRECTIONS[1:count]),
             }
         )
     return tabs

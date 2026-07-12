@@ -38,7 +38,7 @@ class LayoutPlannerTest(unittest.TestCase):
         slots = [layout_planner.incremental_slot(number) for number in range(1, 6)]
         self.assertEqual(
             [slot["direction"] for slot in slots],
-            ["right", "down", "right", "down", "right"],
+            [None, "down", "right", "down", None],
         )
         self.assertEqual([slot["tab_index"] for slot in slots], [0, 0, 0, 0, 1])
         self.assertTrue(slots[4]["starts_new_tab"])
@@ -51,19 +51,19 @@ class LayoutPlannerTest(unittest.TestCase):
                     "tab_index": 0,
                     "first_child": 1,
                     "child_count": 4,
-                    "directions": ["right", "down", "right", "down"],
+                    "directions": ["down", "right", "down"],
                 },
                 {
                     "tab_index": 1,
                     "first_child": 5,
                     "child_count": 4,
-                    "directions": ["right", "down", "right", "down"],
+                    "directions": ["down", "right", "down"],
                 },
                 {
                     "tab_index": 2,
                     "first_child": 9,
                     "child_count": 1,
-                    "directions": ["right"],
+                    "directions": [],
                 },
             ],
         )
