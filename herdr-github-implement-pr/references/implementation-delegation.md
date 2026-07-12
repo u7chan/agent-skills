@@ -66,7 +66,7 @@ Herdr 外、CLI 不足、認証・trust 待ちは実装委譲失敗とする。�
 - Herdr の Completion contract に従って結果を確定すること
 ```
 
-依頼本文を `herdr pane run` または `herdr agent send` で直接送り、処理開始を確認して完了まで待つ。`blocked` とtimeoutは成功扱いせず、paneと作業ツリーを保持して停止する。
+依頼本文は `herdr-agent-delegate` の `scripts/send_request.py` を使って送り、処理開始を確認して完了まで待つ。`blocked` とtimeoutは成功扱いせず、paneと作業ツリーを保持して停止する。
 
 ## 5. ユーザー判断事項を処理する
 

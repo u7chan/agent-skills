@@ -99,6 +99,7 @@ fi
         self.assertIn("herdr pane run", self.skill)
         self.assertIn("herdr wait agent-status", self.skill)
         self.assertIn("herdr pane read", self.skill)
+        self.assertTrue((ROOT / "scripts" / "send_request.py").exists())
         removed_scripts = ["wait_for_" + "completion.py", "task_" + "exchange.py"]
         for name in removed_scripts:
             self.assertNotIn(name, self.skill)
@@ -167,7 +168,7 @@ fi
             )
         return blocks
 
-    def test_request_delivery_uses_pane_run_only(self):
+    def test_request_delivery_uses_send_request_script(self):
         skill_blocks = self._request_delivery_command_blocks(
             self.skill, "依頼を直接送る"
         )
@@ -175,14 +176,26 @@ fi
             self.reference, "依頼送信"
         )
         for blocks in (skill_blocks, reference_blocks):
-            # 少なくとも1つの実行例で pane run を使う
+            # 少なくとも1つの実行例で send_request.py を使う
             self.assertTrue(
-                any("herdr pane run" in block for block in blocks),
-                "依頼送信セクションに pane run の実行例がありません",
+                any("send_request.py" in block for block in blocks),
+                "依頼送信セクションに send_request.py の実行例がありません",
             )
             # セクション内の全 bash コードブロックに agent send が混入していない
             for block in blocks:
                 self.assertNotIn("herdr agent send", block)
+
+        script_path = ROOT / "scripts" / "send_request.py"
+        self.assertTrue(script_path.exists(), "send_request.py が存在しません")
+        self.assertTrue(
+            script_path.stat().st_mode & 0o111,
+            "send_request.py が実行可能ではありません",
+        )
+
+    def test_claude_pasted_text_fallback_is_documented(self):
+        for text in (self.skill, self.reference):
+            self.assertIn("[Pasted text", text)
+            self.assertIn("Claude Code", text)
 
     def test_agent_send_is_not_used_for_request_execution(self):
         for text in (self.skill, self.reference):
