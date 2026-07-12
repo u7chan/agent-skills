@@ -123,16 +123,13 @@ class SplitScopedPaneTest(unittest.TestCase):
                 ),
                 (["tab", "create", "--workspace", "w1", "--cwd", "/work", "--no-focus"], Result(tab_payload("w1:p10"))),
                 (["pane", "get", "w1:p10"], Result(pane_payload("w1:p10", tab_id="w1:t2"))),
-                (
-                    ["pane", "split", "w1:p10", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
-                    Result(pane_payload("w1:p11", tab_id="w1:t2")),
-                ),
-                (["pane", "get", "w1:p11"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
             ]
         )
         with patch.object(split_scoped_pane, "run_herdr", mock):
             result = split_scoped_pane.run(args(children))
         self.assertTrue(result["new_tab"])
+        self.assertEqual(result["pane_id"], "w1:p10")
+        self.assertEqual(result["group_parent_pane_id"], "w1:p10")
         self.assertEqual(result["anchor_pane_id"], "w1:p10")
 
     def test_unrelated_pane_uses_new_tab_without_touching_it(self):
@@ -142,13 +139,13 @@ class SplitScopedPaneTest(unittest.TestCase):
                 (["pane", "layout", "--pane", "w1:p1"], Result(layout_payload(["w1:p1", "w1:p9"]))),
                 (["tab", "create", "--workspace", "w1", "--cwd", "/work", "--no-focus"], Result(tab_payload("w1:p10"))),
                 (["pane", "get", "w1:p10"], Result(pane_payload("w1:p10", tab_id="w1:t2"))),
-                (["pane", "split", "w1:p10", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
-                (["pane", "get", "w1:p11"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
             ]
         )
         with patch.object(split_scoped_pane, "run_herdr", mock):
-            split_scoped_pane.run(args())
+            result = split_scoped_pane.run(args())
         self.assertFalse(any(call[:2] == ["pane", "close"] for call in mock.calls))
+        self.assertEqual(result["pane_id"], "w1:p10")
+        self.assertEqual(result["group_parent_pane_id"], "w1:p10")
 
     def test_new_pane_scope_is_verified_and_only_new_child_is_closed(self):
         responses = self.split_responses([], "right")[:-1]
@@ -172,32 +169,50 @@ class SplitScopedPaneTest(unittest.TestCase):
                 (["pane", "get", "w1:p1"], Result(pane_payload("w1:p1"))),
                 (["tab", "create", "--workspace", "w1", "--cwd", "/work", "--no-focus"], Result(tab_payload("w1:p10"))),
                 (["pane", "get", "w1:p10"], Result(pane_payload("w1:p10", tab_id="w1:t2"))),
-                (["pane", "split", "w1:p10", "--direction", "right", "--ratio", "0.5", "--cwd", "/work", "--no-focus"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
-                (["pane", "get", "w1:p11"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
             ]
         )
         with patch.object(split_scoped_pane, "run_herdr", mock):
             result = split_scoped_pane.run(args())
         self.assertTrue(result["new_tab"])
+        self.assertEqual(result["pane_id"], "w1:p10")
 
-    def test_new_tab_anchor_can_be_used_as_next_group_parent(self):
+    def test_new_tab_root_pane_used_as_group_parent(self):
         mock = HerdrMock(
             [
                 (["pane", "current", "--current"], Result(pane_payload("w1:p1"))),
                 (["pane", "get", "w1:p10"], Result(pane_payload("w1:p10", tab_id="w1:t2"))),
-                (["pane", "layout", "--pane", "w1:p10"], Result(layout_payload(["w1:p10", "w1:p11"]))),
+                (["pane", "layout", "--pane", "w1:p10"], Result(layout_payload(["w1:p10"]))),
+                (["pane", "get", "w1:p10"], Result(pane_payload("w1:p10", tab_id="w1:t2"))),
+                (
+                    ["pane", "split", "w1:p10", "--direction", "down", "--ratio", "0.5", "--cwd", "/work", "--no-focus"],
+                    Result(pane_payload("w1:p11", tab_id="w1:t2")),
+                ),
                 (["pane", "get", "w1:p11"], Result(pane_payload("w1:p11", tab_id="w1:t2"))),
-                (["pane", "split", "w1:p11", "--direction", "down", "--ratio", "0.5", "--cwd", "/work", "--no-focus"], Result(pane_payload("w1:p12", tab_id="w1:t2"))),
-                (["pane", "get", "w1:p12"], Result(pane_payload("w1:p12", tab_id="w1:t2"))),
             ]
         )
         group_args = Namespace(
             parent_pane_id="w1:p10",
             cwd="/work",
-            child=["w1:p11"],
+            child=["w1:p10"],
             new_tab=False,
         )
         with patch.object(split_scoped_pane, "run_herdr", mock):
             result = split_scoped_pane.run(group_args)
         self.assertFalse(result["new_tab"])
-        self.assertEqual(result["pane_id"], "w1:p12")
+        self.assertEqual(result["pane_id"], "w1:p11")
+
+    def test_create_in_new_tab_returns_root_as_agent_pane(self):
+        mock = HerdrMock(
+            [
+                (["tab", "create", "--workspace", "w1", "--cwd", "/work", "--no-focus"], Result(tab_payload("w1:p10"))),
+                (["pane", "get", "w1:p10"], Result(pane_payload("w1:p10", tab_id="w1:t2"))),
+            ]
+        )
+        with patch.object(split_scoped_pane, "run_herdr", mock):
+            result = split_scoped_pane.create_in_new_tab("/work", "w1", "w1:t1")
+        self.assertTrue(result["new_tab"])
+        self.assertEqual(result["pane_id"], "w1:p10")
+        self.assertEqual(result["group_parent_pane_id"], "w1:p10")
+        self.assertEqual(result["anchor_pane_id"], "w1:p10")
+        self.assertEqual(result["workspace_id"], "w1")
+        self.assertEqual(result["tab_id"], "w1:t2")

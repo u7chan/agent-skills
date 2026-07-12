@@ -139,23 +139,20 @@ def split_pane(target_id: str, direction: str, cwd: str) -> dict[str, str]:
 
 
 def create_in_new_tab(cwd: str, workspace_id: str, old_tab_id: str) -> dict[str, Any]:
-    anchor = command_pane(
+    root = command_pane(
         ["tab", "create", "--workspace", workspace_id, "--cwd", cwd, "--no-focus"],
         "new tab pane",
         result_key="root_pane",
     )
-    anchor = get_pane(anchor["pane_id"], "new tab pane after create")
-    if anchor["workspace_id"] != workspace_id:
+    root = get_pane(root["pane_id"], "new tab pane after create")
+    if root["workspace_id"] != workspace_id:
         raise ValueError("new tab was created outside the expected workspace")
-    if anchor["tab_id"] == old_tab_id:
+    if root["tab_id"] == old_tab_id:
         raise ValueError("tab create returned the existing tab")
-
-    child = split_pane(anchor["pane_id"], SPLIT_DIRECTIONS[0], cwd)
-    verified = get_pane(child["pane_id"], "new pane after split")
-    validate_scope(verified, anchor["workspace_id"], anchor["tab_id"], "new pane after split")
     return {
-        **verified,
-        "anchor_pane_id": anchor["pane_id"],
+        **root,
+        "group_parent_pane_id": root["pane_id"],
+        "anchor_pane_id": root["pane_id"],
         "new_tab": True,
     }
 
