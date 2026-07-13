@@ -116,7 +116,7 @@ case "$tab_focused" in
 esac
 
 wait_rc=0
-herdr wait agent-status "$target_pane_id" --status "$wait_status" --timeout 120000 || wait_rc=$?
+herdr wait agent-status "$target_pane_id" --status "$wait_status" --timeout 1800000 || wait_rc=$?
 final_pane_json="$(herdr pane get "$target_pane_id")"
 final_status="$(printf '%s' "$final_pane_json" | jq -r '.result.pane.agent_status // empty')"
 
@@ -133,7 +133,7 @@ esac
 ```
 <!-- completion-wait-contract:end -->
 
-foreground tabは `idle`、background tabは `done` を待つ。待機中にattention stateが変わる可能性があるため、waitがtimeoutしても直ちに未完了とせず、最後の `pane get` では `idle` と `done` の双方を完了扱いにする。最終状態が `working`、`blocked`、`unknown`、または取得不能なら完了扱いしない。
+foreground tabは `idle`、background tabは `done` を最大30分待つ。イベント駆動待機のため、完了時は上限を待たずに戻る。待機中にattention stateが変わる可能性があるため、waitがtimeoutしても直ちに未完了とせず、最後の `pane get` では `idle` と `done` の双方を完了扱いにする。最終状態が `working`、`blocked`、`unknown`、または取得不能なら完了扱いしない。
 
 完了後は公式の読み取りを直接使う。
 
