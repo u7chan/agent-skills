@@ -204,6 +204,38 @@ fi
                 'herdr agent send <pane-id> "<依頼本文>"', text
             )
 
+    def test_pane_run_examples_do_not_contain_no_focus(self):
+        """`herdr pane run` のコマンド例そのものに `--no-focus` が混入していないことを確認する。"""
+        # 引用符で閉じられたコマンド例までをマッチ対象とする
+        pane_run_pattern = re.compile(
+            r"herdr pane run\s+[^'\"\n]*['\"][^'\"\n]*['\"]"
+        )
+        for text in (self.skill, self.reference):
+            matches = list(pane_run_pattern.finditer(text))
+            self.assertTrue(
+                matches,
+                "`herdr pane run` の実行例が見つかりません",
+            )
+            for match in matches:
+                command = match.group(0)
+                self.assertNotIn(
+                    "--no-focus",
+                    command,
+                    f"`herdr pane run` の例に `--no-focus` が混入しています: {command.strip()}",
+                )
+
+    def test_no_focus_is_for_layout_operations_not_pane_run(self):
+        """`--no-focus` は pane 配置操作のオプションであり、`pane run` ではないことを確認する。"""
+        for text in (self.skill, self.reference):
+            self.assertIn("--no-focus", text)
+            self.assertIn("pane split", text)
+            self.assertIn("tab create", text)
+            self.assertTrue(
+                "herdr pane run <pane-id> '<agent-command>'" in text
+                or "herdr pane run <pane-id> '<command>'" in text,
+                "`herdr pane run <pane-id> '<agent-command>'` の形式が明記されていません",
+            )
+
     def test_timeout_diagnosis_is_read_only_and_does_not_resend(self):
         skill_section = self._request_delivery_section(
             self.skill, "依頼を直接送る"
