@@ -83,6 +83,13 @@ fi
         self.assertEqual(returncode, 0)
         self.assertIn("--status done", wait_command)
 
+    def test_completion_wait_timeout_is_thirty_minutes(self):
+        returncode, wait_command = self.run_completion_contract(
+            focused=True, final_status="idle"
+        )
+        self.assertEqual(returncode, 0)
+        self.assertIn("--timeout 1800000", wait_command)
+
     def test_final_idle_is_accepted_after_wait_timeout(self):
         returncode, _ = self.run_completion_contract(
             focused=False, final_status="idle", wait_rc=124
