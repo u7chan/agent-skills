@@ -9,7 +9,7 @@
 | OpenCode | `opencode` | 入力欄フッター `ctrl+p commands` |
 | その他 | ユーザー指定 | 事前に定義できる固有プロンプト |
 
-ユーザー指定の引数だけを起動コマンドへ渡す。コマンドはシェル文字列を組み立てず、`herdr pane run <pane-id> '<command>'` の1引数として送る。
+ユーザー指定の引数だけを起動コマンドへ渡す。コマンドはシェル文字列を組み立てず、`herdr pane run <pane-id> '<command>'` の1引数として送る。`--no-focus` は `herdr pane split` や `herdr tab create` などの pane 配置操作で使うフォーカス制御オプションであり、`herdr pane run` には追加しない。`herdr pane run <pane-id> '<command>'` の後ろに `--no-focus` を付けると `<command>` の引数として解釈され、`codex --no-focus` などで起動に失敗する。
 
 新規起動は次の公式プリミティブを順に使う。
 

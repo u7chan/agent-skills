@@ -71,7 +71,7 @@ description: Herdr上でCLI Agentへタスクを委譲し、公式プリミテ�
 4. その他のCLIは `references/agent-cli.md` の条件を使う。条件が未定義、またはtrust/login/初期設定画面なら自動承認せず停止する。
 5. セッション名が指定されていれば `herdr agent rename <pane-id> '<name>'` を実行する。
 
-起動、semantic検出、入力可能確認は別々に行う。バックグラウンド操作には `--no-focus` を使い、別クライアントのフォーカスに依存しない。
+起動、semantic検出、入力可能確認は別々に行う。pane 配置（`herdr pane split` や `herdr tab create`）には必要に応じて `--no-focus` を使い、親クライアントのフォーカスを奪わない。Agent 起動・依頼送信に使う `herdr pane run <pane-id> '<agent-command>'` には `--no-focus` を追加しない。`--no-focus` は pane 配置コマンドのフォーカス制御オプションであり、`pane run` の引数に混入すると `codex --no-focus` など未対応引数エラーで起動に失敗する。
 
 ## 5. 依頼を直接送る
 

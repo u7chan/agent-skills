@@ -204,6 +204,33 @@ fi
                 'herdr agent send <pane-id> "<依頼本文>"', text
             )
 
+    def test_pane_run_examples_do_not_contain_no_focus(self):
+        """引用符で閉じた Agent コマンドの後ろに `--no-focus` がないことを確認する。"""
+        pane_run_with_no_focus = re.compile(
+            r"herdr pane run\s+[^\n`]*?['\"][^'\"\n]*['\"]\s+--no-focus\b"
+        )
+        for text in (self.skill, self.reference):
+            self.assertNotRegex(text, pane_run_with_no_focus)
+
+    def test_pane_run_contract_rejects_arguments_after_agent_command(self):
+        pane_run_with_no_focus = re.compile(
+            r"herdr pane run\s+[^\n`]*?['\"][^'\"\n]*['\"]\s+--no-focus\b"
+        )
+        reproduction = "herdr pane run w24:p7 'codex' --no-focus"
+        self.assertRegex(reproduction, pane_run_with_no_focus)
+
+    def test_no_focus_is_for_layout_operations_not_pane_run(self):
+        """`--no-focus` は pane 配置操作のオプションであり、`pane run` ではないことを確認する。"""
+        for text in (self.skill, self.reference):
+            self.assertIn("--no-focus", text)
+            self.assertIn("pane split", text)
+            self.assertIn("tab create", text)
+            self.assertTrue(
+                "herdr pane run <pane-id> '<agent-command>'" in text
+                or "herdr pane run <pane-id> '<command>'" in text,
+                "`herdr pane run <pane-id> '<agent-command>'` の形式が明記されていません",
+            )
+
     def test_timeout_diagnosis_is_read_only_and_does_not_resend(self):
         skill_section = self._request_delivery_section(
             self.skill, "依頼を直接送る"
