@@ -205,24 +205,19 @@ fi
             )
 
     def test_pane_run_examples_do_not_contain_no_focus(self):
-        """`herdr pane run` のコマンド例そのものに `--no-focus` が混入していないことを確認する。"""
-        # 引用符で閉じられたコマンド例までをマッチ対象とする
-        pane_run_pattern = re.compile(
-            r"herdr pane run\s+[^'\"\n]*['\"][^'\"\n]*['\"]"
+        """引用符で閉じた Agent コマンドの後ろに `--no-focus` がないことを確認する。"""
+        pane_run_with_no_focus = re.compile(
+            r"herdr pane run\s+[^\n`]*?['\"][^'\"\n]*['\"]\s+--no-focus\b"
         )
         for text in (self.skill, self.reference):
-            matches = list(pane_run_pattern.finditer(text))
-            self.assertTrue(
-                matches,
-                "`herdr pane run` の実行例が見つかりません",
-            )
-            for match in matches:
-                command = match.group(0)
-                self.assertNotIn(
-                    "--no-focus",
-                    command,
-                    f"`herdr pane run` の例に `--no-focus` が混入しています: {command.strip()}",
-                )
+            self.assertNotRegex(text, pane_run_with_no_focus)
+
+    def test_pane_run_contract_rejects_arguments_after_agent_command(self):
+        pane_run_with_no_focus = re.compile(
+            r"herdr pane run\s+[^\n`]*?['\"][^'\"\n]*['\"]\s+--no-focus\b"
+        )
+        reproduction = "herdr pane run w24:p7 'codex' --no-focus"
+        self.assertRegex(reproduction, pane_run_with_no_focus)
 
     def test_no_focus_is_for_layout_operations_not_pane_run(self):
         """`--no-focus` は pane 配置操作のオプションであり、`pane run` ではないことを確認する。"""
