@@ -114,7 +114,7 @@ worktree が明示された場合:
 
 ## AI Work Metadata
 
-| 役割 | Agent | Model | Effort |
+| Role | Agent | Model | Effort |
 | --- | --- | --- | --- |
 | オーケストレーター | `<agent>` | `<model>` | `<effort>` |
 | 実装 | `<agent>` | `<model>` | `<effort>` |

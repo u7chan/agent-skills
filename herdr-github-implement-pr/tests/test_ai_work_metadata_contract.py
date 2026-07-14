@@ -24,7 +24,7 @@ class AiWorkMetadataContractTest(unittest.TestCase):
         self.assertTrue(sections[-1].startswith("AI Work Metadata\n"))
 
         metadata_section = sections[-1]
-        self.assertIn("| 役割 | Agent | Model | Effort |", metadata_section)
+        self.assertIn("| Role | Agent | Model | Effort |", metadata_section)
         self.assertIn(
             "| オーケストレーター | `<agent>` | `<model>` | `<effort>` |",
             metadata_section,
