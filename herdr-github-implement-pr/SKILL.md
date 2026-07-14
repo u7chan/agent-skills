@@ -16,6 +16,7 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 - 無関係な未コミット変更を取り込まず、今回の変更だけを stage、commit する。
 - PR 操作、レビュー投稿、返信は `gh` / `gh api` を使う。GitHub コネクタは使わない。
 - Markdown の長文はファイル経由で渡す。本文をシェル引数やコマンド置換へ直接埋め込まない。
+- PR 本文の末尾には、PR 作成時点で確定している作業 AI の `## AI作業メタ情報` を付ける。既存のレビューコメント・FB 対応コメントの AI 識別メタ情報は変更しない。
 - 作業領域の準備後は Herdr で 1 体の実装担当 Agent へ同期委譲する。親 Agent は実装せず、成果確認と最終検証後に commit、push、PR 作成を行う。
 - 実装担当とレビュー担当は役割ごとに独立して解決する。指定のない役割は現在動作しているエージェントと同じ種別を新規起動する。ユーザーが明示的に指定した場合はその種別を優先する。
 - PR 作成後は Herdr で同期レビューし、親 Agent が指摘の分類、FB 対応の成果確認、再チェック、pane cleanup まで管理する。
@@ -73,6 +74,7 @@ worktree が明示された場合:
 ### 3. Herdr で実装して検証する
 
 - `references/implementation-delegation.md` に従い、実装担当 Agent を解決して、実装と変更に直接関連する検証を同期委譲する。
+- オーケストレーターと実装担当の解決結果から、PR 本文用の AI 作業メタ情報を保持する。レビューとレビューFBは、PR 作成前に担当 Agent が会話または解決結果で確定した場合だけ保持する。
 - 実装担当へ `herdr-github-implement-pr` を使わせず、commit、push、PR 作成、別の実装 Agent への再委譲を禁止する。
 - 成功結果を保持したまま回収し、Completion contract、差分、未追跡ファイル、要求充足、検証結果を親が確認する。
 - 親が formatter、lint、test、build から変更範囲に必要な最終検証を実行する。成果確認と最終検証の成功後だけ新規起動した pane を閉じて commit へ進む。
@@ -85,9 +87,9 @@ worktree が明示された場合:
 
 ### 5. push して PR を作成する
 
-- `github-pr-create` を適用し、PR 作成後に `gh pr view --json title,body,url` で確認する。
+- `github-pr-create` を適用し、PR 作成後に `gh pr view --json title,body,url` で確認する。作成済み本文の最終セクション、必須2役割、任意役割の有無、各未取得値の `—` が記録済みスナップショットと一致することを確認する。
 - Issue を閉じるなら `Close #123`、関連付けだけなら `Refs #123` を使う。
-- PR 本文は次の構造を基本とし、ファイルから渡す。
+- PR 本文は次の構造を基本とし、最後に AI 作業メタ情報を追加してファイルから渡す。
 
 ```markdown
 ## Issues
@@ -109,7 +111,18 @@ worktree が明示された場合:
 ## Verification
 
 - `command` - passed
+
+## AI作業メタ情報
+
+| 役割 | Agent | Model | Effort |
+| --- | --- | --- | --- |
+| オーケストレーター | `<agent>` | `<model>` | `<effort>` |
+| 実装 | `<agent>` | `<model>` | `<effort>` |
 ```
+
+- `references/implementation-delegation.md` の記録済みスナップショットから、オーケストレーターと実装の行を必ず追加する。取得できない各値は推測せず `—` とする。
+- レビュー、レビューFBの行は、PR 作成前に担当 Agent が会話または解決結果で確定している場合だけ追加する。未確定の役割を既定 Agent や後続工程から推測して追加しない。
+- `## AI作業メタ情報` は PR 本文の最終セクションとし、`github-pr-create` へ完成済みの `PR_BODY` として渡す。PR 作成後に解決したレビュー工程の情報を理由に、この本文を更新しない。
 
 ### 6. Herdr でレビューする
 
@@ -135,4 +148,5 @@ worktree が明示された場合:
 - [ ] 最大 3 回、連続 2 回未解消、ユーザー判断待ち、工程失敗の停止条件がある
 - [ ] 新規・再利用、成功・失敗で pane cleanup が区別される
 - [ ] PR 成功とレビュー工程の失敗が区別され、診断情報が保持される
+- [ ] PR 本文末尾の AI 作業メタ情報にオーケストレーターと実装があり、未取得値は `—`、PR 作成前に未確定のレビュー役割は含まれない
 - [ ] skill validation、`bash scripts/validate-skills.sh`、`git diff --check` が成功する
