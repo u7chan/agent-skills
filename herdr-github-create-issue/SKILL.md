@@ -19,9 +19,9 @@ description: >
 ## 1. 役割とメタ情報を確定する
 
 - 親の現在Agentを`壁打ち`、新規paneで起動するAgentを`Issue作成`とする。親を`オーケストレーター`として別行に記録しない。
-- 壁打ち担当は、`ai-identity-resolve`に従い、現在の実行環境からAgentとModelを直接取得する。Codexは読める場合に限り`~/.codex/config.toml`の`model`を使う。Effortは実行環境または明示設定から直接取得する。
+- 壁打ち担当は、`ai-identity-resolve`に従い、現在の実行環境からAgentとModelを直接取得する。Codexの場合、送信直前の再取得では読める場合に限り`~/.codex/config.toml`を親が直接再読込し、その時点の`model`を使う。会話開始時または過去の取得値を再利用しない。Effortは実行環境または明示設定から直接取得する。
 - Issue作成担当は、`cagent low`のdoctor / dry-runで解決されたAgent、Model、Effortを使う。起動コマンド、Agent種別、既定値からModelやEffortを推測しない。
-- 各セルは取得できない時だけ`—`とする。親は両役割の確定値を、起動前にスナップショットとして保持して子へ明示する。
+- 各セルは取得できない時だけ`—`とする。両役割の確定値は、入力可能確認後の送信直前に親がハンドオフ時点のスナップショットとして固定し、子へ明示する。子は親のAgent、Model、Effortを再解決、推測、上書きせず、渡された値をそのままAI Work Metadataに使う。
 
 作成Issue本文の最終セクションは必ず次の形にする。追加の最終セクションを置かない。
 
@@ -39,8 +39,11 @@ description: >
 1. `HERDR_ENV=1`、空でない`HERDR_PANE_ID`、`herdr`、`jq`、`cagent`、`gh`を確認し、`herdr pane current --current`から現在のIDと作業ディレクトリを都度取得する。
 2. `coding-agent-subagent`のpreflightを実施する。Agent、Model、Effortは指定せず、task levelだけを`low`と判断して、対話起動コマンドを必ず`cagent low`として解決する。doctor、dry-run、provider / adapterから`base-agent-type`を確認できなければ停止する。
 3. 既存idle Agentは検索も再利用もしない。`herdr-agent-delegate`の新規pane配置、ID検証、`herdr pane run`、semantic検出、input-ready確認を順に適用し、今回のIssue作成担当だけを起動する。`agent-command`と`base-agent-type`を混同せず、`pane run`へ`--no-focus`を渡さない。
-4. 入力可能確認後にだけ、同スキルの`send_request.py`で依頼をEnter込みで一度だけ送信し、working遷移を確認する。送信失敗時は読み取り専用で状態を回収し、paneを保持して停止する。
-5. 送信前に親が、対象cwd、`git status --short`の出力、`git rev-parse HEAD`、現在ブランチとその対象remote refのOIDまたは不存在をスナップショットとして保持する。remote refは実際のremoteから`git ls-remote --heads`で取得する。さらに対象リポジトリで認証ユーザーが作成したIssue一覧とPR一覧を、それぞれ`gh issue list --author @me --state all --limit 1000 --json number,url`、`gh pr list --author @me --state all --limit 1000 --json number,url`で記録する。取得不能なら送信せず停止する。
+4. 入力可能確認後、`send_request.py`で依頼を送信する直前に、親が次の順で送信前処理を完了する。途中で取得不能なら送信せず、paneを保持して停止する。
+   1. 親が、対象cwd、`git status --short`の出力、`git rev-parse HEAD`、現在ブランチとその対象remote refのOIDまたは不存在を送信前スナップショットとして保持する。remote refは実際のremoteから`git ls-remote --heads`で取得する。さらに対象リポジトリで認証ユーザーが作成したIssue一覧とPR一覧を、それぞれ`gh issue list --author @me --state all --limit 1000 --json number,url`、`gh pr list --author @me --state all --limit 1000 --json number,url`で記録する。
+   2. 送信の最後の準備として、壁打ち担当の識別情報を親が再取得する。親がCodexなら、この時点で親自身が`~/.codex/config.toml`を直接再読込し、`model`値を読めた場合はその値を使う。Configを読めない場合は、`ai-identity-resolve`の契約どおり、実行環境が提供する明示的なモデル情報を使い、それも取得できない場合のみModelを`—`とする。モデル名は推測せず、会話開始時または過去の取得値を使わない。
+   3. 再取得した壁打ち担当の値と、`cagent low`のdoctor / dry-runで解決済みのIssue作成担当の値を、ハンドオフ時点のメタ情報スナップショットとして固定する。依頼にはこの固定値を明示し、子は親の値を再解決、推測、上書きせず、そのままAI Work Metadataに使う。
+   4. 確定済みプラン原文、対象リポジトリ、固定したメタ情報表、送信指示を含む依頼を組み立て、同スキルの`send_request.py`でEnter込みで一度だけ送信する。Config再読込と送信の間に外部I/Oや識別情報の再取得を挟まない。送信後に壁打ち担当の識別情報を再取得または変更しない。送信失敗時は読み取り専用で状態を回収し、paneを保持して停止する。
 
 ## 3. Issue作成担当への依頼
 
