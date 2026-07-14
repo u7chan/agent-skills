@@ -31,10 +31,27 @@ class SkillContractTest(unittest.TestCase):
             "HERDR_ENV=1",
             "HERDR_PANE_ID",
             "command -v cagent",
+            "cagent --help",
             "cagent doctor",
             "直接起動して回避しない",
         ):
             self.assertIn(requirement, self.skill)
+
+    def test_preflight_rejects_incompatible_or_unresolvable_cagent(self):
+        for capability in (
+            "rootの対話起動",
+            "`--dry-run`",
+            "`--agent`",
+            "`--model`",
+            "`--effort`",
+            "任意のlevel位置引数",
+        ):
+            self.assertIn(capability, self.skill)
+
+        self.assertIn("cagent --agent <agent> doctor", self.skill)
+        self.assertIn("同じagent / model / effort / level", self.skill)
+        self.assertIn("選択対象Agentのbin不在", self.skill)
+        self.assertIn("Agent CLIやpaneを起動せず", self.skill)
 
     def test_normal_flow_uses_only_interactive_cagent_command(self):
         self.assertIn("cagent [--agent <agent>]", self.skill)

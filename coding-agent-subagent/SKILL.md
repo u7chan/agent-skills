@@ -18,10 +18,9 @@ description: >
 
 1. `HERDR_ENV=1` と空でない `HERDR_PANE_ID` を確認する。満たさなければ停止する。
 2. `command -v herdr` と `command -v cagent` を確認する。自動インストールしない。
-3. `cagent doctor` を実行する。失敗または `ERROR` があれば停止する。
-4. doctorで検証済みの設定から、選択対象のagent IDと、そのprovider / adapterに対応する `base-agent-type` を確認する。対応種別を特定できなければ停止する。
+3. `cagent --help` を実行し、rootの対話起動、`doctor`、`--dry-run`、`--agent`、`--model`、`--effort`、任意のlevel位置引数が表示されることを確認する。実行失敗または不足があれば、必要なcapabilityを欠く非互換binとして停止する。
 
-いずれかに失敗しても `codex`、`claude`、`opencode` などを直接起動して回避しない。paneを作成・操作する前に失敗理由を報告する。
+いずれかに失敗しても `codex`、`claude`、`opencode` などを直接起動して回避しない。paneを作成・操作する前に、失敗した確認項目と理由を報告する。
 
 ## 2. 明示指定を確定する
 
@@ -76,7 +75,13 @@ cagent --agent codex --model gpt-5.6-sol --effort high high
 cagent
 ```
 
-agent未指定でも、`CAGENT_AGENT` が設定されていればそのagent ID、なければdoctorで検証された `default_agent` のprovider / adapterから `base-agent-type` を解決する。`agent-command` の実行ファイル名から推測しない。
+paneを作成する前に、選択値に依存する次のpreflightを順に行う。
+
+1. ユーザーがagentを明示した場合は `cagent --agent <agent> doctor`、明示しなかった場合は `cagent doctor` を実行する。後者では `CAGENT_AGENT` または `default_agent` がそのまま選択される。終了コードが非0、または出力に `ERROR` があれば、設定不整合や選択対象Agentのbin不在として停止する。
+2. 組み立てた `agent-command` と同じagent / model / effort / levelを指定し、`--dry-run` を加えたrootコマンドを実行する。終了コードが非0、または解決済みのAgent CLIコマンドを出力できなければ停止する。これはAgent CLIやpaneを起動せず、対話起動に必要な選択値とadapterの解決可否を検証するために使う。
+3. doctorで検証済みの同じ選択対象agent IDからprovider / adapterに対応する `base-agent-type` を確認する。対応種別を特定できなければ停止する。
+
+agent未指定でも、`CAGENT_AGENT` が設定されていればそのagent ID、なければdoctorで検証された `default_agent` のprovider / adapterから `base-agent-type` を解決する。`agent-command` の実行ファイル名から推測しない。preflight用の `--dry-run` は実際に渡す `agent-command` には含めない。
 
 ## 5. Herdr委譲へ渡す
 
