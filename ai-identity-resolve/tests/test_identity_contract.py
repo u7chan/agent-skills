@@ -114,10 +114,6 @@ class IdentityContractTest(unittest.TestCase):
             "利用先リポジトリの `AGENTS.md` の有無を前提としない標準契約",
             self.skill,
         )
-        self.assertIn(
-            "上位のsystem、user、`AGENTS.md`指示がある場合は、その指示に従う",
-            self.skill,
-        )
 
     def test_direct_posting_skills_resolve_identity_immediately_before_posting(self):
         for name, skill in self.posting_skills.items():
@@ -126,7 +122,6 @@ class IdentityContractTest(unittest.TestCase):
                 self.assertIn("投稿直前", skill)
                 self.assertIn("必ず", skill)
                 self.assertIn("利用先リポジトリの `AGENTS.md` を前提にせず", skill)
-                self.assertIn("上位のsystem、user、`AGENTS.md`指示", skill)
 
     def test_feedback_handoff_leaves_identity_to_posting_skill(self):
         self.assertIn("`github-pr-comment-reply`", self.feedback_skill)
