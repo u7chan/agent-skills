@@ -1,4 +1,4 @@
 interface:
   display_name: "GitHub PR Feedback Address"
   short_description: "GitHub PRの未解決フィードバックを検証・修正・返信する"
-  default_prompt: "Use $github-pr-feedback-address to address unresolved feedback on a GitHub PR."
+  default_prompt: "Use $github-pr-feedback-address to address unresolved GitHub PR feedback and hand replies to the posting skill."

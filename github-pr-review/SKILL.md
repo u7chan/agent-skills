@@ -19,6 +19,7 @@ GitHub Pull Request をレビューし、根拠のある指摘を可能な限り
 - 外部書き込み禁止、権限不足、対象不明の場合は投稿せず、確認できた範囲の指摘候補と未投稿理由を報告する。
 - Markdown 本文はファイルまたは JSON で渡し、シェル引数へ直接埋め込まない。
 - ユーザーの未コミット変更を上書きしない。
+- AI識別に関する上位のsystem、user、`AGENTS.md`指示がある場合は、その指示に従う。該当する上位指示がなくても、利用先リポジトリの `AGENTS.md` を前提にせず、本スキルの標準契約として投稿直前に `ai-identity-resolve` を必ず読み、適用する。
 
 # ワークフロー
 
@@ -72,7 +73,8 @@ GitHub Pull Request をレビューし、根拠のある指摘を可能な限り
 ## 5. コメントを投稿する
 
 - PR 本文、次にタイトルの言語へ合わせ、判別できなければ日本語を使う。
-- `references/posting-rules.md` に従い、各コメントへ重要度ラベルと AI 識別メタ情報を付ける。
+- `references/posting-rules.md` に従い、各コメントへ重要度ラベルを付ける。
+- 投稿本文と payload を確定して API へ渡す直前に `ai-identity-resolve` を必ず適用し、その時点の AI 識別メタ情報を各コメントへ付ける。会話開始時や過去に取得した識別値を再利用しない。
 - 複数の inline comment は、可能なら `event: "COMMENT"` の review にまとめる。
 - 投稿 API と payload は `references/posting-api.md` を使う。
 - 指摘がない場合は inline comment を作らず、指摘なしの `COMMENT` review を投稿する。
