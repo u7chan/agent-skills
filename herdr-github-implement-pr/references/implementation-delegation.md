@@ -116,4 +116,4 @@ PR 本文用に、次の役割ごとのスナップショットを親 Agent が�
 
 ## 9. 後続工程へ引き渡す
 
-親 Agent は成果確認済みの変更だけを `git-commit-message` に従って commit し、既存フローで push と PR 作成を行う。PR 作成時は、記録済みスナップショットを完成済み `PR_BODY` の最終 `## AI作業メタ情報` セクションへ引き渡す。PR 作成後は、実装担当とは独立してレビュー担当を解決し、`review-loop.md` へ進む。
+親 Agent は成果確認済みの変更だけを `git-commit-message` に従って commit し、既存フローで push と PR 作成を行う。PR 作成時は、記録済みスナップショットを完成済み `PR_BODY` の最終 `## AI Work Metadata` セクションへ引き渡す。PR 作成後は、実装担当とは独立してレビュー担当を解決し、`review-loop.md` へ進む。

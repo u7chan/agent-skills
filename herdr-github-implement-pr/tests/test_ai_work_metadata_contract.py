@@ -21,7 +21,7 @@ class AiWorkMetadataContractTest(unittest.TestCase):
 
     def test_pr_body_ends_with_required_metadata_section(self):
         sections = re.split(r"^## ", self.pr_body_template, flags=re.MULTILINE)
-        self.assertTrue(sections[-1].startswith("AI作業メタ情報\n"))
+        self.assertTrue(sections[-1].startswith("AI Work Metadata\n"))
 
         metadata_section = sections[-1]
         self.assertIn("| 役割 | Agent | Model | Effort |", metadata_section)
