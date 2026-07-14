@@ -7,12 +7,19 @@ description: Herdr上でCLI Agentへタスクを委譲し、公式プリミテ�
 
 このスキルのディレクトリを `<skill-dir>` として絶対パスで解決する。Agent別の起動・入力可能条件は `references/agent-cli.md` を読む。
 
+新規Agentの起動契約は次の2値を分けて扱う。
+
+- `base-agent-type`: 入力可能判定・送信・完了判定に使う基礎Agent種別（`codex` / `claude` / `opencode` など）
+- `agent-command`: paneで実行する対話起動コマンド。直接CLIに限らず、基礎Agentを起動するラッパーコマンドも受け取れる
+
+`agent-command` の実行ファイル名から `base-agent-type` を推測しない。
+
 ## 1. プリフライト
 
 1. `HERDR_ENV=1` と空でない `HERDR_PANE_ID` を確認する。満たさなければHerdr外から対象を推測せず終了する。
-2. `command -v herdr`、`command -v jq`、利用するAgent CLIを確認する。自動インストールしない。
+2. `command -v herdr`、`command -v jq`、`agent-command` の起動プログラムを確認する。自動インストールしない。
 3. `herdr pane current --current` から現在の `pane_id`、`workspace_id`、`tab_id`、`cwd` を取得する。IDは応答から都度読み、推測・永続化しない。
-4. ユーザー指定がなければ現在のAgent種別とcwdを引き継ぐ。Agent種別も不明なら確認する。起動オプションは明示されたものだけを使う。
+4. ユーザー指定がなければ現在の基礎Agent種別とcwdを引き継ぐ。`base-agent-type` が不明なら確認する。`agent-command` が別の解決処理から渡された場合は書き換えず、未指定の場合だけ基礎Agent種別の既定の直接起動コマンドを使う。起動オプションは明示されたものだけを使う。
 
 ## 2. 宛先を解決する
 
@@ -59,23 +66,23 @@ description: Herdr上でCLI Agentへタスクを委譲し、公式プリミテ�
 
 ## 4. Agentを起動して入力可能まで待つ
 
-1. 分割レスポンスの `pane_id` に対して `herdr pane run <pane-id> '<agent-command>'` を実行する。
+1. 分割レスポンスの `pane_id` に対して `herdr pane run <pane-id> '<agent-command>'` を実行する。`agent-command` は1つのコマンド文字列として渡し、後ろに引数を追加しない。
 2. `herdr wait agent-status <pane-id> --status idle --timeout 30000` を別コマンドで実行する。このidleだけでは入力可能と判定しない。
-3. Codex、Claude Code、OpenCodeは次で入力欄を確認する。
+3. ラッパーコマンドの有無にかかわらず、`base-agent-type` がCodex、Claude Code、OpenCodeなら次で入力欄を確認する。
 
 ```bash
 <skill-dir>/scripts/wait_for_input_ready.py \
   --target <pane-id> --agent <codex|claude|opencode>
 ```
 
-4. その他のCLIは `references/agent-cli.md` の条件を使う。条件が未定義、またはtrust/login/初期設定画面なら自動承認せず停止する。
+4. その他の基礎Agent種別は `references/agent-cli.md` の条件を使う。条件が未定義、またはtrust/login/初期設定画面なら自動承認せず停止する。
 5. セッション名が指定されていれば `herdr agent rename <pane-id> '<name>'` を実行する。
 
 起動、semantic検出、入力可能確認は別々に行う。pane 配置（`herdr pane split` や `herdr tab create`）には必要に応じて `--no-focus` を使い、親クライアントのフォーカスを奪わない。Agent 起動・依頼送信に使う `herdr pane run <pane-id> '<agent-command>'` には `--no-focus` を追加しない。`--no-focus` は pane 配置コマンドのフォーカス制御オプションであり、`pane run` の引数に混入すると `codex --no-focus` など未対応引数エラーで起動に失敗する。
 
 ## 5. 依頼を直接送る
 
-入力可能を確認した新規Agentには、依頼本文をEnter込みで原子的に送る。`herdr agent send <pane-id> "<文字列>"` は文字列入力のみを行いEnterを送らないため、依頼の実行開始が必要な送信には使わない。Agent種別ごとの差異は `send_request.py` で吸収する。
+入力可能を確認した新規Agentには、依頼本文をEnter込みで原子的に送る。`herdr agent send <pane-id> "<文字列>"` は文字列入力のみを行いEnterを送らないため、依頼の実行開始が必要な送信には使わない。基礎Agent種別ごとの差異は `send_request.py` で吸収し、`--agent` には `base-agent-type` を渡す。
 
 ```bash
 <skill-dir>/scripts/send_request.py \

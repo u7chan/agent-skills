@@ -112,6 +112,15 @@ fi
             self.assertNotIn(name, self.skill)
             self.assertFalse((ROOT / "scripts" / name).exists())
 
+    def test_base_agent_type_and_launch_command_are_separate(self):
+        for text in (self.skill, self.reference):
+            self.assertIn("base-agent-type", text)
+            self.assertIn("agent-command", text)
+            self.assertIn("推測しない", text)
+
+        self.assertIn("--agent` には `base-agent-type`", self.skill)
+        self.assertIn("別の解決処理から渡された `agent-command` は書き換えない", self.reference)
+
     def test_removed_environment_variables_are_not_documented(self):
         prefix = "HERDR" + "_DELEGATE_"
         suffixes = (
