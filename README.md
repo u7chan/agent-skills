@@ -32,6 +32,7 @@
 |-------|-------------|
 | [herdr-worktree-create](herdr-worktree-create/SKILL.md) | Herdr 公式コマンドで独立した worktree と workspace を作成する |
 | [herdr-github-implement-pr](herdr-github-implement-pr/SKILL.md) | Issue 確認から Herdr Agent による実装、PR 作成、レビュー・FB 対応までを一連で進める |
+| [coding-agent-subagent](coding-agent-subagent/SKILL.md) | Herdr委譲向けにcagentで基礎Agent種別と対話起動コマンドを解決する |
 | [herdr-agent-delegate](herdr-agent-delegate/SKILL.md) | Herdr公式プリミティブでCLI Agentを1タブあたり最大4paneに配置し、送信・待機・出力回収を行う |
 | [herdr-prompt-eval-loop](herdr-prompt-eval-loop/SKILL.md) | Herdrの独立Agentでプロンプトを反復実行し、非公開要件による評価と最小改善を行う |
 | [html-artifact-format](html-artifact-format/SKILL.md) | AI向けMarkdownと人間向けHTMLを判断し、視覚化要素入りの単一HTMLを生成する |
