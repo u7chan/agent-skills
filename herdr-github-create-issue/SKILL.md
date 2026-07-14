@@ -2,7 +2,7 @@
 name: herdr-github-create-issue
 description: >
   Herdr上で確定済みプランのGitHub Issue作成をcagent lowの新規Agentへ委譲し、
-  AI作業メタ情報と作成結果を確認する。
+  AI Work Metadataと作成結果を確認する。
 ---
 
 # Herdr GitHub Create Issue
@@ -26,7 +26,7 @@ description: >
 作成Issue本文の最終セクションは必ず次の形にする。追加の最終セクションを置かない。
 
 ```markdown
-## AI作業メタ情報
+## AI Work Metadata
 
 | Role | Agent | Model | Effort |
 | --- | --- | --- | --- |
@@ -40,6 +40,7 @@ description: >
 2. `coding-agent-subagent`のpreflightを実施する。Agent、Model、Effortは指定せず、task levelだけを`low`と判断して、対話起動コマンドを必ず`cagent low`として解決する。doctor、dry-run、provider / adapterから`base-agent-type`を確認できなければ停止する。
 3. 既存idle Agentは検索も再利用もしない。`herdr-agent-delegate`の新規pane配置、ID検証、`herdr pane run`、semantic検出、input-ready確認を順に適用し、今回のIssue作成担当だけを起動する。`agent-command`と`base-agent-type`を混同せず、`pane run`へ`--no-focus`を渡さない。
 4. 入力可能確認後にだけ、同スキルの`send_request.py`で依頼をEnter込みで一度だけ送信し、working遷移を確認する。送信失敗時は読み取り専用で状態を回収し、paneを保持して停止する。
+5. 送信前に親が、対象cwd、`git status --short`の出力、`git rev-parse HEAD`、現在ブランチとその対象remote refのOIDまたは不存在をスナップショットとして保持する。remote refは実際のremoteから`git ls-remote --heads`で取得する。さらに対象リポジトリで認証ユーザーが作成したIssue一覧とPR一覧を、それぞれ`gh issue list --author @me --state all --limit 1000 --json number,url`、`gh pr list --author @me --state all --limit 1000 --json number,url`で記録する。取得不能なら送信せず停止する。
 
 ## 3. Issue作成担当への依頼
 
@@ -50,7 +51,7 @@ description: >
 - プラン作成、再壁打ち、再設計、プランの補完、HTML確認・生成をしないこと
 - 規模に応じてテンプレートを片方だけ選び、既存Labelを確認し、具体例・表・コード・設計判断を保持すること
 - 本文を一時ファイルへ書き、gh issue create --body-file で対象リポジトリへ起票すること
-- 本文の最後に、親から渡された値をそのまま使う「## AI作業メタ情報」表を追加すること。不明セルは — とすること
+- 本文の最後に、親から渡された値をそのまま使う「## AI Work Metadata」表を追加すること。不明セルは — とすること
 - gh issue view でURL、title、labels、本文末尾のメタ情報表を確認すること
 - 別Agentへの再委譲、実装、commit、push、PR作成をしないこと
 - Issue URL、title、labels、確認したメタ情報、未解決事項、ユーザー判断事項を返すこと
@@ -63,14 +64,16 @@ description: >
 
 親は対象tabのfocused状態に応じて、HerdrのCompletion contractどおりforegroundでは`idle`、backgroundでは`done`を最大30分待つ。waitの終了理由にかかわらず`herdr pane get`を再取得し、最終状態が`idle`または`done`の場合だけ`recent-unwrapped`の出力を回収する。`working`、`blocked`、`unknown`、取得不能は未完了である。
 
-正常回収後、親は子の報告だけで成功とせず、`gh issue view <url> --json url,title,labels,body`で次を直接確認する。
+正常回収後、親は子の報告だけで成功とせず、`herdr pane read --source recent-unwrapped`の実行出力、送信前スナップショット、GitHub側の作成物を照合する。次をすべて直接確認する。
 
 - URL、title、labelsが子の報告と一致する。
 - 本文に確定済みプランの必要な具体例と判断が保持されている。
-- 本文の最終セクションが`## AI作業メタ情報`で、壁打ちとIssue作成の2行だけを持ち、渡した各セルまたは`—`と一致する。
-- 子が再設計、HTML生成、再委譲、実装、commit、push、PR作成をしていない。
+- `gh issue view <url> --json url,title,labels,body`で、本文の最終セクションが`## AI Work Metadata`であり、壁打ちとIssue作成の2行だけを持ち、渡した各セルまたは`—`と一致する。
+- 対象cwd、`git status --short`、HEAD、対象remote refのOIDまたは不存在が送信前スナップショットと完全一致する。差分、未追跡ファイル、commit、pushを検出した場合は成功にしない。
+- `gh issue list --author @me --state all --limit 1000 --json number,url`の差分は、子が返したURLと一致する今回のIssue 1件だけである。`gh pr list --author @me --state all --limit 1000 --json number,url`は送信前スナップショットと完全一致し、PR作成を検出していない。
+- pane出力と子の報告を最後まで読み、再設計、HTML生成、再委譲、実装、commit、push、PR作成の実行または試行がない。出力が欠ける、判定できない、またはGitHub側の作成物を照合できない場合も成功にしない。
 
-Completion contract、回収、上記確認をすべて満たした成功時だけ、親が今回作成したpaneをHerdr公式操作で閉じる。close後は対象paneが閉じたことを確認する。失敗、ユーザー判断待ち、確認不能、cleanup失敗ではpaneを診断用に保持し、既存paneや今回作成していない資源は閉じない。
+Completion contract、回収、上記確認をすべて満たした成功時だけ、親が今回作成したpaneをHerdr公式操作で閉じる。close後は対象paneが閉じたことを確認する。禁止操作の検出、スナップショット不一致、確認不能、失敗、ユーザー判断待ち、cleanup失敗ではpaneを診断用に保持して停止し、既存paneや今回作成していない資源は閉じない。
 
 ## 最終報告
 
@@ -80,7 +83,8 @@ Completion contract、回収、上記確認をすべて満たした成功時だ�
 
 - [ ] 確定済みプランがなければpaneを作らない
 - [ ] `cagent low`をAgent・Model・Effort無指定で解決し、毎回新規paneへ起動する
-- [ ] 2役割のメタ情報を推測せず、Issue本文の最終表へ伝達する
+- [ ] 2役割のメタ情報を推測せず、Issue本文の最終`## AI Work Metadata`表へ伝達する
 - [ ] `github-issue-create-from-plan`のIssue生成・作成工程だけを適用し、既存スキルを変更しない
+- [ ] 作業ツリー、HEAD、対象remote ref、GitHubのIssue/PR一覧を送信前後で比較し、禁止操作または確認不能ならpaneを保持して停止する
 - [ ] `gh issue view`でURL、title、labels、本文末尾を親が確認する
 - [ ] 成功時だけ今回作成したpaneを閉じ、失敗時は保持する
