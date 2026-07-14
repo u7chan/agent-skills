@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
+REPO_ROOT = ROOT.parent
 
 
 class IdentityContractTest(unittest.TestCase):
@@ -13,6 +14,7 @@ class IdentityContractTest(unittest.TestCase):
         cls.openai_yaml = (ROOT / "agents" / "openai.yaml").read_text(
             encoding="utf-8"
         )
+        cls.repo_agents = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
 
     def test_runtime_model_precedes_codex_config_fallback(self):
         priority = re.search(
@@ -81,6 +83,24 @@ class IdentityContractTest(unittest.TestCase):
         self.assertIn('display_name: "AI Identity Resolve"', self.openai_yaml)
         self.assertIn("実行モデル優先", self.openai_yaml)
         self.assertIn("$ai-identity-resolve", self.openai_yaml)
+
+    def test_repository_agents_contract_matches_runtime_priority(self):
+        session_index = self.repo_agents.index("現在のAgentセッション")
+        cagent_index = self.repo_agents.index("Herdr/cagent")
+        config_index = self.repo_agents.index("/home/u7dev/.codex/config.toml")
+        unknown_index = self.repo_agents.index("すべて取得不能なら不明")
+
+        self.assertLess(session_index, cagent_index)
+        self.assertLess(cagent_index, config_index)
+        self.assertLess(config_index, unknown_index)
+        self.assertIn("1と2を取得できないCodexに限り", self.repo_agents)
+        self.assertIn(
+            "Herdr/cagentの実行モデルとCodex Configが異なる場合は、"
+            "実行モデルを使ってください",
+            self.repo_agents,
+        )
+        self.assertIn("モデル名を推測しない", self.repo_agents)
+        self.assertNotIn("Codex の設定モデルを明記", self.repo_agents)
 
 
 if __name__ == "__main__":
