@@ -1,0 +1,4 @@
+interface:
+  display_name: "Herdr GitHub Create Issue"
+  short_description: "確定済みプランのIssue作成をHerdr新規Agentへ安全に委譲する"
+  default_prompt: "Use $herdr-github-create-issue to delegate creation of a GitHub issue from a finalized plan through Herdr."

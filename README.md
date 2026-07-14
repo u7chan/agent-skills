@@ -19,6 +19,7 @@
 | Skill | Description |
 |-------|-------------|
 | [github-issue-create-from-plan](github-issue-create-from-plan/SKILL.md) | 設計プラン合意後に GitHub Issue を作成する |
+| [herdr-github-create-issue](herdr-github-create-issue/SKILL.md) | 確定済みプランの Issue 作成を Herdr の新規 Agent へ委譲する |
 | [github-pr-create](github-pr-create/SKILL.md) | PR 本文生成を含めて GitHub に PR を作成する |
 | [github-pr-feedback-address](github-pr-feedback-address/SKILL.md) | GitHub PR のレビュー指摘を確認し、実装対応から返信まで行う |
 | [github-pr-review](github-pr-review/SKILL.md) | 指定した GitHub PR をレビューし、FB 対応後の再チェックまで行う |
