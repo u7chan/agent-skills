@@ -33,7 +33,9 @@ description: >
 
 ユーザー指定をコスト最適化や独自判断で変更しない。明示された値だけを対応するCLIオプションへ渡す。
 
-- agent未指定: agentを推測せず `--agent` を省略し、`default_agent` に任せる。
+- agentの実効値はcagentと同じ `ユーザー明示の --agent > CAGENT_AGENT > config.default_agent` の優先順位で確定する。
+- agent未指定: agentを推測せず `--agent` を省略する。`CAGENT_AGENT` が設定されていればその値、なければ `default_agent` を選択対象とする。
+- `base-agent-type` は、この優先順位で選んだ同じagent IDのprovider / adapterから解決する。
 - model未指定: `--model` を省略する。
 - effort未指定: `--effort` を省略する。
 - level未指定: 次節で判断し、判断不能な場合だけlevelを省略して `default_level` に任せる。
@@ -74,7 +76,7 @@ cagent --agent codex --model gpt-5.6-sol --effort high high
 cagent
 ```
 
-agent未指定でも、doctorで検証された `default_agent` のprovider / adapterから `base-agent-type` を解決する。`agent-command` の実行ファイル名から推測しない。
+agent未指定でも、`CAGENT_AGENT` が設定されていればそのagent ID、なければdoctorで検証された `default_agent` のprovider / adapterから `base-agent-type` を解決する。`agent-command` の実行ファイル名から推測しない。
 
 ## 5. Herdr委譲へ渡す
 

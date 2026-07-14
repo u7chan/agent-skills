@@ -16,8 +16,13 @@ class SkillContractTest(unittest.TestCase):
         for name in ("agent", "level", "model", "effort"):
             self.assertIn(name, self.skill)
 
-    def test_defaults_are_selected_by_omission(self):
+    def test_agent_resolution_matches_cagent_priority(self):
         self.assertIn("`--agent` を省略", self.skill)
+        priority = "`ユーザー明示の --agent > CAGENT_AGENT > config.default_agent`"
+        self.assertIn(priority, self.skill)
+        self.assertIn("この優先順位で選んだ同じagent ID", self.skill)
+
+    def test_defaults_are_selected_by_omission(self):
         self.assertIn("`default_agent`", self.skill)
         self.assertIn("levelを省略して `default_level`", self.skill)
 
