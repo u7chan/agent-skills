@@ -109,19 +109,12 @@ class IdentityContractTest(unittest.TestCase):
         self.assertIn("実行モデル優先", self.openai_yaml)
         self.assertIn("$ai-identity-resolve", self.openai_yaml)
 
-    def test_standard_contract_is_portable_without_repository_agents(self):
-        self.assertIn(
-            "利用先リポジトリの `AGENTS.md` の有無を前提としない標準契約",
-            self.skill,
-        )
-
     def test_direct_posting_skills_resolve_identity_immediately_before_posting(self):
         for name, skill in self.posting_skills.items():
             with self.subTest(skill=name):
                 self.assertIn("`ai-identity-resolve`", skill)
-                self.assertIn("投稿直前", skill)
+                self.assertIn("API へ渡す直前", skill)
                 self.assertIn("必ず", skill)
-                self.assertIn("利用先リポジトリの `AGENTS.md` を前提にせず", skill)
 
     def test_feedback_handoff_leaves_identity_to_posting_skill(self):
         self.assertIn("`github-pr-comment-reply`", self.feedback_skill)

@@ -94,7 +94,7 @@ reviewer の指摘をそのまま仕様とみなさず、現在のコードと�
 
 - review comment には threaded reply、top-level comment には follow-up comment を投稿する。
 - 投稿方法は `github-pr-comment-reply/SKILL.md` に従う。
-- 返信対象、分類、変更内容、commit、検証結果を引き渡し、AI識別値は引き渡さない。投稿を所有する `github-pr-comment-reply` が、利用先リポジトリの `AGENTS.md` の有無にかかわらず、投稿直前に `ai-identity-resolve` を適用して解決する。
+- 返信対象、分類、変更内容、commit、検証結果を引き渡し、AI識別値は引き渡さない。投稿を所有する `github-pr-comment-reply` が投稿直前に `ai-identity-resolve` を適用して解決する。
 - `actionable` には、変更内容、元の失敗条件をどう閉じたか、commit、検証結果を書く。
 - `already-fixed` / `not-applicable` には、判断根拠となる現在のコードや仕様を書く。
 - `question` / `blocked` には、確定に必要な情報を具体的に書く。

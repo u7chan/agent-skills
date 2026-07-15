@@ -10,8 +10,6 @@ description: >
 既存の GitHub PR コメントへ返信するためのスキル。
 review comment への threaded reply と、トップレベルの PR conversation comment への follow-up comment 投稿を切り分けて扱う。
 
-利用先リポジトリの `AGENTS.md` を前提にせず、本スキルの標準契約として投稿直前に `ai-identity-resolve` を必ず読み、適用する。
-
 # ワークフロー
 
 1. 対象 PR と返信対象コメントを特定する。
