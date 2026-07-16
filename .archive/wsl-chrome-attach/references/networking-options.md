@@ -75,6 +75,6 @@ portproxy は CDP を Windows host 側で受けるため、作業後に不要な
 3. 管理者 PowerShell で `netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=9334 connectaddress=127.0.0.1 connectport=9333` を実行する。
 4. WSL 側で `python3 <skill-dir>/scripts/diagnose_chrome_debug.py` を実行する。
 5. 成功した `http://<default-gateway>:9334` を `chrome-devtools-mcp` の `--browserUrl` に渡す。
-6. エージェントを再起動して MCP 設定を読み込み、`wsl-chrome-attach-use` で attach 済み Chrome を操作する。
+6. エージェントを再起動して MCP 設定を読み込む。以後のブラウザ操作はこのスキルの対象外とする。
 
 `portproxy` 設定は Windows 側に残る。2回目以降は、多くの場合 `Chrome Debug` ショートカットで専用 profile の Chrome を起動するだけで、WSL 側から同じ `http://<default-gateway>:9334` に再接続できる。

@@ -76,9 +76,7 @@
 
 | Skill | Description |
 |-------|-------------|
-| [browser-use](browser-use/SKILL.md) | browser-use CLI の独自ブラウザで localhost などの画面確認を進める |
-| [wsl-chrome-attach](wsl-chrome-attach/SKILL.md) | WSL2 上のエージェントから Windows Chrome の remote debugging へ接続診断する |
-| [wsl-chrome-attach-use](wsl-chrome-attach-use/SKILL.md) | attach 済み Windows Chrome を chrome-devtools-mcp 経由で操作する |
+| [playwright-cli](playwright-cli/SKILL.md) | Playwright CLI の独立ブラウザで localhost などの画面検証を進める |
 
 ### Experimental
 

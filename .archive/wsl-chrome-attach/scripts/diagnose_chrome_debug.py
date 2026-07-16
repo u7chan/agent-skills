@@ -302,7 +302,7 @@ def main(argv: list[str]) -> int:
     print("Next step:")
     print(
         "  Add the browserUrl to chrome-devtools-mcp, restart the agent, "
-        "then use the wsl-chrome-attach-use skill."
+        "then confirm the MCP configuration is loaded."
     )
 
     return 0
