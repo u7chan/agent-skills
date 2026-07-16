@@ -2,6 +2,10 @@
 
 PR 作成成功後に読み、`herdr-agent-delegate` の直接送信、待機、出力回収手順を適用する。この文書と参照スキルが衝突する場合、このワークフロー固有の Agent 解決、反復上限、cleanup 規則を優先する。
 
+## PR Work Metadata スナップショット
+
+レビューとレビューFBも、`implementation-delegation.md` の「PR Work Metadata スナップショット」と同じ用語・所有者・取得時点の契約に従う。PR 作成前に担当と値が確定していれば、その固定済みスナップショットだけを PR 本文に使う。この文書で PR 作成後に解決した値は、過去の PR 本文へ追加・更新しない。
+
 ## 1. プリフライト
 
 - `HERDR_ENV=1`、空でない `HERDR_PANE_ID`、`herdr`、利用する Agent CLI を確認する。

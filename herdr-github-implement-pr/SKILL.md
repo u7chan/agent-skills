@@ -74,7 +74,7 @@ worktree が明示された場合:
 ### 3. Herdr で実装して検証する
 
 - `references/implementation-delegation.md` に従い、実装担当 Agent を解決して、実装と変更に直接関連する検証を同期委譲する。
-- オーケストレーターと実装担当の解決結果から、PR 本文用の AI 作業メタ情報を保持する。レビューとレビューFBは、PR 作成前に担当 Agent が会話または解決結果で確定した場合だけ保持する。
+- `references/implementation-delegation.md` の PR Work Metadata スナップショット契約に従い、オーケストレーターと実装の必須行を保持する。レビューとレビューFBは、PR 作成前に担当 Agent が会話または解決結果で確定した場合だけ保持する。
 - 実装担当へ `herdr-github-implement-pr` を使わせず、commit、push、PR 作成、別の実装 Agent への再委譲を禁止する。
 - 成功結果を保持したまま回収し、Completion contract、差分、未追跡ファイル、要求充足、検証結果を親が確認する。
 - 親が formatter、lint、test、build から変更範囲に必要な最終検証を実行する。成果確認と最終検証の成功後だけ新規起動した pane を閉じて commit へ進む。
@@ -120,7 +120,7 @@ worktree が明示された場合:
 | 実装 | `<agent>` | `<model>` | `<effort>` |
 ```
 
-- `references/implementation-delegation.md` の記録済みスナップショットから、オーケストレーターと実装の行を必ず追加する。取得できない各値は推測せず `—` とする。
+- `references/implementation-delegation.md` の固定済み PR Work Metadata スナップショットから、オーケストレーターと実装の行を必ず追加する。取得不能なセルだけ `—` とし、Model の優先順位をこのスキルで再定義しない。
 - レビュー、レビューFBの行は、PR 作成前に担当 Agent が会話または解決結果で確定している場合だけ追加する。未確定の役割を既定 Agent や後続工程から推測して追加しない。
 - `## AI Work Metadata` は PR 本文の最終セクションとし、`github-pr-create` へ完成済みの `PR_BODY` として渡す。PR 作成後に解決したレビュー工程の情報を理由に、この本文を更新しない。
 
