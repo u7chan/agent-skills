@@ -104,10 +104,27 @@ class IdentityContractTest(unittest.TestCase):
             body,
         )
 
+    def test_pr_work_metadata_reuses_the_identity_contract(self):
+        metadata = re.search(
+            r"## PR Work Metadata との整合\n(?P<body>.*?)\n## 出力",
+            self.skill,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(metadata)
+        body = metadata.group("body")
+
+        self.assertIn("標準契約をそのまま適用", body)
+        self.assertIn("Model の優先順位を再定義しない", body)
+        self.assertIn("対象役割の現在 Agent が Agent / Model の値の所有者", body)
+        self.assertIn("実装・レビューの値に親の現在値、別 Agent、過去セッション、別 pane の値を混ぜない", body)
+        self.assertIn("依頼送信の直前に現在値を再取得して固定", body)
+        self.assertIn("親が自身または別 Agent の Codex Config を参照して Model を補完しない", body)
+
     def test_openai_metadata_still_matches_skill(self):
         self.assertIn('display_name: "AI Identity Resolve"', self.openai_yaml)
         self.assertIn("実行モデル優先", self.openai_yaml)
         self.assertIn("$ai-identity-resolve", self.openai_yaml)
+        self.assertIn("PR Work Metadata", self.openai_yaml)
 
     def test_direct_posting_skills_resolve_identity_immediately_before_posting(self):
         for name, skill in self.posting_skills.items():
