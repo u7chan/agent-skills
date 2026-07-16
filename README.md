@@ -77,7 +77,6 @@
 | Skill | Description |
 |-------|-------------|
 | [playwright-cli](playwright-cli/SKILL.md) | Playwright CLI の独立ブラウザで localhost などの画面検証を進める |
-| [wsl-chrome-attach](wsl-chrome-attach/SKILL.md) | WSL2 上のエージェントから Windows Chrome の remote debugging へ接続診断する |
 
 ### Experimental
 

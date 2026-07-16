@@ -2,7 +2,7 @@
 
 廃止したスキルを、履歴保持のために保管するディレクトリです。
 
-現在、Herdr への移行に伴って廃止した `tmux-*` スキルを保管しています。
+現在は、Herdr への移行に伴って廃止した `tmux-*` スキルに加え、Playwright CLI への移行で利用停止した `browser-use`、`wsl-chrome-attach`、`wsl-chrome-attach-use` を保管しています。
 
 ## 運用ルール
 
