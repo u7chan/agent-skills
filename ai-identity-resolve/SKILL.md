@@ -1,7 +1,7 @@
 ---
 name: ai-identity-resolve
 description: >
-  レビューコメントやPR返信に付けるAI識別メタデータを解決するときに使う。
+  レビューコメントやPR返信、PR Work Metadataに付けるAI識別メタデータを解決するときに使う。
   現在のAgentの実行モデルを優先し、取得不能時だけConfigへフォールバックする。
 ---
 

@@ -82,6 +82,13 @@ class IdentityContractTest(unittest.TestCase):
             self.skill,
         )
 
+    def test_frontmatter_description_covers_pr_work_metadata(self):
+        self.assertIn(
+            "description: >\n"
+            "  レビューコメントやPR返信、PR Work Metadataに付けるAI識別メタデータを解決するときに使う。",
+            self.skill,
+        )
+
     def test_identity_owner_and_handoff_timing_are_explicit(self):
         timing = re.search(
             r"## 取得タイミングと所有者\n(?P<body>.*?)\n## 出力",
