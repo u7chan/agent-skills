@@ -118,7 +118,7 @@ class DiagnoseChromeDebugTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         text = output.getvalue()
         self.assertIn("Next step:", text)
-        self.assertIn("wsl-chrome-attach-use skill", text)
+        self.assertIn("confirm the MCP configuration is loaded", text)
 
 
 if __name__ == "__main__":

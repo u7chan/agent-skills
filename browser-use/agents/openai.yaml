@@ -1,4 +1,0 @@
-interface:
-  display_name: "Browser Use"
-  short_description: "browser-use CLIの独自ブラウザでlocalhost画面を確認する"
-  default_prompt: "Use $browser-use to check localhost screens with the browser-use CLI custom browser."

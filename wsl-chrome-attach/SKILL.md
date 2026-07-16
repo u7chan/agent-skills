@@ -7,7 +7,7 @@ description: WSL2 上の Codex や Claude Code などのコーディングエー
 
 WSL2 上のエージェントから Windows 側 Chrome の Chrome DevTools Protocol (CDP) endpoint に到達できるか確認し、MCP 設定に使う `--browserUrl=...` を決める。
 
-このスキルは attach までを扱う。attach 後のクリック、入力、スクリーンショット確認は `wsl-chrome-attach-use` を使う。
+このスキルは CDP endpoint の接続診断とMCP設定用URLの特定までを扱う。ブラウザ操作は対象外とする。
 
 # 必須注意
 
@@ -93,7 +93,7 @@ PowerShell で確認する。
 
 `--browserUrl` の値は診断スクリプトの成功結果に合わせる。WSL networking mode によって `127.0.0.1`、`localhost`、Windows host IP のどれが通るかは変わる。
 
-MCP 設定を反映するには、利用中のエージェントを再起動して MCP サーバーを読み込ませる。再起動後、`wsl-chrome-attach-use` を使い、このセッションで `navigate_page`、`take_screenshot`、`click`、`fill` などの Chrome DevTools MCP ツールが見えていることを確認してから操作する。
+MCP 設定を反映するには、利用中のエージェントを再起動して MCP サーバーを読み込ませる。再起動後のブラウザ操作は、このスキルの対象外とする。
 
 # 失敗時の切り分け
 
@@ -116,4 +116,4 @@ MCP 設定を反映するには、利用中のエージェントを再起動し�
 - `0.0.0.0` bind を正式手順にしない注意が先頭にある
 - 診断スクリプトの実行方法と成功 URL の使い方が本文だけで分かる
 - NAT mode / portproxy の詳細は `references/` に分離されている
-- attach 後の操作は `wsl-chrome-attach-use` に委ねることが明記されている
+- 接続診断とMCP設定用URLの特定までが対象であることが明記されている

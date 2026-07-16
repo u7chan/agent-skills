@@ -1,0 +1,4 @@
+interface:
+  display_name: "Playwright CLI"
+  short_description: "Playwright CLIで独立ブラウザの画面検証を進める"
+  default_prompt: "Use $playwright-cli to test a localhost or specified URL in an independent browser session."
