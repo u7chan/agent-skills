@@ -112,7 +112,7 @@ README のグルーピングはスキル名の prefix ではなく、利用目�
 ローカル検証は次のコマンドで実行できます。
 
 ```sh
-bash scripts/validate-skills.sh
+bash .scripts/validate-skills.sh
 ```
 
 この検証では、`SKILL.md` の行数、`references/` の参照切れ、README の `Available Skills` と実スキル一覧の一致を確認します。

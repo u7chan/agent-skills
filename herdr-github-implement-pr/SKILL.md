@@ -149,4 +149,4 @@ worktree が明示された場合:
 - [ ] 新規・再利用、成功・失敗で pane cleanup が区別される
 - [ ] PR 成功とレビュー工程の失敗が区別され、診断情報が保持される
 - [ ] PR 本文末尾の AI 作業メタ情報にオーケストレーターと実装があり、未取得値は `—`、PR 作成前に未確定のレビュー役割は含まれない
-- [ ] skill validation、`bash scripts/validate-skills.sh`、`git diff --check` が成功する
+- [ ] skill validation、`bash .scripts/validate-skills.sh`、`git diff --check` が成功する
