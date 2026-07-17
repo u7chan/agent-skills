@@ -1,6 +1,6 @@
 # agent skills
 
-[![Skills](https://img.shields.io/badge/skills-31-2ea44f?style=flat-square)](#available-skills)
+[![Skills](https://img.shields.io/badge/skills-30-2ea44f?style=flat-square)](#available-skills)
 [![Validation](https://img.shields.io/github/actions/workflow/status/u7chan/agent-skills/validate-skills.yml?branch=main&style=flat-square&label=validation)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
 
 コーディングエージェント用のカスタムスキル集です。
@@ -55,8 +55,7 @@
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [japanese-text-proofread](japanese-text-proofread/SKILL.md) | 日本語の文章や Markdown 原稿の誤字脱字・表記ゆれを点検する | — |
-| [japanese-ai-text-naturalize](japanese-ai-text-naturalize/SKILL.md) | AI生成っぽい技術・業務文を自然で実用的な日本語へ整える | — |
+| [japanese-text-refine](japanese-text-refine/SKILL.md) | 日本語文書の校正・自然化・執筆・推敲を目的に応じて扱う | — |
 
 ### 品質 / テスト設計
 

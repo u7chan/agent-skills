@@ -1,0 +1,4 @@
+interface:
+  display_name: "日本語文章の校正・推敲"
+  short_description: "日本語の校正・自然化・技術業務文の執筆と推敲を支援する"
+  default_prompt: "Use $japanese-text-refine to proofread, revise, or improve this Japanese text."
