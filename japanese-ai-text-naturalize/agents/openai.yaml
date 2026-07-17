@@ -1,4 +1,0 @@
-interface:
-  display_name: "日本語AI文リライト"
-  short_description: "AI生成っぽい日本語を自然な技術・業務文へ整え直す"
-  default_prompt: "Use $japanese-ai-text-naturalize to revise this Japanese draft so it sounds natural and useful."
