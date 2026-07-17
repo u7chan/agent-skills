@@ -33,6 +33,13 @@ description: 日本語文書を目的と文書種別に応じて校正、自然�
 新規執筆、リライト、構成整理、論証の強化、読みやすさやリズムの改善を求める依頼に使う。
 `references/writing-and-revision.md`、`references/output.md` を読み、文書種別が明確なら `references/document-types.md` も読む。
 
+## 書き換えない依頼形式
+
+次は新しい作業モードではなく、既存3モードの観点で評価だけを返す依頼形式とする。本文の書き換えを求められていなければ、本文を変更しない。
+
+- **診断のみ**: 「診断して」「AIっぽい箇所だけ指摘して」などの依頼では、`references/naturalization.md` と `references/output.md` を読む。
+- **比較・レビューのみ**: 複数案の比較や指摘だけを求める依頼では、評価対象に対応する reference と `references/output.md` を読む。文章上の誤りは `references/proofreading.md`、AIっぽさや自然さは `references/naturalization.md`、構成・論証・読みやすさは `references/writing-and-revision.md` を使う。
+
 複数の意図がある場合は、変更範囲の広いモードから処理し、最後に校正する。
 依頼が曖昧な場合は、意味や構成を変えない範囲で進め、広い変更は提案として分ける。
 各モードで変更境界に迷う場合だけ `references/examples.md` を読む。
