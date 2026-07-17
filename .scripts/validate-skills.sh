@@ -100,15 +100,19 @@ else
   fi
 
   if ! awk -F '|' '
+    /^\| Skill \|/ {
+      headers++
+      if ($0 != "| Skill | Description | External Dependencies |") invalid = 1
+    }
     /^\| \[[^]]+\]\([^)]+\/SKILL\.md\)/ {
       dependency = $4
       gsub(/^[[:space:]]+|[[:space:]]+$/, "", dependency)
       if (NF != 5 || dependency == "") invalid = 1
       rows++
     }
-    END { exit rows > 0 && !invalid ? 0 : 1 }
+    END { exit headers > 0 && rows > 0 && !invalid ? 0 : 1 }
   ' README.md; then
-    report_failure 'README skill rows must use Skill | Description | External Dependencies with a non-empty dependency cell'
+    report_failure 'README skill tables must use Skill | Description | External Dependencies with a non-empty dependency cell'
   fi
 fi
 
