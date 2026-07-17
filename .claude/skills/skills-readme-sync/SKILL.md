@@ -43,6 +43,7 @@ description: >
 - リポジトリ直下の各スキルディレクトリ
 - `.claude/skills/` 配下の各スキルディレクトリ
 - 各スキルの `SKILL.md`
+- 各スキルの `references/`、`scripts/`、プログラム内の import と外部コマンド参照
 - `README.md` の `Available Skills`
 
 `.archive/` 配下は利用・保守対象外のため、スキル一覧の収集対象から除外する。
@@ -64,10 +65,23 @@ README の説明文は `SKILL.md` の front matter と本文冒頭から短く�
   - 列は増やさない (該当スキルが少数のため、列追加は表が広がるだけ)
 - 実験的なスキルは Description の `experimental` バッジではなく、`Experimental` グループに置く
 
+### Step 2.5: 外部依存を決める
+
+`External Dependencies` には、スキル実行に必要な CLI、ランタイム、外部サービスを短く列挙する。
+
+ルール:
+- `SKILL.md` だけでなく、直接参照する `references/`、`scripts/`、プログラムの import・subprocess 呼び出しも確認する
+- リポジトリ内の別スキルは外部依存に含めない
+- Python 標準ライブラリは個別名ではなく `Python 3` と記載し、外部ライブラリだけをパッケージ名で記載する
+- 特定フローだけで必要な依存は `(conditional)`、代替手段は `(optional)`、fallback は `(fallback)` と記載する
+- 必須の外部依存がない場合は `—` とする
+- 表の列は `Skill | Description | External Dependencies` に揃える
+
 ### Step 3: README の一覧を同期する
 
 更新対象:
 - `Available Skills` のグループ別の表
+- README 先頭の Shields.io スキル数バッジ
 
 #### グルーピング方針
 
@@ -115,8 +129,10 @@ README の説明文は `SKILL.md` の front matter と本文冒頭から短く�
 ## 品質チェック
 
 - [ ] `.archive/` を除く実在する全スキルが `Available Skills` のいずれかのグループに載っている
+- [ ] Shields.io スキル数バッジが実在するスキル数と一致している
 - [ ] 各グループ見出しの直後に表が続き、空のグループ見出しが残っていない
 - [ ] 各スキルのリンク先が正しい
 - [ ] 説明文が古いスキル名や古い用途を含んでいない
+- [ ] 各スキルの `External Dependencies` がプロンプト、参照資料、スクリプト、コードの実態と一致している
 - [ ] グループ内の並びが、関連の強さや作業フローの順として説明できる
 - [ ] README 以外のファイルを変更する場合は、その必要性が明確である

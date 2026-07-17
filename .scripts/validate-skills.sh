@@ -90,6 +90,30 @@ else
     [[ -z "$stale_skill" ]] && continue
     report_failure "README Available Skills references missing skill: $stale_skill"
   done < "$tmp_dir/readme.stale"
+
+  skill_count="$(wc -l < "$tmp_dir/skills.actual" | tr -d ' ')"
+  badge_count="$(sed -nE 's#.*img\.shields\.io/badge/skills-([0-9]+)-.*#\1#p' README.md | head -n 1)"
+  if [[ -z "$badge_count" ]]; then
+    report_failure 'README Shields.io skill count badge is missing'
+  elif [[ "$badge_count" != "$skill_count" ]]; then
+    report_failure "README skill count badge is $badge_count; expected $skill_count"
+  fi
+
+  if ! awk -F '|' '
+    /^\| Skill \|/ {
+      headers++
+      if ($0 != "| Skill | Description | External Dependencies |") invalid = 1
+    }
+    /^\| \[[^]]+\]\([^)]+\/SKILL\.md\)/ {
+      dependency = $4
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", dependency)
+      if (NF != 5 || dependency == "") invalid = 1
+      rows++
+    }
+    END { exit headers > 0 && rows > 0 && !invalid ? 0 : 1 }
+  ' README.md; then
+    report_failure 'README skill tables must use Skill | Description | External Dependencies with a non-empty dependency cell'
+  fi
 fi
 
 # Validate agents/openai.yaml metadata for each skill
