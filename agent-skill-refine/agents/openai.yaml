@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Skill Refine"
+  short_description: "既存Agent Skillを意味保存で短く高密度に改善する"
+  default_prompt: "Use $agent-skill-refine to improve this existing Agent Skill without changing its intended behavior."

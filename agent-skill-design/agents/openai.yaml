@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Skill Design"
+  short_description: "Agent Skillの新規作成・仕様変更・再設計を行う"
+  default_prompt: "Use $agent-skill-design to design or redesign an Agent Skill from these requirements."
