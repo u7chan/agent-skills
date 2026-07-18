@@ -1,6 +1,6 @@
 # agent skills
 
-[![Skills](https://img.shields.io/badge/skills-30-2ea44f?style=flat-square)](#available-skills)
+[![Skills](https://img.shields.io/badge/skills-31-2ea44f?style=flat-square)](#available-skills)
 [![Validation](https://img.shields.io/github/actions/workflow/status/u7chan/agent-skills/validate-skills.yml?branch=main&style=flat-square&label=validation)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
 
 コーディングエージェント用のカスタムスキル集です。
@@ -75,6 +75,7 @@
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
+| [apple-interface-design](apple-interface-design/SKILL.md) | Appleの設計思想をWebへ翻案し、流体モーションとアクセシブルなUIを設計・レビューする | — |
 | [tailwind-ui-compose](tailwind-ui-compose/SKILL.md) | 画面構成から始めて Tailwind UI の設計と実装方針を整える | Tailwind CSS project |
 
 ### ブラウザ操作 / 検証
