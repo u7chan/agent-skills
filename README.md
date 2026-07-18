@@ -31,7 +31,7 @@
 | [github-pr-review](github-pr-review/SKILL.md) | 指定した GitHub PR をレビューし、FB 対応後の再チェックまで行う | `gh`, `jq`, GitHub API, POSIX shell |
 | [github-pr-comment-reply](github-pr-comment-reply/SKILL.md) | GitHub PR の review comment や conversation comment に返信する | `gh`, GitHub API, POSIX shell |
 | [github-pr-post-merge-cleanup](github-pr-post-merge-cleanup/SKILL.md) | マージ済み PR の基準ブランチへ戻り、ローカル作業ブランチを安全に整理する | `gh`, Git, POSIX shell |
-| [ai-identity-resolve](ai-identity-resolve/SKILL.md) | AIレビュー補助コメントやPR Work Metadata用のエージェント名・モデル名を推測せず取得する | Herdr / `cagent` (optional), Codex config (fallback) |
+| [ai-identity-resolve](ai-identity-resolve/SKILL.md) | AIレビュー補助コメントやPR Work Metadata用のエージェント名・モデル名・Effortを推測せず取得する | Herdr / `cagent` (optional), Codex config (fallback) |
 
 ### 実装 / 成果物生成
 

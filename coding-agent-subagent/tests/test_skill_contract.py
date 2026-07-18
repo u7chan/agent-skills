@@ -67,6 +67,8 @@ class SkillContractTest(unittest.TestCase):
         self.assertIn("base-agent-type", self.skill)
         self.assertIn("agent-command", self.skill)
         self.assertIn("ラッパー名 `cagent`", self.skill)
+        self.assertIn("Agent表示名が必要な後続処理", self.skill)
+        self.assertIn("cagent agent IDやpane・役割識別子を渡さない", self.skill)
 
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ description: >
 ## 1. 役割とメタ情報を確定する
 
 - 親の現在Agentを`壁打ち`、新規paneで起動するAgentを`Issue作成`とする。親を`オーケストレーター`として別行に記録しない。
-- 壁打ち担当は、`ai-identity-resolve`に従い、親自身が現在のAgentセッションまたはHerdr/cagentの明示実行モデルをConfigより優先して取得する。実行モデルを取得できないCodexだけが`~/.codex/config.toml`の`model`へフォールバックする。会話開始時または過去の取得値を再利用しない。Effortは実行環境または明示設定から直接取得する。
+- 壁打ち担当は、`ai-identity-resolve`のAgent / Model / Effort標準契約に従い、親自身の現在値を取得する。会話開始時または過去の取得値を再利用しない。ModelまたはEffortの優先順位をこのスキルで再定義しない。
 - Issue作成担当は、`cagent low`のdoctor / dry-runで解決されたAgent、Model、Effortを使う。起動コマンド、Agent種別、既定値からModelやEffortを推測しない。
 - 各セルは取得できない時だけ`—`とする。両役割の確定値は、入力可能確認後の送信直前に親がハンドオフ時点のスナップショットとして固定し、子へ明示する。子は親のAgent、Model、Effortを再解決、推測、上書きせず、渡された値をそのままAI Work Metadataに使う。
 
@@ -41,7 +41,7 @@ description: >
 3. 既存idle Agentは検索も再利用もしない。`herdr-agent-delegate`の新規pane配置、ID検証、`herdr pane run`、semantic検出、input-ready確認を順に適用し、今回のIssue作成担当だけを起動する。`agent-command`と`base-agent-type`を混同せず、`pane run`へ`--no-focus`を渡さない。
 4. 入力可能確認後、`send_request.py`で依頼を送信する直前に、親が次の順で送信前処理を完了する。途中で取得不能なら送信せず、paneを保持して停止する。
    1. 親が、対象cwd、`git status --short`の出力、`git rev-parse HEAD`、現在ブランチとその対象remote refのOIDまたは不存在を送信前スナップショットとして保持する。remote refは実際のremoteから`git ls-remote --heads`で取得する。さらに対象リポジトリで認証ユーザーが作成したIssue一覧とPR一覧を、それぞれ`gh issue list --author @me --state all --limit 1000 --json number,url`、`gh pr list --author @me --state all --limit 1000 --json number,url`で記録する。
-   2. 送信の最後の準備として、壁打ち担当の識別情報を所有者である親が再取得する。`ai-identity-resolve`の契約どおり、現在のAgentセッション、親paneを起動したHerdr/cagentの明示または解決済み実行モデルの順で取得し、どちらも取得できないCodexの場合だけ親自身が`~/.codex/config.toml`を直接再読込して`model`へフォールバックする。それも取得できない場合だけModelを`—`とする。モデル名は推測せず、会話開始時または過去の取得値を使わない。
+   2. 送信の最後の準備として、壁打ち担当の識別情報を所有者である親が再取得する。`ai-identity-resolve`のAgent / Model / Effort標準契約を適用し、取得不能なセルだけ`—`とする。ModelまたはEffortの優先順位をこのスキルで再定義せず、会話開始時または過去の取得値を使わない。
    3. 再取得した壁打ち担当の値と、`cagent low`のdoctor / dry-runで解決済みのIssue作成担当の値を、ハンドオフ時点のメタ情報スナップショットとして固定する。依頼にはこの固定値を明示し、子は親の値を再解決、推測、上書きせず、そのままAI Work Metadataに使う。
    4. 確定済みプラン原文、対象リポジトリ、固定したメタ情報表、送信指示を含む依頼を組み立て、同スキルの`send_request.py`でEnter込みで一度だけ送信する。親自身の識別情報の最終取得完了から送信まで、外部I/Oや識別情報の再取得を挟まない。送信後に壁打ち担当の識別情報を再取得または変更しない。送信失敗時は読み取り専用で状態を回収し、paneを保持して停止する。
 

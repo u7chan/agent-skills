@@ -120,7 +120,7 @@ worktree が明示された場合:
 | 実装 | `<agent>` | `<model>` | `<effort>` |
 ```
 
-- `references/implementation-delegation.md` の固定済み PR Work Metadata スナップショットから、オーケストレーターと実装の行を必ず追加する。取得不能なセルだけ `—` とし、Model の優先順位をこのスキルで再定義しない。
+- `references/implementation-delegation.md` の固定済み PR Work Metadata スナップショットから、オーケストレーターと実装の行を必ず追加する。取得不能なセルだけ `—` とし、ModelまたはEffortの優先順位をこのスキルで再定義しない。
 - レビュー、レビューFBの行は、PR 作成前に担当 Agent が会話または解決結果で確定している場合だけ追加する。未確定の役割を既定 Agent や後続工程から推測して追加しない。
 - `## AI Work Metadata` は PR 本文の最終セクションとし、`github-pr-create` へ完成済みの `PR_BODY` として渡す。PR 作成後に解決したレビュー工程の情報を理由に、この本文を更新しない。
 
