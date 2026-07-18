@@ -1,6 +1,6 @@
 # agent skills
 
-[![Skills](https://img.shields.io/badge/skills-31-2ea44f?style=flat-square)](#available-skills)
+[![Skills](https://img.shields.io/badge/skills-32-2ea44f?style=flat-square)](#available-skills)
 [![Validation](https://img.shields.io/github/actions/workflow/status/u7chan/agent-skills/validate-skills.yml?branch=main&style=flat-square&label=validation)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
 
 コーディングエージェント用のカスタムスキル集です。
@@ -94,7 +94,8 @@
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [skill-author](skill-author/SKILL.md) | SKILL.md ファイルの作成と改善を行う | — |
+| [agent-skill-design](agent-skill-design/SKILL.md) | Agent Skillの新規作成、仕様変更、全面再設計、設計レビューを行う | — |
+| [agent-skill-refine](agent-skill-refine/SKILL.md) | 既存Agent Skillを挙動を変えず短く高密度に改善する | — |
 | [skills-readme-sync](.claude/skills/skills-readme-sync/SKILL.md) | **本リポジトリ専用** — README のスキル一覧を現在のスキル構成へ同期する | Bash, Python 3, coreutils |
 | [codex-skills-link-from-claude](codex-skills-link-from-claude/SKILL.md) | `.claude/skills` を `.codex/skills` から再利用できるようにリンクする | POSIX shell, coreutils |
 
