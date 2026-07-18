@@ -33,6 +33,7 @@ find_skill_files() {
 }
 
 find_skill_files > "$tmp_dir/skills.actual"
+sed '/^\.claude\/skills\//d' "$tmp_dir/skills.actual" > "$tmp_dir/skills.distributable"
 
 if [[ ! -s "$tmp_dir/skills.actual" ]]; then
   report_failure 'no SKILL.md files found'
@@ -78,8 +79,8 @@ else
     sed -E 's#.*\(([^)]+)\).*#\1#' |
     sort -u > "$tmp_dir/skills.readme"
 
-  comm -23 "$tmp_dir/skills.actual" "$tmp_dir/skills.readme" > "$tmp_dir/readme.missing"
-  comm -13 "$tmp_dir/skills.actual" "$tmp_dir/skills.readme" > "$tmp_dir/readme.stale"
+  comm -23 "$tmp_dir/skills.distributable" "$tmp_dir/skills.readme" > "$tmp_dir/readme.missing"
+  comm -13 "$tmp_dir/skills.distributable" "$tmp_dir/skills.readme" > "$tmp_dir/readme.stale"
 
   while IFS= read -r missing_skill; do
     [[ -z "$missing_skill" ]] && continue
@@ -91,7 +92,7 @@ else
     report_failure "README Available Skills references missing skill: $stale_skill"
   done < "$tmp_dir/readme.stale"
 
-  skill_count="$(wc -l < "$tmp_dir/skills.actual" | tr -d ' ')"
+  skill_count="$(wc -l < "$tmp_dir/skills.distributable" | tr -d ' ')"
   badge_count="$(sed -nE 's#.*img\.shields\.io/badge/skills-([0-9]+)-.*#\1#p' README.md | head -n 1)"
   if [[ -z "$badge_count" ]]; then
     report_failure 'README Shields.io skill count badge is missing'

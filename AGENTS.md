@@ -19,6 +19,7 @@ README のグルーピングはスキル名の prefix ではなく、利用目�
 - 長い例、詳細手順、CLI/APIサンプル、トラブルシュートは `references/` に用途別で分割する
 - スキルの追加・変更時は、`SKILL.md`、`references/`、`scripts/`、プログラム内の import・外部コマンドを確認し、README の `External Dependencies` を同期する
 - スキルの追加・削除時は、README 先頭の Shields.io スキル数バッジも同期する
+- `.claude/skills/` 配下のリポジトリ保守専用スキルは品質検証対象に含めるが、README の `Available Skills` とスキル数バッジには含めない
 - 依存が特定フローに限られる場合は `conditional`、代替手段の場合は `optional` と明記する
 
 ローカル検証:

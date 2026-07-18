@@ -2,14 +2,14 @@
 name: skills-readme-sync
 description: >
   このリポジトリでスキルを追加・改名・削除・大幅変更し、READMEの更新が必要なときに使う。
-  Available Skills表を現在のスキル構成へ同期する。
+  Available Skills表を現在の配布対象スキル構成へ同期する。
 ---
 
 # Skills README Sync
 
 ## 概要
 
-このスキルは、`agent-skills` リポジトリ内のスキル変更に合わせて `README.md` のスキル一覧を同期する。
+このスキルは、`agent-skills` リポジトリ内の配布対象スキルの変更に合わせて `README.md` のスキル一覧を同期する。
 スキル本体だけ直して README を更新し忘れる漏れを防ぐためのもの。
 
 ## このスキルを使用するタイミング
@@ -41,13 +41,14 @@ description: >
 
 確認するもの:
 - リポジトリ直下の各スキルディレクトリ
-- `.claude/skills/` 配下の各スキルディレクトリ
+- `.claude/skills/` 配下のリポジトリ保守専用スキル
 - 各スキルの `SKILL.md`
 - 各スキルの `references/`、`scripts/`、プログラム内の import と外部コマンド参照
 - `README.md` の `Available Skills`
 
 `.archive/` 配下は利用・保守対象外のため、スキル一覧の収集対象から除外する。
-`find . -path './.archive' -prune -o -name SKILL.md -print | sort` などで実在するアクティブなスキルを確認し、README の列挙漏れや古い名前を見つける。
+`.claude/skills/` 配下は品質検証対象だが配布対象外のため、README の一覧とスキル数から除外する。
+実在する配布対象スキルを確認し、README の列挙漏れや古い名前を見つける。
 
 ### Step 2: 一覧表の説明を決める
 
@@ -58,11 +59,6 @@ README の説明文は `SKILL.md` の front matter と本文冒頭から短く�
 - スキルの用途を先に書く
 - README では詳細手順を書きすぎない
 - 既存の日本語トーンに合わせる
-- 性質バッジを Description セルの先頭に付ける場合は次の書式に揃える
-  - 書式: `**<バッジ>** — <用途の短い説明>`
-  - 用途が定まっているバッジ:
-    - `**本リポジトリ専用**`: 他リポジトリで使うことを想定していない、この `agent-skills` リポジトリ自身のメンテに紐付くスキル (例: `skills-readme-sync`)
-  - 列は増やさない (該当スキルが少数のため、列追加は表が広がるだけ)
 - 実験的なスキルは Description の `experimental` バッジではなく、`Experimental` グループに置く
 
 ### Step 2.5: 外部依存を決める
@@ -81,7 +77,7 @@ README の説明文は `SKILL.md` の front matter と本文冒頭から短く�
 
 更新対象:
 - `Available Skills` のグループ別の表
-- README 先頭の Shields.io スキル数バッジ
+- README 先頭の Shields.io 配布スキル数バッジ
 
 #### グルーピング方針
 
@@ -116,7 +112,6 @@ README の説明文は `SKILL.md` の front matter と本文冒頭から短く�
 - スキル追加時は適切なグループの表に追記する
 - スキル名変更時は一覧の名前とリンク先を揃える
 - スキル削除時は一覧から消す。グループが空になったら見出しも消す
-- 配置場所が `.claude/skills/` の場合は一覧のリンク先にそのパスを反映する
 - セットアップ手順など無関係な箇所は変更しない
 
 ### Step 4: 差分を検証する
@@ -128,8 +123,9 @@ README の説明文は `SKILL.md` の front matter と本文冒頭から短く�
 
 ## 品質チェック
 
-- [ ] `.archive/` を除く実在する全スキルが `Available Skills` のいずれかのグループに載っている
-- [ ] Shields.io スキル数バッジが実在するスキル数と一致している
+- [ ] 実在する全配布対象スキルが `Available Skills` のいずれかのグループに載っている
+- [ ] `.claude/skills/` 配下のリポジトリ保守専用スキルが `Available Skills` に載っていない
+- [ ] Shields.io スキル数バッジが実在する配布対象スキル数と一致している
 - [ ] 各グループ見出しの直後に表が続き、空のグループ見出しが残っていない
 - [ ] 各スキルのリンク先が正しい
 - [ ] 説明文が古いスキル名や古い用途を含んでいない

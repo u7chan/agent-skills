@@ -1,4 +1,4 @@
 interface:
   display_name: "Skills README Sync"
-  short_description: "スキル追加・変更後にREADMEのAvailable Skills表を同期する"
-  default_prompt: "Use $skills-readme-sync to update the README Available Skills table after skill changes."
+  short_description: "配布対象スキルの変更後にREADMEの一覧と件数を同期する"
+  default_prompt: "Use $skills-readme-sync to update the README Available Skills table and count after distributable skill changes."
