@@ -1,4 +1,0 @@
-interface:
-  display_name: "Grilling"
-  short_description: "計画や設計を実装前に徹底的に壁打ちして前提を明確にする"
-  default_prompt: "Use $grilling to thoroughly grill a plan or design and clarify decisions before implementation."

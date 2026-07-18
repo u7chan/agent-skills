@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-PARENT_SKILL_ROOT = ROOT.parent / "herdr-github-implement-pr"
+PARENT_SKILL_ROOT = ROOT.parent / "herdr-github-pr-orchestrate"
 
 
 class SkillContractTest(unittest.TestCase):

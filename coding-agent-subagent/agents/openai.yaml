@@ -1,4 +1,0 @@
-interface:
-  display_name: "Coding Agent Subagent"
-  short_description: "Herdr上でcagentの対話起動コマンドと基礎Agent種別を解決"
-  default_prompt: "Use $coding-agent-subagent to resolve the cagent interactive launch command for this Herdr delegation."

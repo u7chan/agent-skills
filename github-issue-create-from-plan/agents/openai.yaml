@@ -1,4 +1,4 @@
 interface:
   display_name: "GitHub Issue Create from Plan"
   short_description: "設計プランからGitHub Issueを作成し必要に応じてHTMLも生成する"
-  default_prompt: "Use $github-issue-create-from-plan to create a GitHub issue from a finalized design plan."
+  default_prompt: "Use $github-issue-create-from-plan to create and verify a GitHub issue from an already finalized plan."

@@ -26,7 +26,7 @@ API_PATHS = {
 FEEDBACK_SKILL_PATH = REPO_ROOT / "github-pr-feedback-address" / "SKILL.md"
 IMPLEMENTATION_PATH = (
     REPO_ROOT
-    / "herdr-github-implement-pr"
+    / "herdr-github-pr-orchestrate"
     / "references"
     / "implementation-delegation.md"
 )

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cagent Agent Command Resolve"
+  short_description: "cagentで基礎Agent種別と対話起動コマンドを解決"
+  default_prompt: "Use $cagent-agent-command-resolve to resolve base-agent-type and agent-command without starting an agent."

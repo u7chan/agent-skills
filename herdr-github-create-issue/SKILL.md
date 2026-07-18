@@ -13,7 +13,7 @@ description: >
 
 - Herdr環境で、ユーザーのIssue作成依頼、対象リポジトリ、会話内の確定済みプランがそろった時だけ使う。確定済みプランは、合意済みの`<proposed_plan>`または同等に最終版と明示された原文全体とする。
 - プランがない、未確定、対象リポジトリが不明、またはHerdr / `cagent` / `gh`のpreflightに失敗した場合、paneを作らずに停止する。Grill系スキルまたは設計会話で先にプランを確定するよう案内する。
-- `github-issue-create-from-plan`、`coding-agent-subagent`、`herdr-agent-delegate`、`ai-identity-resolve`を事前に読み、後者2つの起動・送信・Completion contractを適用する。本スキル固有の新規pane、責務、cleanup規則を優先する。
+- `github-issue-create-from-plan`、`cagent-agent-command-resolve`、`herdr-agent-delegate`、`ai-identity-resolve`を事前に読む。cagentの解決は`cagent-agent-command-resolve`、pane配置・起動・送信・Completion contractは`herdr-agent-delegate`、識別値は`ai-identity-resolve`を適用する。本スキル固有の責務とcleanup規則を優先する。
 - 自動再試行、親による代替起票、別Agentへの切替・再委譲はしない。失敗、`blocked`、timeout、Completion contract違反、作成結果の不一致ではpaneを保持して停止する。
 
 ## 1. 役割とメタ情報を確定する
@@ -37,7 +37,7 @@ description: >
 ## 2. Issue作成担当を毎回新規起動する
 
 1. `HERDR_ENV=1`、空でない`HERDR_PANE_ID`、`herdr`、`jq`、`cagent`、`gh`を確認し、`herdr pane current --current`から現在のIDと作業ディレクトリを都度取得する。
-2. `coding-agent-subagent`のpreflightを実施する。Agent、Model、Effortは指定せず、task levelだけを`low`と判断して、対話起動コマンドを必ず`cagent low`として解決する。doctor、dry-run、provider / adapterから`base-agent-type`を確認できなければ停止する。
+2. `cagent-agent-command-resolve`のpreflightを実施する。Agent、Model、Effortは指定せず、task levelだけを`low`と判断して、対話起動コマンドを必ず`cagent low`として解決する。doctor、dry-run、provider / adapterから`base-agent-type`を確認できなければ停止する。
 3. 既存idle Agentは検索も再利用もしない。`herdr-agent-delegate`の新規pane配置、ID検証、`herdr pane run`、semantic検出、input-ready確認を順に適用し、今回のIssue作成担当だけを起動する。`agent-command`と`base-agent-type`を混同せず、`pane run`へ`--no-focus`を渡さない。
 4. 入力可能確認後、`send_request.py`で依頼を送信する直前に、親が次の順で送信前処理を完了する。途中で取得不能なら送信せず、paneを保持して停止する。
    1. 親が、対象cwd、`git status --short`の出力、`git rev-parse HEAD`、現在ブランチとその対象remote refのOIDまたは不存在を送信前スナップショットとして保持する。remote refは実際のremoteから`git ls-remote --heads`で取得する。さらに対象リポジトリで認証ユーザーが作成したIssue一覧とPR一覧を、それぞれ`gh issue list --author @me --state all --limit 1000 --json number,url`、`gh pr list --author @me --state all --limit 1000 --json number,url`で記録する。
@@ -61,7 +61,7 @@ description: >
 - HerdrのCompletion contractに従って結果を確定すること
 ```
 
-`github-issue-create-from-plan`のプラン提示・モード分岐・HTML確認はこの委譲に含めない。Issue作成担当がプランの内容を変える必要を見つけた場合も起票せず、未解決事項またはユーザー判断事項として返す。
+`github-issue-create-from-plan`の責務どおり、プラン作成・再設計・HTML確認や生成はこの委譲に含めない。Issue作成担当がプランの内容を変える必要を見つけた場合も起票せず、未解決事項またはユーザー判断事項として返す。
 
 ## 4. 完了確認とcleanup
 
