@@ -2,14 +2,6 @@
 
 日本語で簡潔かつ丁寧に回答してください。
 
-## GitHub PRレビューコメント
-
-GitHub PRへレビューコメントを投稿するとき、AI識別メタ情報には Codex の設定モデルを明記します。
-
-- `/home/u7dev/.codex/config.toml` の `model = "..."` を参照できる場合は、その値をそのまま使う
-- 例: `model = "gpt-1.0"` の場合は `AIレビュー補助（Codex / gpt-1.0）によるレビューです 🤖`
-- 再チェックコメントでは `AIレビュー補助（Codex / gpt-1.0）による再チェックコメントです 🤖`
-
 ## Skill Naming Convention
 
 スキル名は原則として `service-target-action` の順で付けます。

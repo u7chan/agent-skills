@@ -1,4 +1,4 @@
 interface:
   display_name: "AI Identity Resolve"
-  short_description: "実行モデル優先で現在のAI識別メタデータを解決する"
-  default_prompt: "Use $ai-identity-resolve to resolve current AI identity for review comments or PR Work Metadata with runtime model priority."
+  short_description: "実行モデル・Effort優先で現在のAI識別メタデータを解決する"
+  default_prompt: "Use $ai-identity-resolve to resolve current Agent, Model, and Effort for review comments or PR Work Metadata with runtime values first."

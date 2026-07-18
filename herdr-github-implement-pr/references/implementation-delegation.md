@@ -53,16 +53,7 @@ Herdr 外、CLI 不足、認証・trust 待ちは実装委譲失敗とする。�
 
 PR Work Metadata スナップショットとは、PR 本文へ渡すために、役割ごとの Agent / Model / Effort を特定の時点で固定した記録である。親 Agent は記録の責任者だが、各値の所有者は対象役割の現在 Agent とする。現在 Agent 以外、別 pane、過去セッションの値を混ぜない。
 
-Agent / Model は `ai-identity-resolve` の標準契約を適用する。Model の優先順位はこの文書に再定義しない。オーケストレーターでは親自身の現在値を使い、実装・レビュー・レビューFBでは、その役割を起動する Herdr/cagent が当該起動について明示または doctor / dry-run で解決した実行値だけを親が記録する。子役割の実行値が得られない場合に、親自身や別 Agent の Codex Config から Model を補完しない。
-
-Effort は各役割の現在の値について、次の順で解決する。
-
-1. 現在セッションが提供する明示的な実行 Effort
-2. 現在 Agent を起動した Herdr/cagent が当該起動について明示または doctor / dry-run で解決した Effort
-3. 1 と 2 を取得できない通常 Codex に限り、当該現在 Agent の `~/.codex/config.toml` の `model_reasoning_effort`
-4. すべて取得不能なら `—`
-
-Herdr/cagent の明示または解決値は Config より優先する。実行値を取得できない非Codex Agent へ Config fallback は行わない。Agent 種別、起動コマンド、既定値、会話例、別 Agent の設定、過去値から Model または Effort を補完・推測しない。
+Agent / Model / Effort は `ai-identity-resolve` の標準契約を適用する。ModelまたはEffortの優先順位はこの文書に再定義しない。オーケストレーターでは親自身の現在値を使い、実装・レビュー・レビューFBでは、その役割を起動するHerdr/cagentが当該起動について明示またはdoctor / dry-runで解決した実行値だけを親が記録する。子役割の実行値が得られない場合に、親自身や別AgentのCodex ConfigからModelまたはEffortを補完しない。Agent種別、起動コマンド、既定値、会話例、別Agentの設定、過去値からModelまたはEffortを補完・推測しない。
 
 | 役割 | 記録する条件 | スナップショットの時点 |
 | --- | --- | --- |

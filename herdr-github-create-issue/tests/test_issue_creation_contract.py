@@ -74,16 +74,11 @@ class IssueCreationContractTest(unittest.TestCase):
         self.assertLess(final_identity_index, metadata_snapshot_index)
         self.assertLess(metadata_snapshot_index, send_index)
         self.assertIn("会話開始時または過去の取得値を使わない", steps)
-        self.assertIn(
-            "現在のAgentセッション、親paneを起動したHerdr/cagentの"
-            "明示または解決済み実行モデルの順で取得",
-            steps,
-        )
-        config_index = steps.index("`~/.codex/config.toml`を直接再読込")
-        self.assertLess(final_identity_index, config_index)
-        self.assertIn("どちらも取得できないCodexの場合だけ", steps)
-        self.assertIn("それも取得できない場合だけModelを`—`とする", steps)
-        self.assertIn("モデル名は推測せず", steps)
+        self.assertIn("Agent / Model / Effort標準契約を適用", steps)
+        self.assertIn("取得不能なセルだけ`—`", steps)
+        self.assertIn("ModelまたはEffortの優先順位をこのスキルで再定義せず", steps)
+        self.assertNotIn("~/.codex/config.toml", steps)
+        self.assertNotIn("model_reasoning_effort", steps)
         self.assertIn("子は親の値を再解決、推測、上書きせず", steps)
         self.assertIn(
             "親自身の識別情報の最終取得完了から送信まで、"

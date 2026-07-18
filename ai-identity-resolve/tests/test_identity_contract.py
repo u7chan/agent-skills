@@ -9,19 +9,28 @@ POSTING_SKILL_PATHS = {
     "review": REPO_ROOT / "github-pr-review" / "SKILL.md",
     "reply": REPO_ROOT / "github-pr-comment-reply" / "SKILL.md",
 }
-FEEDBACK_SKILL_PATH = REPO_ROOT / "github-pr-feedback-address" / "SKILL.md"
-OPENAI_YAML_PATHS = {
-    "ai-identity-resolve": ROOT / "agents" / "openai.yaml",
-    "github-pr-review": REPO_ROOT / "github-pr-review" / "agents" / "openai.yaml",
-    "github-pr-comment-reply": REPO_ROOT
+POSTING_RULE_PATHS = {
+    "review": REPO_ROOT / "github-pr-review" / "references" / "posting-rules.md",
+    "reply": REPO_ROOT
     / "github-pr-comment-reply"
-    / "agents"
-    / "openai.yaml",
-    "github-pr-feedback-address": REPO_ROOT
-    / "github-pr-feedback-address"
-    / "agents"
-    / "openai.yaml",
+    / "references"
+    / "posting-rules.md",
 }
+API_PATHS = {
+    "review": REPO_ROOT / "github-pr-review" / "references" / "posting-api.md",
+    "reply": REPO_ROOT
+    / "github-pr-comment-reply"
+    / "references"
+    / "posting-rules.md",
+}
+FEEDBACK_SKILL_PATH = REPO_ROOT / "github-pr-feedback-address" / "SKILL.md"
+IMPLEMENTATION_PATH = (
+    REPO_ROOT
+    / "herdr-github-implement-pr"
+    / "references"
+    / "implementation-delegation.md"
+)
+ISSUE_CREATION_PATH = REPO_ROOT / "herdr-github-create-issue" / "SKILL.md"
 
 
 class IdentityContractTest(unittest.TestCase):
@@ -35,83 +44,74 @@ class IdentityContractTest(unittest.TestCase):
             name: path.read_text(encoding="utf-8")
             for name, path in POSTING_SKILL_PATHS.items()
         }
-        cls.feedback_skill = FEEDBACK_SKILL_PATH.read_text(encoding="utf-8")
-        cls.openai_yamls = {
+        cls.posting_rules = {
             name: path.read_text(encoding="utf-8")
-            for name, path in OPENAI_YAML_PATHS.items()
+            for name, path in POSTING_RULE_PATHS.items()
         }
+        cls.apis = {
+            name: path.read_text(encoding="utf-8")
+            for name, path in API_PATHS.items()
+        }
+        cls.feedback_skill = FEEDBACK_SKILL_PATH.read_text(encoding="utf-8")
+        cls.implementation = IMPLEMENTATION_PATH.read_text(encoding="utf-8")
+        cls.issue_creation = ISSUE_CREATION_PATH.read_text(encoding="utf-8")
 
     def test_runtime_model_precedes_codex_config_fallback(self):
         priority = re.search(
-            r"## モデル取得優先順位\n(?P<body>.*?)\n## 取得タイミングと所有者",
+            r"## モデル取得優先順位\n(?P<body>.*?)\n## Effort取得優先順位",
             self.skill,
             flags=re.DOTALL,
         )
         self.assertIsNotNone(priority)
         body = priority.group("body")
 
-        session_index = body.index("現在のAgentセッション")
-        cagent_index = body.index("Herdr/cagent")
-        config_index = body.index("~/.codex/config.toml")
-        unknown_index = body.index("すべて取得不能なら不明")
-
-        self.assertLess(session_index, cagent_index)
-        self.assertLess(cagent_index, config_index)
-        self.assertLess(config_index, unknown_index)
+        self.assertLess(
+            body.index("現在のAgentセッション"), body.index("Herdr/cagent")
+        )
+        self.assertLess(
+            body.index("Herdr/cagent"), body.index("~/.codex/config.toml")
+        )
         self.assertIn("1と2の実行モデルを取得できないCodexに限り", body)
         self.assertIn("モデル名を推測しない", body)
 
-    def test_herdr_explicit_runtime_model_wins_over_config(self):
-        self.assertIn(
-            "Configが `gpt-5.6-sol` でも、Herdr/cagentの明示実行モデルが "
-            "`gpt-5.6-terra` なら `gpt-5.6-terra` を使う",
-            self.skill,
-        )
-
-    def test_normal_codex_falls_back_to_config(self):
-        self.assertIn(
-            "通常Codexで実行モデルを取得できず、Configが `gpt-5.6-sol` なら "
-            "`gpt-5.6-sol` へフォールバックする",
-            self.skill,
-        )
-
-    def test_unknown_model_is_not_guessed(self):
-        self.assertIn(
-            "実行モデルとConfigモデルの両方を取得できなければ、"
-            "モデル名を省略するか契約上の不明値 `—` とし、推測しない",
-            self.skill,
-        )
-
-    def test_frontmatter_description_covers_pr_work_metadata(self):
-        self.assertIn(
-            "description: >\n"
-            "  レビューコメントやPR返信、PR Work Metadataに付けるAI識別メタデータを解決するときに使う。",
-            self.skill,
-        )
-
-    def test_identity_owner_and_handoff_timing_are_explicit(self):
-        timing = re.search(
-            r"## 取得タイミングと所有者\n(?P<body>.*?)\n## 出力",
+    def test_effort_has_the_same_runtime_first_codex_only_fallback(self):
+        priority = re.search(
+            r"## Effort取得優先順位\n(?P<body>.*?)\n## 取得タイミングと所有者",
             self.skill,
             flags=re.DOTALL,
         )
-        self.assertIsNotNone(timing)
-        body = timing.group("body")
+        self.assertIsNotNone(priority)
+        body = priority.group("body")
 
-        self.assertIn("現在Agent自身が自身の識別値の所有者", body)
-        self.assertIn("会話開始時や過去の取得値を再利用しない", body)
-        self.assertIn("委譲では親が親自身の値の所有者", body)
-        self.assertIn("子paneの起動とinput-ready確認", body)
-        self.assertIn("worktree・HEAD・remote ref・Issue/PR一覧", body)
-        self.assertIn("ハンドオフ時点のメタ情報として固定", body)
-        self.assertIn("子は親の識別値を再解決、推測、上書きしない", body)
-        self.assertIn(
-            "最終取得完了から `send_request.py` による送信まで、"
-            "外部I/Oや識別情報の再取得を挟まない",
-            body,
+        self.assertLess(body.index("現在セッション"), body.index("Herdr/cagent"))
+        self.assertLess(
+            body.index("Herdr/cagent"), body.index("model_reasoning_effort")
         )
+        self.assertLess(
+            body.index("model_reasoning_effort"), body.index("すべて取得不能")
+        )
+        self.assertIn("通常Codexに限り", body)
+        self.assertIn("非Codex AgentへCodex Configを流用しない", body)
+        self.assertIn("すべて取得不能なら `—`", body)
 
-    def test_pr_work_metadata_reuses_the_identity_contract(self):
+    def test_codex_config_and_non_codex_fallback_examples_are_explicit(self):
+        self.assertIn("Configの`model_reasoning_effort`が`high`なら `high`", self.skill)
+        self.assertIn("非Codex Agentで実行Effortを取得できなければ", self.skill)
+        self.assertIn("Codex Configを読まず `—`", self.skill)
+
+    def test_comment_identifier_always_has_three_cells_when_agent_exists(self):
+        output = re.search(
+            r"## 出力\n(?P<body>.*?)\n## 契約例", self.skill, flags=re.DOTALL
+        )
+        self.assertIsNotNone(output)
+        body = output.group("body")
+
+        self.assertIn("（<agent> / <model-or-—> / <effort-or-—>）", body)
+        self.assertIn("ModelまたはEffortが不明なら、そのセルだけ `—`", body)
+        self.assertIn("Agent名も取得できなければ", body)
+        self.assertIn("識別子は空文字列", body)
+
+    def test_pr_work_metadata_uses_the_shared_three_field_contract(self):
         metadata = re.search(
             r"## PR Work Metadata との整合\n(?P<body>.*?)\n## 出力",
             self.skill,
@@ -120,25 +120,32 @@ class IdentityContractTest(unittest.TestCase):
         self.assertIsNotNone(metadata)
         body = metadata.group("body")
 
-        self.assertIn("標準契約をそのまま適用", body)
-        self.assertIn("Model の優先順位を再定義しない", body)
-        self.assertIn("対象役割の現在 Agent が Agent / Model の値の所有者", body)
-        self.assertIn("実装・レビューの値に親の現在値、別 Agent、過去セッション、別 pane の値を混ぜない", body)
+        self.assertIn("Agent / Model / Effort", body)
+        self.assertIn("ModelまたはEffortの優先順位を再定義しない", body)
+        self.assertIn("ModelまたはEffortを補完しない", body)
         self.assertIn("依頼送信の直前に現在値を再取得して固定", body)
-        self.assertIn("親が自身または別 Agent の Codex Config を参照して Model を補完しない", body)
 
-    def test_openai_metadata_still_matches_skill(self):
+    def test_openai_metadata_describes_three_fields(self):
         self.assertIn('display_name: "AI Identity Resolve"', self.openai_yaml)
-        self.assertIn("実行モデル優先", self.openai_yaml)
-        self.assertIn("$ai-identity-resolve", self.openai_yaml)
-        self.assertIn("PR Work Metadata", self.openai_yaml)
+        self.assertIn("実行モデル・Effort優先", self.openai_yaml)
+        self.assertIn("current Agent, Model, and Effort", self.openai_yaml)
 
-    def test_direct_posting_skills_resolve_identity_immediately_before_posting(self):
+    def test_posting_skills_resolve_identity_immediately_before_posting(self):
         for name, skill in self.posting_skills.items():
             with self.subTest(skill=name):
                 self.assertIn("`ai-identity-resolve`", skill)
                 self.assertIn("API へ渡す直前", skill)
                 self.assertIn("必ず", skill)
+
+    def test_posting_rules_and_api_examples_use_three_field_identifier(self):
+        identifier = "（<agent> / <model-or-—> / <effort-or-—>）"
+        for name, rules in self.posting_rules.items():
+            with self.subTest(rules=name):
+                self.assertIn(identifier, rules)
+                self.assertIn("Agent名を取得できない場合は空文字列", rules)
+        for name, api in self.apis.items():
+            with self.subTest(api=name):
+                self.assertIn("<effort-or-—>", api)
 
     def test_feedback_handoff_leaves_identity_to_posting_skill(self):
         self.assertIn("`github-pr-comment-reply`", self.feedback_skill)
@@ -146,27 +153,19 @@ class IdentityContractTest(unittest.TestCase):
         self.assertIn("AI識別値は引き渡さない", self.feedback_skill)
         self.assertIn("投稿直前", self.feedback_skill)
 
-    def test_posting_consumers_do_not_pin_codex_config_model(self):
-        consumers = [*self.posting_skills.values(), self.feedback_skill]
-        for skill in consumers:
-            self.assertNotIn("/home/u7dev/.codex/config.toml", skill)
-            self.assertNotIn("~/.codex/config.toml", skill)
-            self.assertNotIn("Codex の設定モデルを明記", skill)
-            self.assertNotRegex(skill, r'model\s*=\s*["\']')
-
-    def test_updated_openai_metadata_matches_each_skill(self):
-        for skill_name, openai_yaml in self.openai_yamls.items():
-            with self.subTest(skill=skill_name):
-                self.assertIn(f"${skill_name}", openai_yaml)
-        self.assertIn("current AI identity", self.openai_yamls["github-pr-review"])
-        self.assertIn(
-            "current AI identity",
-            self.openai_yamls["github-pr-comment-reply"],
-        )
-        self.assertIn(
-            "hand replies to the posting skill",
-            self.openai_yamls["github-pr-feedback-address"],
-        )
+    def test_consumers_do_not_redefine_the_effort_contract(self):
+        consumers = [
+            *self.posting_skills.values(),
+            self.feedback_skill,
+            self.implementation,
+            self.issue_creation,
+        ]
+        for consumer in consumers:
+            self.assertNotIn("model_reasoning_effort", consumer)
+            self.assertNotIn("~/.codex/config.toml", consumer)
+        self.assertIn("Agent / Model / Effort は `ai-identity-resolve` の標準契約", self.implementation)
+        self.assertIn("ModelまたはEffortの優先順位はこの文書に再定義しない", self.implementation)
+        self.assertIn("Agent / Model / Effort標準契約", self.issue_creation)
 
 
 if __name__ == "__main__":

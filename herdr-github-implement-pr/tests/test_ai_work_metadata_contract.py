@@ -43,31 +43,16 @@ class AiWorkMetadataContractTest(unittest.TestCase):
         self.assertIn("担当 Agent が会話または解決結果で確定", self.skill)
         self.assertIn("Agent 担当自体が未確定なら行を作らない", self.delegation)
 
-    def test_model_uses_ai_identity_resolve_without_a_duplicate_priority(self):
-        self.assertIn("`ai-identity-resolve` の標準契約を適用", self.delegation)
-        self.assertIn("Model の優先順位はこの文書に再定義しない", self.delegation)
-        self.assertIn("子役割の実行値が得られない場合に、親自身や別 Agent の Codex Config から Model を補完しない", self.delegation)
-        self.assertNotIn("Model は各役割の現在の値について、次の順で解決する", self.delegation)
-
-    def test_effort_priority_and_codex_only_config_fallback_are_explicit(self):
-        effort = re.search(
-            r"Effort は各役割の現在の値について、次の順で解決する。\n\n(?P<body>.*?)\n\nHerdr/cagent",
+    def test_identity_uses_ai_identity_resolve_without_duplicate_priorities(self):
+        self.assertIn(
+            "Agent / Model / Effort は `ai-identity-resolve` の標準契約を適用",
             self.delegation,
-            flags=re.DOTALL,
         )
-        self.assertIsNotNone(effort)
-        body = effort.group("body")
-
-        session_index = body.index("現在セッション")
-        cagent_index = body.index("Herdr/cagent")
-        config_index = body.index("model_reasoning_effort")
-        unknown_index = body.index("すべて取得不能なら `—`")
-        self.assertLess(session_index, cagent_index)
-        self.assertLess(cagent_index, config_index)
-        self.assertLess(config_index, unknown_index)
-        self.assertIn("通常 Codex に限り", body)
-        self.assertIn("Herdr/cagent の明示または解決値は Config より優先する", self.delegation)
-        self.assertIn("実行値を取得できない非Codex Agent へ Config fallback は行わない", self.delegation)
+        self.assertIn("ModelまたはEffortの優先順位はこの文書に再定義しない", self.delegation)
+        self.assertIn("Codex ConfigからModelまたはEffortを補完しない", self.delegation)
+        self.assertNotIn("Model は各役割の現在の値について、次の順で解決する", self.delegation)
+        self.assertNotIn("Effort は各役割の現在の値について、次の順で解決する", self.delegation)
+        self.assertNotIn("model_reasoning_effort", self.delegation)
 
     def test_snapshot_contract_uses_the_same_terms_for_all_roles(self):
         self.assertIn("PR Work Metadata スナップショット", self.delegation)
