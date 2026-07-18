@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Plan Grill"
+  short_description: "通常・docs-backedの両モードで設計を一問ずつ壁打ちする"
+  default_prompt: "Use $design-plan-grill to stress-test this plan one question at a time and reach agreement without implementing."

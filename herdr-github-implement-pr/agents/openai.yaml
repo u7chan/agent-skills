@@ -1,4 +1,0 @@
-interface:
-  display_name: "Herdr GitHub Implement PR"
-  short_description: "Herdr AgentへGitHub Issue実装を委譲しPR metadataとレビューまで管理する"
-  default_prompt: "Use $herdr-github-implement-pr to orchestrate GitHub issue implementation, PR Work Metadata snapshots, and PR review through Herdr agents."

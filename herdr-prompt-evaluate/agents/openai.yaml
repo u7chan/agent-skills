@@ -1,0 +1,4 @@
+interface:
+  display_name: "Herdr Prompt Evaluate"
+  short_description: "Herdrの独立Agentでプロンプトを反復評価・最小改善する"
+  default_prompt: "Use $herdr-prompt-evaluate to empirically evaluate and minimally refine this prompt with independent Herdr agents."

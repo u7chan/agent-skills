@@ -1,6 +1,6 @@
 # agent skills
 
-[![Skills](https://img.shields.io/badge/skills-32-2ea44f?style=flat-square)](#available-skills)
+[![Skills](https://img.shields.io/badge/skills-31-2ea44f?style=flat-square)](#available-skills)
 [![Validation](https://img.shields.io/github/actions/workflow/status/u7chan/agent-skills/validate-skills.yml?branch=main&style=flat-square&label=validation)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
 
 コーディングエージェント用のカスタムスキル集です。
@@ -18,38 +18,42 @@
 |-------|-------------|-----------------------|
 | [git-branch-create](git-branch-create/SKILL.md) | ブランチ名を提案し、ブランチを作成する | Git, POSIX shell |
 | [git-worktree-create](git-worktree-create/SKILL.md) | 独立した git worktree を作成し、並列作業用の作業領域を用意する | Git, POSIX shell |
-| [git-commit-message](git-commit-message/SKILL.md) | コミットメッセージを提案する | Git, POSIX shell |
+| [git-commit-message-suggest](git-commit-message-suggest/SKILL.md) | 変更内容に合うコミットメッセージだけを提案し、stageやcommitは行わない | Git, POSIX shell |
 
 ### GitHub Issue / PR
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [github-issue-create-from-plan](github-issue-create-from-plan/SKILL.md) | 設計プラン合意後に GitHub Issue を作成する | `gh`, GitHub, POSIX shell |
-| [herdr-github-create-issue](herdr-github-create-issue/SKILL.md) | 確定済みプランの Issue 作成を Herdr の新規 Agent へ委譲する | Herdr, `cagent`, `gh`, `jq`, Git, Python 3, POSIX shell |
-| [github-pr-create](github-pr-create/SKILL.md) | PR 本文生成を含めて GitHub に PR を作成する | `gh`, Git, GitHub, POSIX shell |
+| [github-issue-create-from-plan](github-issue-create-from-plan/SKILL.md) | 確定済みプランからテンプレートを選び、GitHub Issueを作成・確認する | `gh`, GitHub, POSIX shell |
+| [github-pr-create](github-pr-create/SKILL.md) | 非修正型の品質チェック後、commit済み変更をpushしてPRを作成・確認する | `gh`, Git, GitHub, POSIX shell |
 | [github-pr-feedback-address](github-pr-feedback-address/SKILL.md) | GitHub PR のレビュー指摘を確認し、実装対応から返信まで行う | `gh`, Git, GitHub API, POSIX shell |
 | [github-pr-review](github-pr-review/SKILL.md) | 指定した GitHub PR をレビューし、FB 対応後の再チェックまで行う | `gh`, `jq`, GitHub API, POSIX shell |
 | [github-pr-comment-reply](github-pr-comment-reply/SKILL.md) | GitHub PR の review comment や conversation comment に返信する | `gh`, GitHub API, POSIX shell |
 | [github-pr-post-merge-cleanup](github-pr-post-merge-cleanup/SKILL.md) | マージ済み PR の基準ブランチへ戻り、ローカル作業ブランチを安全に整理する | `gh`, Git, POSIX shell |
 | [ai-identity-resolve](ai-identity-resolve/SKILL.md) | AIレビュー補助コメントやPR Work Metadata用のエージェント名・モデル名・Effortを推測せず取得する | Herdr / `cagent` (optional), Codex config (fallback) |
 
-### 実装 / 成果物生成
+### Agent委譲 / オーケストレーション
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
 | [herdr-worktree-create](herdr-worktree-create/SKILL.md) | Herdr 公式コマンドで独立した worktree と workspace を作成する | Herdr, Git, POSIX shell |
-| [herdr-github-implement-pr](herdr-github-implement-pr/SKILL.md) | Issue 確認から Herdr Agent による実装、PR 作成、レビュー・FB 対応までを一連で進める | Herdr, `cagent`, `gh`, `jq`, Git, Python 3, POSIX shell |
-| [coding-agent-subagent](coding-agent-subagent/SKILL.md) | Herdr委譲向けにcagentで基礎Agent種別と対話起動コマンドを解決する | Herdr, `cagent`, Codex / Claude Code / OpenCode CLI, POSIX shell |
+| [cagent-agent-command-resolve](cagent-agent-command-resolve/SKILL.md) | cagentでbase-agent-typeとagent-commandだけを解決する | Herdr, `cagent`, selected Agent CLI, POSIX shell |
 | [herdr-agent-delegate](herdr-agent-delegate/SKILL.md) | Herdr公式プリミティブでCLI Agentを1タブあたり最大4paneに配置し、送信・待機・出力回収を行う | Herdr, `jq`, Python 3, POSIX shell, Agent CLI |
-| [herdr-prompt-eval-loop](herdr-prompt-eval-loop/SKILL.md) | Herdrの独立Agentでプロンプトを反復実行し、非公開要件による評価と最小改善を行う | Herdr, `jq`, Git, Python 3, POSIX shell, Agent CLI |
+| [herdr-github-create-issue](herdr-github-create-issue/SKILL.md) | 確定済みプランのIssue作成をHerdrの新規Agentへ委譲する | Herdr, `cagent`, `gh`, `jq`, Git, Python 3, POSIX shell |
+| [herdr-github-pr-orchestrate](herdr-github-pr-orchestrate/SKILL.md) | Issue確認から実装委譲、commit、push、PR作成、レビュー・FB対応・再チェックまで統括する | Herdr, `gh`, `jq`, Git, Python 3, POSIX shell, Agent CLI |
+| [herdr-prompt-evaluate](herdr-prompt-evaluate/SKILL.md) | Herdrの独立Agentでプロンプトを実証評価し、観測した1テーマを最小改善する | Herdr, `jq`, Git, Python 3, POSIX shell, Agent CLI |
+
+### 実装 / 成果物生成
+
+| Skill | Description | External Dependencies |
+|-------|-------------|-----------------------|
 | [html-artifact-format](html-artifact-format/SKILL.md) | AI向けMarkdownと人間向けHTMLを判断し、視覚化要素入りの単一HTMLを生成する | POSIX shell |
 
 ### 要件定義 / 設計対話
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [grilling](grilling/SKILL.md) | 計画・デザインを一問ずつ深掘りし、本格的な構築前にストレステストする | — |
-| [grill-with-docs](grill-with-docs/SKILL.md) | 既存ドキュメントと照合しながら設計を厳しく壁打ちする | — |
+| [design-plan-grill](design-plan-grill/SKILL.md) | 通常・docs-backedの両モードで設計を一問ずつ壁打ちし、実装前に合意を固める | — |
 
 ### 文章チェック / 校正
 
@@ -97,7 +101,7 @@
 | [agent-skill-design](agent-skill-design/SKILL.md) | Agent Skillの新規作成、仕様変更、全面再設計、設計レビューを行う | — |
 | [agent-skill-refine](agent-skill-refine/SKILL.md) | 既存Agent Skillを挙動を変えず短く高密度に改善する | — |
 | [skills-readme-sync](.claude/skills/skills-readme-sync/SKILL.md) | **本リポジトリ専用** — README のスキル一覧を現在のスキル構成へ同期する | Bash, Python 3, coreutils |
-| [codex-skills-link-from-claude](codex-skills-link-from-claude/SKILL.md) | `.claude/skills` を `.codex/skills` から再利用できるようにリンクする | POSIX shell, coreutils |
+| [codex-skills-link](codex-skills-link/SKILL.md) | `.codex/skills`だけを操作し、`.claude/skills`をCodexから再利用できるようにリンクする | POSIX shell, coreutils |
 
 ## Setup
 

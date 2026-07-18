@@ -86,7 +86,7 @@ reviewer の指摘をそのまま仕様とみなさず、現在のコードと�
 - コード変更がない場合は、この手順をスキップする。空コミットを作らない。
 - `git status --short` と `git diff` で変更範囲を確認する。
 - この作業の変更だけを stage する。`git add .` は使わない。
-- commit message は `git-commit-message/SKILL.md` を使い、feedback 対応用 type に従う。
+- commit messageは`git-commit-message-suggest/SKILL.md`から提案を受ける。呼び出し側である本Skillが対象変更だけを限定stageし、feedback対応用typeでcommitする。
 - 既存 commit を勝手に amend / rebase しない。
 - 現在ブランチを push し、upstream がなければ設定する。force push はしない。
 

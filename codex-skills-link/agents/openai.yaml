@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Skills Link"
+  short_description: "Claude CodeスキルをCodexで使うためのsymlinkを作成する"
+  default_prompt: "Use $codex-skills-link to link .codex/skills to .claude/skills without changing other .codex entries."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Commit Message Suggest"
+  short_description: "GitのコミットメッセージをConventional Commits形式で提案する"
+  default_prompt: "Use $git-commit-message-suggest to suggest a conventional commit message without staging or committing."
