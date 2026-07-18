@@ -85,6 +85,6 @@ agent未指定でも、`CAGENT_AGENT` が設定されていればそのagent ID�
 
 ## 5. Herdr委譲へ渡す
 
-`base-agent-type` と `agent-command` を分離したまま渡す。Herdr委譲側は `agent-command` を既存paneで起動し、readiness・依頼送信・完了判定には `base-agent-type` を使う。
+`base-agent-type` と `agent-command` を分離したまま渡す。Herdr委譲側は `agent-command` を既存paneで起動し、readiness・依頼送信・完了判定には `base-agent-type` を使う。Agent表示名が必要な後続処理にも、doctor / dry-runで解決したこの `base-agent-type` だけを固定して渡し、cagent agent IDやpane・役割識別子を渡さない。
 
 通常フローでは `cagent run`、`cagent mux start`、`cagent mux run` を使わない。`cagent` が指定値や設定を解決できない場合も直接CLIへfallbackせず停止する。

@@ -16,8 +16,16 @@ AIレビュー補助コメントに入れるAgent名・モデル名・Effortを�
 
 ## Agent名
 
-- 現在Agent自身のシステムプロンプトにある `You are <name>` から取得する。
-- `You are powered by`、対話相手、スキル本文の例示名を現在Agent名として扱わない。
+現在実行中の製品またはCLIの基礎Agent種別だけを、次の順で解決する。
+
+1. 現在セッションが明示する製品Agent種別
+2. 現在のHerdr paneの `pane.agent` または `agent_session.agent`
+3. 当該cagent委譲でdoctor / dry-runが解決し、親から固定して渡された `base-agent-type`
+4. すべて取得不能ならAgent名不明
+
+canonical mappingは `codex` → `Codex`、`claude` → `Claude Code`、`opencode` → `OpenCode` とする。大文字小文字や同義のprovider / adapter表記は対応する基礎Agent種別へ正規化してからmappingする。複数の値が見える場合も、上位の信頼できる製品Agent種別を使う。たとえば現在セッションがCodexで `/root` も見える場合は `Codex` とする。
+
+`/root`、`/root/...`、pane ID、pane label、session ID、役割名、任意のcagent agent ID、会話例、対話相手、`You are <name>`、`You are powered by` をAgent表示名として使わない。信頼できる製品Agent種別を取得できなければ、Agent名を推測しない。
 
 ## モデル取得優先順位
 

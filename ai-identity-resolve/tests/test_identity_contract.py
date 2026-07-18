@@ -74,6 +74,55 @@ class IdentityContractTest(unittest.TestCase):
         self.assertIn("1と2の実行モデルを取得できないCodexに限り", body)
         self.assertIn("モデル名を推測しない", body)
 
+    def test_explicit_session_product_type_wins_over_hierarchical_path(self):
+        agent_name = re.search(
+            r"## Agent名\n(?P<body>.*?)\n## モデル取得優先順位",
+            self.skill,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(agent_name)
+        body = agent_name.group("body")
+
+        self.assertLess(
+            body.index("現在セッションが明示する製品Agent種別"),
+            body.index("pane.agent"),
+        )
+        self.assertIn("現在セッションがCodexで `/root` も見える場合は `Codex`", body)
+
+    def test_agent_name_rejects_hierarchical_pane_and_role_identifiers(self):
+        agent_name = re.search(
+            r"## Agent名\n(?P<body>.*?)\n## モデル取得優先順位",
+            self.skill,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(agent_name)
+        body = agent_name.group("body")
+
+        for forbidden in (
+            "`/root`",
+            "`/root/...`",
+            "pane ID",
+            "pane label",
+            "session ID",
+            "役割名",
+            "任意のcagent agent ID",
+        ):
+            self.assertIn(forbidden, body)
+
+    def test_agent_name_uses_the_three_canonical_product_mappings(self):
+        for source, display_name in (
+            ("`codex`", "`Codex`"),
+            ("`claude`", "`Claude Code`"),
+            ("`opencode`", "`OpenCode`"),
+        ):
+            self.assertIn(f"{source} → {display_name}", self.skill)
+
+    def test_unknown_agent_name_leaves_comment_identifier_empty(self):
+        self.assertIn("すべて取得不能ならAgent名不明", self.skill)
+        self.assertIn("信頼できる製品Agent種別を取得できなければ", self.skill)
+        self.assertIn("Agent名も取得できなければ", self.skill)
+        self.assertIn("識別子は空文字列", self.skill)
+
     def test_effort_has_the_same_runtime_first_codex_only_fallback(self):
         priority = re.search(
             r"## Effort取得優先順位\n(?P<body>.*?)\n## 取得タイミングと所有者",
