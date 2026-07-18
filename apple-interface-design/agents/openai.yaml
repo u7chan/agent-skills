@@ -1,0 +1,4 @@
+interface:
+  display_name: "Apple Interface Design"
+  short_description: "Apple流のUI設計と流体モーションをWeb向けに実装・レビューする"
+  default_prompt: "Use $apple-interface-design to design and review a fluid, accessible web interface."
