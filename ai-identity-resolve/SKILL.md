@@ -27,6 +27,12 @@ canonical mappingは `codex` → `Codex`、`claude` → `Claude Code`、`opencod
 
 `/root`、`/root/...`、pane ID、pane label、session ID、役割名、任意のcagent agent ID、会話例、対話相手、`You are <name>`、`You are powered by` をAgent表示名として使わない。信頼できる製品Agent種別を取得できなければ、Agent名を推測しない。
 
+## Herdrでの現在実行値
+
+- 識別値の解決開始時に`HERDR_ENV=1`と空でない`HERDR_PANE_ID`を確認する。両方を満たす場合は、ModelまたはEffortをCodex Configへフォールバックする前に、`herdr pane current --current`と`herdr pane process-info --pane "$HERDR_PANE_ID"`を必ず実行し、現在Agentプロセスの起動情報を確認する。コマンドを試さずにHerdr実行値を取得不能と判定しない。
+- 現在Agentプロセスの`--model`と、Codexなら`-c model_reasoning_effort=...`など起動時に明示されたEffortを、後続のHerdr/cagent解決値として使う。別pane、親子の別Agent、shell、過去プロセスの値を混ぜない。
+- 親から当該起動のdoctor / dry-run解決値を固定して渡されている場合は、その値と現在Agentプロセスを照合する。タスクlevel名やConfigの既定値だけから実行値を推測しない。
+
 ## モデル取得優先順位
 
 現在Agent自身について、使用時点の値を次の順で取得する。別の役割や過去のセッションの値を混ぜない。

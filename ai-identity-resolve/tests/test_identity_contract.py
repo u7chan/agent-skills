@@ -109,6 +109,26 @@ class IdentityContractTest(unittest.TestCase):
         ):
             self.assertIn(forbidden, body)
 
+    def test_herdr_runtime_values_are_checked_before_config_fallback(self):
+        runtime = re.search(
+            r"## Herdrでの現在実行値\n(?P<body>.*?)\n## モデル取得優先順位",
+            self.skill,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(runtime)
+        body = runtime.group("body")
+
+        self.assertIn("`HERDR_ENV=1`と空でない`HERDR_PANE_ID`を確認", body)
+        self.assertIn("`herdr pane current --current`", body)
+        self.assertIn('`herdr pane process-info --pane "$HERDR_PANE_ID"`', body)
+        self.assertIn("必ず実行", body)
+        self.assertIn("コマンドを試さずにHerdr実行値を取得不能と判定しない", body)
+        self.assertIn("Codex Configへフォールバックする前", body)
+        self.assertIn("現在Agentプロセスの`--model`", body)
+        self.assertIn("`-c model_reasoning_effort=...`", body)
+        self.assertIn("別pane、親子の別Agent、shell、過去プロセスの値を混ぜない", body)
+        self.assertIn("タスクlevel名やConfigの既定値だけから実行値を推測しない", body)
+
     def test_agent_name_uses_the_three_canonical_product_mappings(self):
         for source, display_name in (
             ("`codex`", "`Codex`"),
