@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grilling"
+  short_description: "計画・意思決定・アイデアを一問ずつ徹底的に掘り下げる"
+  default_prompt: "Use $grilling to interview me relentlessly one question at a time, with numbered options and a recommended answer."

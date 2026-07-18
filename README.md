@@ -1,6 +1,6 @@
 # agent skills
 
-[![Skills](https://img.shields.io/badge/skills-31-2ea44f?style=flat-square)](#available-skills)
+[![Skills](https://img.shields.io/badge/skills-32-2ea44f?style=flat-square)](#available-skills)
 [![Validation](https://img.shields.io/github/actions/workflow/status/u7chan/agent-skills/validate-skills.yml?branch=main&style=flat-square&label=validation)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
 
 コーディングエージェント用のカスタムスキル集です。
@@ -53,6 +53,7 @@
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
+| [grilling](grilling/SKILL.md) | 計画・意思決定・アイデアを領域を問わず一問ずつ徹底的に掘り下げる | — |
 | [design-plan-grill](design-plan-grill/SKILL.md) | 通常・docs-backedの両モードで設計を一問ずつ壁打ちし、実装前に合意を固める | — |
 
 ### 文章チェック / 校正
