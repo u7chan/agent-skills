@@ -1,7 +1,7 @@
 # agent skills
 
-[![Skills](https://img.shields.io/badge/skills-32-2ea44f?style=flat-square)](#available-skills)
-[![Validation](https://img.shields.io/github/actions/workflow/status/u7chan/agent-skills/validate-skills.yml?branch=main&style=flat-square&label=validation)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
+[![Skills](https://badgen.net/static/skills/32/2ea44f)](#available-skills)
+[![Validation](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml/badge.svg?branch=main)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
 
 コーディングエージェント用のカスタムスキル集です。
 

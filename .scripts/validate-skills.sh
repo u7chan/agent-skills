@@ -93,11 +93,11 @@ else
   done < "$tmp_dir/readme.stale"
 
   skill_count="$(wc -l < "$tmp_dir/skills.distributable" | tr -d ' ')"
-  badge_count="$(sed -nE 's#.*img\.shields\.io/badge/skills-([0-9]+)-.*#\1#p' README.md | head -n 1)"
+  badge_count="$(sed -nE 's#.*badgen\.net/static/skills/([0-9]+)/.*#\1#p' README.md | head -n 1)"
   if [[ -z "$badge_count" ]]; then
-    report_failure 'README Shields.io skill count badge is missing'
+    report_failure 'README Skills badge is missing'
   elif [[ "$badge_count" != "$skill_count" ]]; then
-    report_failure "README skill count badge is $badge_count; expected $skill_count"
+    report_failure "README Skills badge count is $badge_count; expected $skill_count"
   fi
 
   if ! awk -F '|' '
