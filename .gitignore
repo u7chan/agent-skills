@@ -1,3 +1,6 @@
 __pycache__/
 *.py[cod]
 .herdr-agent-delegate/
+
+# Codexが生成するシステム用生成物（Git管理対象外）
+/.system/
