@@ -1,4 +1,4 @@
 interface:
   display_name: "GitHub PR Create"
-  short_description: "PR本文を生成してghでGitHub Pull Requestを作成する"
-  default_prompt: "Use $github-pr-create to run non-fixing quality checks, push committed changes, create a PR, and verify it."
+  short_description: "commit済み変更を検証・pushしてPRを作成する"
+  default_prompt: "Use $github-pr-create for committed changes only: run non-writing checks, push, create the PR, and verify it without staging or committing."

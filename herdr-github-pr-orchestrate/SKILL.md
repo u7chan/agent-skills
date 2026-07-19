@@ -2,7 +2,7 @@
 name: herdr-github-pr-orchestrate
 description: >
   GitHub Issueや実装タスクについて、Issue確認、作業領域準備、Herdr Agentへの実装委譲、成果確認、
-  限定stage、commit、push、PR作成、レビュー、FB対応、再チェックを統括するときに使う。
+  共通Skillによる限定commit・PR作成、レビュー、FB対応、再チェックを統括するときに使う。
   pane配置、readiness、送信、待機、出力回収の詳細はherdr-agent-delegateへ委ねる。
 ---
 
@@ -22,6 +22,7 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 - 実装担当とレビュー担当は役割ごとに独立して解決する。指定のない役割は現在動作しているエージェントと同じ種別を新規起動する。ユーザーが明示的に指定した場合はその種別を優先する。
 - PR 作成後は Herdr で同期レビューし、親 Agent が指摘の分類、FB 対応の成果確認、再チェック、pane cleanup まで管理する。
 - pane配置、Agent起動、readiness、依頼送信、完了待機、出力回収は`herdr-agent-delegate`の契約を適用し、本Skillでは再定義しない。
+- 限定stage・commitは`git-changes-commit`、push・PR作成は`github-pr-create`の契約を適用し、本Skillでは共通手順を再定義しない。
 - 実装委譲の失敗では自動再試行、親による代替実装、別 Agent への切り替えを行わない。
 - レビュー、FB 対応、再チェックの失敗を PR 作成失敗と混同しない。自動再試行、別 Agent への切り替え、Herdr 外での代替実行はしない。
 
@@ -29,7 +30,7 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 
 - worktree: `../herdr-worktree-create/SKILL.md`
 - ブランチ: `../git-branch-create/SKILL.md`
-- commit message提案: `../git-commit-message-suggest/SKILL.md`
+- 限定stage / commit: `../git-changes-commit/SKILL.md`
 - push / PR 作成: `../github-pr-create/SKILL.md`
 - Herdr 委譲: `../herdr-agent-delegate/SKILL.md`
 - cagent解決: `../cagent-agent-command-resolve/SKILL.md`
@@ -85,8 +86,8 @@ worktree が明示された場合:
 
 ### 4. commit する
 
-- `git-commit-message-suggest` から提案を受ける。通常の Issue 実装はConventional Commits、レビュー指摘対応だけ`fb:`を使う。
-- 呼び出し側である本Skillが`git diff`と`git status --short`を確認し、今回の変更だけを限定してstage、commitする。原則1 commitとする。
+- `git-changes-commit`を適用し、今回の対象path、除外path、最終検証結果を渡す。通常のIssue実装は原則1 commitとする。
+- 返されたcommit hash、対象path、残存変更を確認し、今回の変更だけがcommitされた場合に限り次へ進む。
 
 ### 5. push して PR を作成する
 
@@ -144,7 +145,7 @@ worktree が明示された場合:
 
 ## 品質チェック
 
-- [ ] 実装担当と親の責務、成果確認、最終検証、commit、PR 作成の順序が明確である
+- [ ] 実装担当と親の責務、成果確認、最終検証、共通Skillによるcommit、PR 作成の順序が明確である
 - [ ] 実装とレビューを独立して Agent 解決でき、種別、既存 Agent、未指定時は現在のエージェント種別を使う分岐と作業ディレクトリが明確である
 - [ ] 同じ作業ディレクトリへ複数の実装担当が書き込まず、失敗時の変更と診断情報が保持される
 - [ ] レビュー結果の分類、直列 FB 対応、親の成果確認、同じ Agent の再チェックが明確である

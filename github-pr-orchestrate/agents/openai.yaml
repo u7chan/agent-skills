@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub PR Orchestrate"
+  short_description: "未コミット変更からPR作成と指定レビューまで統括する"
+  default_prompt: "Use $github-pr-orchestrate to validate and commit only the intended changes, create the PR, and complete explicitly requested review steps without Herdr."

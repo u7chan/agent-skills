@@ -13,7 +13,7 @@
 - 別Agentへの再委譲
 - 指定範囲外の変更や全体品質確認
 
-親Agentは実装を代行せず、結果回収、成果確認、最終検証、限定stage、commit、push、PR作成、後続レビューを統括する。
+親Agentは実装を代行せず、結果回収、成果確認、最終検証、共通Skillによる限定commitとPR作成、後続レビューを統括する。
 
 ## 2. 委譲前状態を固定する
 
@@ -71,4 +71,4 @@ PR Work Metadata snapshotは、`../../herdr-agent-delegate/references/delegation
 
 ## 7. 後続工程へ渡す
 
-親Agentは`git-commit-message-suggest`から提案を受け、自身で成果確認済み変更だけを限定stage、commitする。固定済みスナップショットを完成済み`PR_BODY`の最終`## AI Work Metadata`へ渡し、PR作成後は独立したレビュー担当で`review-loop.md`へ進む。
+親Agentは`../../git-changes-commit/SKILL.md`へ成果確認済みの対象path、除外path、最終検証結果を渡し、返されたcommitを確認する。固定済みスナップショットを完成済み`PR_BODY`の最終`## AI Work Metadata`へ渡して`../../github-pr-create/SKILL.md`を適用し、PR作成後は独立したレビュー担当で`review-loop.md`へ進む。
