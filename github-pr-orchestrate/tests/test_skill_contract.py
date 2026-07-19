@@ -12,7 +12,7 @@ class SkillContractTest(unittest.TestCase):
 
     def test_normal_flow_uses_shared_leaf_skills_in_order(self):
         commit_step = self.skill.index("### 3. 今回の変更だけをcommitする")
-        create_step = self.skill.index("### 4. pushしてPRを作成する")
+        create_step = self.skill.index("### 4. pushしてPRを作成・確認する")
         review_step = self.skill.index("### 5. 指定されたレビュー工程を行う")
         self.assertLess(commit_step, create_step)
         self.assertLess(create_step, review_step)
@@ -30,6 +30,21 @@ class SkillContractTest(unittest.TestCase):
             self.skill,
         )
         self.assertIn("`github-pr-create`を単体で使い", self.skill)
+
+    def test_committed_changes_skip_commit_and_continue_to_requested_review(self):
+        self.assertIn("PR対象がすべてcommit済みならcommit工程をスキップ", self.skill)
+        self.assertIn("レビュー工程も明示されていればStep 4の後にStep 5まで進む", self.skill)
+        self.assertIn("PR対象に未コミット変更がある場合だけ", self.skill)
+
+    def test_writing_formatter_never_touches_unrelated_paths(self):
+        self.assertIn("非書き込みのformat checkを優先", self.skill)
+        self.assertIn("今回の対象pathだけに限定できる場合のみ実行", self.skill)
+        self.assertIn("repo全体や対象外pathを変更し得る場合は実行せず停止", self.skill)
+
+    def test_existing_pr_does_not_bypass_a_missing_push(self):
+        self.assertIn("PR headとlocal `HEAD`が一致する場合だけ", self.skill)
+        self.assertIn("`github-pr-create`が既存PRで停止する現行契約", self.skill)
+        self.assertIn("push未完了として後続レビューへ進まず停止", self.skill)
 
     def test_non_herdr_flow_forbids_delegation_features(self):
         self.assertIn(

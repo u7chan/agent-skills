@@ -21,7 +21,7 @@ description: >
 
 - Issue、会話、差分、変更前の状態から今回の対象pathを確定し、対象外の変更と未追跡ファイルを除外する。
 - `main`、`master`、`develop`へ直接commit・pushしない。専用branchか判断できない場合は停止する。
-- 品質チェック、commit、PR作成は順序を守り、各工程の成功後だけ次へ進む。
+- 品質チェック、必要なcommit、PR作成は順序を守り、各工程の成功後だけ次へ進む。
 - commitは`git-changes-commit`、pushとPR作成は`github-pr-create`へ委ね、その手順を再定義しない。
 - ユーザーが明示したレビュー工程だけを行う。PR作成だけの依頼からレビューやFB対応を推測して追加しない。
 - GitHub操作は下位Skillの契約に従い、PR URLと投稿結果を確認する。
@@ -43,27 +43,30 @@ description: >
 - Issueがあれば本文と完了条件を確認し、会話から対象外、PR title/base、レビュー工程の指定を抽出する。
 - `git status --short`、branch、remote、base、`BASE..HEAD`、既存PRを確認する。
 - 変更開始前の状態または会話上の作業内容と照合し、commit対象と残す変更をpath単位で明示する。
-- PR対象がすべてcommit済みでPR作成だけなら`github-pr-create`へルーティングして終了する。
+- PR対象がすべてcommit済みならcommit工程をスキップする。PR作成だけなら`github-pr-create`へルーティングして終了し、レビュー工程も明示されていればStep 4の後にStep 5まで進む。
 
 ### 2. 品質チェックを完了する
 
 - `AGENTS.md`、プロジェクト設定、IssueのAcceptance Criteriaから必要な検証を解決する。
 - 会話内で成功済みの同一HEAD・同一差分に対する検証は再利用できる。不足分だけを実行する。
-- 書き込み型formatterを実行する場合は、生成差分が今回の対象か確認し、対象集合を更新する。
+- 非書き込みのformat checkを優先する。書き込み型formatterは今回の対象pathだけに限定できる場合のみ実行し、repo全体や対象外pathを変更し得る場合は実行せず停止する。
+- 対象pathへ限定したformatterの実行後は、生成差分が今回の対象だけか確認し、対象集合を更新する。
 - 失敗時は原因が今回の変更にあるかを切り分ける。依頼範囲内で安全に修正できなければ停止する。
 - commit直前に`git status --short`と差分を再確認する。
 
 ### 3. 今回の変更だけをcommitする
 
+- PR対象に未コミット変更がある場合だけ、この工程を行う。
 - `../git-changes-commit/SKILL.md`を適用し、対象path、除外path、実施済み検証を渡す。
 - 下位Skillが返したcommit hash、commit対象、残存変更を確認する。
 - 対象外の変更がcommitまたはstageされた場合は、pushせず停止する。
 
-### 4. pushしてPRを作成する
+### 4. pushしてPRを作成・確認する
 
-- `../github-pr-create/SKILL.md`を適用し、Issue、title/base、変更概要、検証結果、完成済み本文があればそれを渡す。
+- 既存PRがあり、PR headとlocal `HEAD`が一致する場合だけ、そのPRを確認済みの後続対象として使う。
+- 新しいcommit後に既存PRのPR headとlocal `HEAD`が一致しない場合は、`github-pr-create`が既存PRで停止する現行契約に従い、push未完了として後続レビューへ進まず停止する。
+- 既存PRがない場合は`../github-pr-create/SKILL.md`を適用し、Issue、title/base、変更概要、検証結果、完成済み本文があればそれを渡す。
 - PR URL、title、base/head、本文、品質チェック結果を確認する。
-- 既存PRが返った場合は重複作成せず、そのPRを後続工程の対象にする。
 
 ### 5. 指定されたレビュー工程を行う
 
@@ -75,13 +78,13 @@ description: >
 
 ## 最終報告
 
-- 変更概要、commit hash、PR URL、実行した品質チェックと結果を返す。
+- 変更概要、commitを作成した場合のhash、PR URL、実行した品質チェックと結果を返す。
 - commit対象と残した未コミット変更、レビュー・reviewer割り当て・FB対応・再チェックの各状態を区別する。
 - 未解決事項、失敗工程、ユーザー判断事項があれば明記する。
 
 ## 完了条件
 
-- 今回の変更だけがcommitされ、対象外の変更と未追跡ファイルが保持されている。
-- pushとPR作成が成功し、作成済みまたは既存のPRを確認できる。
+- commitが必要な場合は今回の変更だけがcommitされ、対象外の変更と未追跡ファイルが保持されている。
+- 必要なpushとPR作成が成功し、作成済みまたはhead一致を確認した既存PRを確認できる。
 - ユーザーが指定したレビュー工程まで完了し、指定していない工程を追加していない。
 - Herdr、pane、Agent委譲、委譲メタ情報を使用していない。
