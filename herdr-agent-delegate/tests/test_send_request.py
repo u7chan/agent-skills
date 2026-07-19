@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import io
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -113,6 +114,18 @@ class SendRequestTest(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(argparse.ArgumentTypeError):
                     send_request.parse_metadata(value)
+
+    def test_metadata_parser_rejects_em_dash_value(self):
+        for key in send_request.METADATA_KEYS:
+            metadata = {
+                "agent": "Codex",
+                "model": "gpt-5.6-sol",
+                "effort": "high",
+            }
+            metadata[key] = "—"
+            with self.subTest(key=key):
+                with self.assertRaises(argparse.ArgumentTypeError):
+                    send_request.parse_metadata(json.dumps(metadata))
 
     def test_claude_short_prompt_starts_without_activation(self):
         rc, stderr, calls = self._run(

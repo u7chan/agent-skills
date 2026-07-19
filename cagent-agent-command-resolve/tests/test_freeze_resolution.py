@@ -55,6 +55,17 @@ class FreezeResolutionTest(unittest.TestCase):
         self.assertIsNone(result["delegation_metadata"])
         self.assertNotIn("--effort", result["agent_command"])
 
+    def test_em_dash_value_omits_entire_metadata_snapshot(self):
+        dry_run = "# Resolved effort: —\n/usr/bin/codex --model gpt-5.6-sol\n"
+        result = freeze_resolution.freeze_resolution(
+            agent_id="codex",
+            base_agent_type="codex",
+            level="high",
+            dry_run=dry_run,
+            verification_dry_run=dry_run,
+        )
+        self.assertIsNone(result["delegation_metadata"])
+
     def test_unknown_display_agent_omits_metadata(self):
         result = freeze_resolution.freeze_resolution(
             agent_id="custom",

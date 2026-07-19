@@ -23,6 +23,7 @@ DEFAULT_TIMEOUT_MS: Final = 30_000
 DEFAULT_ACTIVATION_TIMEOUT_MS: Final = 10_000
 DEFAULT_ACTIVATION_TEXT: Final = "実行して"
 METADATA_KEYS: Final = ("agent", "model", "effort")
+INVALID_METADATA_VALUES: Final = {"—"}
 METADATA_INSTRUCTION: Final = (
     "このメタ情報は現在の委譲タスクにのみ使用し、"
     "再解決・変更・別Agentへの転用をしないこと。"
@@ -43,11 +44,13 @@ def parse_metadata(value: str) -> dict[str, str]:
             "--metadata-json must contain exactly agent, model, and effort"
         )
     if any(
-        not isinstance(parsed[key], str) or not parsed[key].strip()
+        not isinstance(parsed[key], str)
+        or not parsed[key].strip()
+        or parsed[key].strip() in INVALID_METADATA_VALUES
         for key in METADATA_KEYS
     ):
         raise argparse.ArgumentTypeError(
-            "--metadata-json values must be non-empty strings"
+            "--metadata-json values must be non-empty, non-placeholder strings"
         )
     return {key: parsed[key] for key in METADATA_KEYS}
 

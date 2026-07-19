@@ -15,6 +15,7 @@ DISPLAY_AGENTS: Final = {
     "claude": "Claude Code",
     "opencode": "OpenCode",
 }
+INVALID_METADATA_VALUES: Final = {"—"}
 
 
 def option_value(arguments: list[str], *names: str) -> str | None:
@@ -72,7 +73,11 @@ def freeze_resolution(
 
     display_agent = DISPLAY_AGENTS.get(base_agent_type)
     metadata = None
-    if verified and display_agent and model and effort:
+    metadata_values = (display_agent, model, effort)
+    if verified and all(
+        value and value.strip() not in INVALID_METADATA_VALUES
+        for value in metadata_values
+    ):
         metadata = {
             "agent": display_agent,
             "model": model,
