@@ -14,6 +14,8 @@ description: Herdr上でCLI Agentへタスクを委譲し、公式プリミテ�
 
 `agent-command` の実行ファイル名から `base-agent-type` を推測しない。
 
+呼び出し側が新規paneの起動値を確定した場合だけ、任意の`delegation-metadata`（Agent / Model / Effortの完全なJSON）も受け取る。1値でも欠ける場合は受け取らず、`send_request.py`へ渡さない。
+
 ## 1. プリフライト
 
 1. `HERDR_ENV=1` と空でない `HERDR_PANE_ID` を確認する。満たさなければHerdr外から対象を推測せず終了する。
@@ -28,6 +30,7 @@ description: Herdr上でCLI Agentへタスクを委譲し、公式プリミテ�
 1. `herdr agent get <target>` で操作直前に解決する。
 2. 解決した `pane_id` が自分自身なら拒否する。
 3. `agent_status=idle` の時だけ再利用する。`working`、`blocked`、`done`、`unknown` には送信せず報告する。
+4. 既存paneへメタ情報を渡せるのは、そのpaneの起動時snapshotを呼び出し側が保持している場合だけとする。出自不明なら省略する。
 
 宛先がない、または存在しない場合は新規Agentを起動する。idleでない明示宛先を無断で新規Agentへ置き換えない。
 
@@ -88,10 +91,15 @@ description: Herdr上でCLI Agentへタスクを委譲し、公式プリミテ�
 <skill-dir>/scripts/send_request.py \
   --target <pane-id> \
   --agent <codex|claude|opencode> \
-  --prompt "<依頼本文>"
+  --prompt "<依頼本文>" \
+  --metadata-json '{"agent":"Codex","model":"gpt-5.6-sol","effort":"high"}'
 ```
 
 既存idle Agentの再利用時も同じく `send_request.py` を使う。依頼ファイル、replyファイル、完了markerは作らない。
+
+`--metadata-json`は任意で、`agent`、`model`、`effort`の3キーがすべて非空の場合だけ渡す。`send_request.py`が依頼末尾へ標準ブロックと利用制約を1回追加する。呼び出し側はブロックを手書きしない。部分値、`—`、現在paneやprocess infoからの補完、Codex Config fallbackは禁止する。
+
+同じpaneで再チェックする場合は初回起動時の同じsnapshotだけを再送できる。ネスト委譲では現在のメタ情報を子へ転用せず、各hopが委譲先を新たに解決する。
 
 `send_request.py` は `herdr pane run` で依頼を送信し、30秒以内の `working` 遷移を待つ。Claude Code のみ、長文ペーストが `[Pasted text #1]` として入力欄に留まり実行されない場合があるため、活性化用の短いプロンプトを `herdr pane run` で追加送信し、再び `working` を待つ。同じ依頼本文の `pane run` による再送信やEnter追送は二重実行の可能性があるため自動で行わない。
 
@@ -156,6 +164,7 @@ herdr pane read <pane-id> --source recent-unwrapped --lines 120
 - 複数の子へ先に依頼を送り、その後に各paneを個別に待つ。
 - 追加調査は新しいpaneで行い、既存のworking Agentへ割り込まない。
 - 子や孫からrootへ直接通知しない。失敗も直上へ要約して伝播する。
+- 親の`delegation-metadata`を孫へ転用しない。孫の起動値を新たに解決できなければメタ情報なしで委譲する。
 
 ## 禁止事項
 

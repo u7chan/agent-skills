@@ -1,6 +1,6 @@
 # agent skills
 
-[![Skills](https://img.shields.io/badge/skills-31-2ea44f?style=flat-square)](#available-skills)
+[![Skills](https://img.shields.io/badge/skills-30-2ea44f?style=flat-square)](#available-skills)
 [![Validation](https://img.shields.io/github/actions/workflow/status/u7chan/agent-skills/validate-skills.yml?branch=main&style=flat-square&label=validation)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
 
 コーディングエージェント用のカスタムスキル集です。
@@ -30,15 +30,14 @@
 | [github-pr-review](github-pr-review/SKILL.md) | 指定した GitHub PR をレビューし、FB 対応後の再チェックまで行う | `gh`, `jq`, GitHub API, POSIX shell |
 | [github-pr-comment-reply](github-pr-comment-reply/SKILL.md) | GitHub PR の review comment や conversation comment に返信する | `gh`, GitHub API, POSIX shell |
 | [github-pr-post-merge-cleanup](github-pr-post-merge-cleanup/SKILL.md) | マージ済み PR の基準ブランチへ戻り、ローカル作業ブランチを安全に整理する | `gh`, Git, POSIX shell |
-| [ai-identity-resolve](ai-identity-resolve/SKILL.md) | AIレビュー補助コメントやPR Work Metadata用のエージェント名・モデル名・Effortを推測せず取得する | Herdr / `cagent` (optional), Codex config (fallback) |
 
 ### Agent委譲 / オーケストレーション
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
 | [herdr-worktree-create](herdr-worktree-create/SKILL.md) | Herdr 公式コマンドで独立した worktree と workspace を作成する | Herdr, Git, POSIX shell |
-| [cagent-agent-command-resolve](cagent-agent-command-resolve/SKILL.md) | cagentでbase-agent-typeとagent-commandだけを解決する | Herdr, `cagent`, selected Agent CLI, POSIX shell |
-| [herdr-agent-delegate](herdr-agent-delegate/SKILL.md) | Herdr公式プリミティブでCLI Agentを1タブあたり最大4paneに配置し、送信・待機・出力回収を行う | Herdr, `jq`, Python 3, POSIX shell, Agent CLI |
+| [cagent-agent-command-resolve](cagent-agent-command-resolve/SKILL.md) | cagentの実効Agent・Model・Effortを起動コマンドへ固定し、任意の委譲メタ情報を返す | Herdr, `cagent`, Python 3, selected Agent CLI, POSIX shell |
+| [herdr-agent-delegate](herdr-agent-delegate/SKILL.md) | Herdr公式プリミティブでCLI Agentを配置し、任意の起動時メタ情報付きで送信・待機・出力回収を行う | Herdr, `jq`, Python 3, POSIX shell, Agent CLI |
 | [herdr-github-create-issue](herdr-github-create-issue/SKILL.md) | 確定済みプランのIssue作成をHerdrの新規Agentへ委譲する | Herdr, `cagent`, `gh`, `jq`, Git, Python 3, POSIX shell |
 | [herdr-github-pr-orchestrate](herdr-github-pr-orchestrate/SKILL.md) | Issue確認から実装委譲、commit、push、PR作成、レビュー・FB対応・再チェックまで統括する | Herdr, `gh`, `jq`, Git, Python 3, POSIX shell, Agent CLI |
 | [herdr-prompt-evaluate](herdr-prompt-evaluate/SKILL.md) | Herdrの独立Agentでプロンプトを実証評価し、観測した1テーマを最小改善する | Herdr, `jq`, Git, Python 3, POSIX shell, Agent CLI |

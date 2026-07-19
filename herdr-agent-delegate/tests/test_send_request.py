@@ -26,6 +26,7 @@ class SendRequestTest(unittest.TestCase):
             "target": "w1Z:pX",
             "agent": "claude",
             "prompt": "long " * 500,
+            "metadata": None,
             "timeout": 30_000,
             "activation_timeout": 10_000,
             "activation_text": "実行して",
@@ -67,6 +68,51 @@ class SendRequestTest(unittest.TestCase):
         self.assertEqual(calls[1][:2], ["wait", "agent-status"])
         self.assertIn("--timeout", calls[1])
         self.assertNotIn(["pane", "run", "w1Z:pX", "実行して"], calls)
+
+    def test_complete_metadata_is_appended_once_at_prompt_end(self):
+        metadata = {
+            "agent": "Codex",
+            "model": "gpt-5.6-sol",
+            "effort": "high",
+        }
+        rc, stderr, calls = self._run(
+            [
+                CompletedProcess(["pane", "run"], 0, "", ""),
+                CompletedProcess(["wait", "agent-status"], 0, "", ""),
+            ],
+            agent="codex",
+            prompt="review this",
+            metadata=metadata,
+        )
+        self.assertEqual(rc, 0)
+        self.assertEqual(stderr, "")
+        sent = calls[0][3]
+        self.assertTrue(sent.startswith("review this\n\n"))
+        self.assertEqual(sent.count("<herdr-delegation-metadata>"), 1)
+        self.assertIn(
+            '{"agent":"Codex","model":"gpt-5.6-sol","effort":"high"}',
+            sent,
+        )
+        self.assertTrue(sent.endswith(send_request.METADATA_INSTRUCTION))
+
+    def test_metadata_is_omitted_when_snapshot_is_absent(self):
+        self.assertEqual(send_request.build_prompt("task", None), "task")
+
+    def test_herdr_environment_alone_does_not_create_metadata(self):
+        with patch.dict("os.environ", {"HERDR_ENV": "1"}):
+            self.assertEqual(send_request.build_prompt("task", None), "task")
+
+    def test_metadata_parser_rejects_partial_or_unknown_values(self):
+        invalid = (
+            '{"agent":"Codex","model":"gpt-5.6-sol"}',
+            '{"agent":"Codex","model":"gpt-5.6-sol","effort":""}',
+            '{"agent":"Codex","model":"gpt-5.6-sol","effort":"high","x":1}',
+            "not-json",
+        )
+        for value in invalid:
+            with self.subTest(value=value):
+                with self.assertRaises(argparse.ArgumentTypeError):
+                    send_request.parse_metadata(value)
 
     def test_claude_short_prompt_starts_without_activation(self):
         rc, stderr, calls = self._run(

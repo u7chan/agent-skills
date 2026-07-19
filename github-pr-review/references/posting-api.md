@@ -18,7 +18,7 @@ inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}
 
 ## payload 作成例
 
-`<agent>`、`<model-or-—>`、`<effort-or-—>`は、投稿直前に`ai-identity-resolve`で解決した値へ置き換える。Agent名を取得できない場合は、識別子全体を空文字列とする。
+`<agent>`、`<model>`、`<effort>`は、現在の委譲指示末尾に有効な標準suffixがある場合だけ、その値へ置き換える。suffixがなければ識別文の行全体を省略する。
 
     HEAD_COMMIT_SHA=$(gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid)
 
@@ -51,7 +51,7 @@ inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}
 
     - 同じ要求が重複して到達する条件を確認しましたが、永続化前の一意性確認とそのケースを扱うテストにより、二重登録を防ぐ構成になっています。
 
-    AIレビュー補助（<agent> / <model-or-—> / <effort-or-—>）によるレビューです 🤖
+    AIレビュー補助（<agent> / <model> / <effort>）によるレビューです 🤖
 
 良い点は明確な根拠がある場合だけ、最大2件まで記載する。指摘がある場合も、承認やマージ可否を示す本文にはしない。
 
@@ -63,7 +63,7 @@ inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}
 
     必要なら修正案を書きます。
 
-    AIレビュー補助（<agent> / <model-or-—> / <effort-or-—>）によるレビューです 🤖
+    AIレビュー補助（<agent> / <model> / <effort>）によるレビューです 🤖
 
 ## 注意事項
 
@@ -95,4 +95,4 @@ payload 例:
 
     確認した範囲では、修正が必要な指摘は見つかりませんでした。
 
-    AIレビュー補助（<agent> / <model-or-—> / <effort-or-—>）によるレビューです 🤖
+    AIレビュー補助（<agent> / <model> / <effort>）によるレビューです 🤖
