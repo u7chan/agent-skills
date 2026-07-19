@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Changes Commit"
+  short_description: "今回の変更だけを限定stageし安全にcommitする"
+  default_prompt: "Use $git-changes-commit to inspect the task scope, stage only intended paths, commit them, and verify the result."

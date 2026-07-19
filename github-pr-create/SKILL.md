@@ -1,8 +1,8 @@
 ---
 name: github-pr-create
 description: >
-  GitHub PRの作成を依頼されたときに使う。「PRまで」「pushしてPR」「PR作って」も対象。
-  前提確認、必要な品質チェック、push、本文生成、PR作成、結果確認を行い、変更の修正やcommit作成は行わない。
+  PR対象の変更がすべてcommit済みのGitHub PR作成を依頼されたときに使う。「PR作って」「pushしてPR」も対象。
+  前提確認、非書き込み品質チェック、push、本文生成、PR作成、結果確認を行い、変更の修正・stage・commitは行わない。
 ---
 
 # GitHub PR Create
@@ -13,6 +13,7 @@ description: >
 
 - 前提確認、必要な品質チェック、push、PR本文生成、PR作成、結果確認だけを行う。
 - ファイル修正、`git add`、`git commit`、amend、rebaseは行わない。
+- 未コミットの対象変更からcommitとPR作成まで一連で求められた場合は`github-pr-orchestrate`へルーティングする。
 - lint、typecheck、test、buildの失敗を修正しない。失敗内容を報告して停止する。
 - formatを含め、未コミット変更を意図的に作る品質確認は実行しない。
 

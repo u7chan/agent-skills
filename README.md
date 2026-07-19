@@ -1,6 +1,6 @@
 # agent skills
 
-[![Skills](https://img.shields.io/badge/skills-30-2ea44f?style=flat-square)](#available-skills)
+[![Skills](https://img.shields.io/badge/skills-32-2ea44f?style=flat-square)](#available-skills)
 [![Validation](https://img.shields.io/github/actions/workflow/status/u7chan/agent-skills/validate-skills.yml?branch=main&style=flat-square&label=validation)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
 
 コーディングエージェント用のカスタムスキル集です。
@@ -19,12 +19,14 @@
 | [git-branch-create](git-branch-create/SKILL.md) | ブランチ名を提案し、ブランチを作成する | Git, POSIX shell |
 | [git-worktree-create](git-worktree-create/SKILL.md) | 独立した git worktree を作成し、並列作業用の作業領域を用意する | Git, POSIX shell |
 | [git-commit-message-suggest](git-commit-message-suggest/SKILL.md) | 変更内容に合うコミットメッセージだけを提案し、stageやcommitは行わない | Git, POSIX shell |
+| [git-changes-commit](git-changes-commit/SKILL.md) | 今回の変更だけを限定stageし、安全にcommitして結果を確認する | Git, POSIX shell |
 
 ### GitHub Issue / PR
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
 | [github-issue-create-from-plan](github-issue-create-from-plan/SKILL.md) | 確定済みプランからテンプレートを選び、GitHub Issueを作成・確認する | `gh`, GitHub, POSIX shell |
+| [github-pr-orchestrate](github-pr-orchestrate/SKILL.md) | 未コミット変更の確認から限定commit、PR作成、指定レビュー工程まで統括する | `gh`, `jq` (conditional), Git, GitHub, POSIX shell |
 | [github-pr-create](github-pr-create/SKILL.md) | 非修正型の品質チェック後、commit済み変更をpushしてPRを作成・確認する | `gh`, Git, GitHub, POSIX shell |
 | [github-pr-feedback-address](github-pr-feedback-address/SKILL.md) | GitHub PR のレビュー指摘を確認し、実装対応から返信まで行う | `gh`, Git, GitHub API, POSIX shell |
 | [github-pr-review](github-pr-review/SKILL.md) | 指定した GitHub PR をレビューし、FB 対応後の再チェックまで行う | `gh`, `jq`, GitHub API, POSIX shell |
