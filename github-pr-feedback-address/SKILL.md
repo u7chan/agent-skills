@@ -18,7 +18,7 @@ reviewer の指摘をそのまま仕様とみなさず、現在のコードと�
 - ユーザーの未コミット変更、無関係な変更、既存 commit を壊さない。
 - 指摘対応に必要な変更だけを行い、無関係な整形、リファクタ、依存更新を混ぜない。
 - 指摘同士が衝突する、または仕様決定が必要な場合だけユーザーへ確認する。
-- 返信投稿は `github-pr-comment-reply` に引き渡す。同スキルが投稿直前に `ai-identity-resolve` を必ず適用できるよう、会話開始時や過去に取得した識別値、特定のConfig値を返信契約へ固定しない。
+- 返信投稿は`github-pr-comment-reply`に引き渡す。現在の委譲指示末尾に標準メタ情報がある場合だけ同じ現在タスク内で利用し、値の再解決・変更・別Agentへの転用はしない。
 
 # ワークフロー
 
@@ -94,7 +94,7 @@ reviewer の指摘をそのまま仕様とみなさず、現在のコードと�
 
 - review comment には threaded reply、top-level comment には follow-up comment を投稿する。
 - 投稿方法は `github-pr-comment-reply/SKILL.md` に従う。
-- 返信対象、分類、変更内容、commit、検証結果を引き渡し、AI識別値は引き渡さない。投稿を所有する `github-pr-comment-reply` が投稿直前に `ai-identity-resolve` を適用して解決する。
+- 返信対象、分類、変更内容、commit、検証結果を`github-pr-comment-reply`へ引き渡す。AI識別値は別途組み立てず、現在の委譲指示に有効な標準suffixがある場合だけ同スキルのconsumer契約で使う。
 - `actionable` には、変更内容、元の失敗条件をどう閉じたか、commit、検証結果を書く。
 - `already-fixed` / `not-applicable` には、判断根拠となる現在のコードや仕様を書く。
 - `question` / `blocked` には、確定に必要な情報を具体的に書く。

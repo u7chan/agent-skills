@@ -4,19 +4,19 @@ PR作成成功後に読む。pane配置、Agent起動、readiness、送信、待
 
 ## PR Work Metadata スナップショット
 
-レビューとレビューFBも、`implementation-delegation.md`のPR Work Metadata スナップショットと同じ用語・所有者・取得時点の契約に従う。PR作成前に固定済みの値だけを本文に使い、PR作成後に解決した値を過去の PR 本文へ追加・更新しない。
+レビューとレビューFBも、`implementation-delegation.md`のPR Work Metadata snapshot契約に従う。PR作成前に起動値へ固定済みの完全な3値だけを本文に使い、PR作成後に解決した値を過去のPR本文へ追加・更新しない。
 
 ## 1. レビュー担当を解決する
 
-- Agent種別指定なら実装cwdで新規起動する。
+- Agent種別指定なら`cagent-agent-command-resolve`へ明示し、実効3値を固定した`agent-command`で実装cwdに新規起動する。
 - 既存Agent名・ID指定なら`herdr agent get <target>`で解決し、idleの場合だけ再利用する。
-- 指定なしなら現在の親Agentと同じ種別を実装cwdで新規起動する。
+- 指定なしなら現在の親Agentと同じ種別をcagentへ明示し、実装cwdで新規起動する。
 - 存在しない、自分自身、非idleのAgentでは停止し、自動切替や再試行を行わない。
 - 新規レビューAgentは`review-pr-<number>`へrenameする。既存Agent名は変更しない。
 
 ## 2. 初回レビューを委譲する
 
-対象PR URL、実装cwd、`github-pr-review`の利用、GitHubへの投稿、重要度・要約・コメントURLまたはIDの返却を依頼する。委譲操作は`herdr-agent-delegate`へ任せる。指摘がなく結果確認まで成功した場合だけ、新規レビューpaneを閉じる。
+対象PR URL、実装cwd、`github-pr-review`の利用、GitHubへの投稿、重要度・要約・コメントURLまたはIDの返却を依頼する。新規paneの起動時snapshotが完全な場合だけ`send_request.py --metadata-json`へ渡す。委譲操作は`herdr-agent-delegate`へ任せる。指摘がなく結果確認まで成功した場合だけ、新規レビューpaneを閉じる。
 
 ## 3. 親が指摘を分類する
 
@@ -28,9 +28,9 @@ PR作成成功後に読む。pane配置、Agent起動、readiness、送信、待
 
 ## 4. FB対応を直列委譲する
 
-同じ回の対応可能項目を、新規のFB対応Agent1体へまとめる。同一branchへの並列変更を禁止する。Agent種別はレビュー担当と同じとし、`fb-pr-<number>`へrenameする。
+同じ回の対応可能項目を、新規のFB対応Agent1体へまとめる。同一branchへの並列変更を禁止する。Agent種別はレビュー担当と同じ値をcagentへ明示し、実効3値を新たに固定して`fb-pr-<number>`へrenameする。
 
-対象PR、実装cwd、対象コメント、ユーザー決定、`github-pr-feedback-address`の利用、差分・検証・commit・push・返信結果の返却を依頼する。`question`、`blocked`、timeoutでは停止する。
+対象PR、実装cwd、対象コメント、ユーザー決定、`github-pr-feedback-address`の利用、差分・検証・commit・push・返信結果の返却を依頼する。FB担当は新たに解決した自身のsnapshotだけを受け取り、レビュー担当や親の値を転用しない。`question`、`blocked`、timeoutでは停止する。
 
 親は回収後に次を確認する。
 
@@ -42,7 +42,7 @@ PR作成成功後に読む。pane配置、Agent起動、readiness、送信、待
 
 ## 5. 同じレビュー担当で再チェックする
 
-初回レビューと同じAgentへ、元指摘だけを`github-pr-review`で再チェックさせる。PR全体の新論点は探させない。各指摘を`resolved`、`partial`、`unresolved`、`unknown`で返させる。
+初回レビューと同じAgentへ、初回起動時の同じsnapshotを再送し、元指摘だけを`github-pr-review`で再チェックさせる。出自不明の再利用paneならメタ情報を送らない。PR全体の新論点は探させない。各指摘を`resolved`、`partial`、`unresolved`、`unknown`で返させる。
 
 - 全件`resolved`なら完了する。
 - 確認不要な`partial` / `unresolved`は分類へ戻す。

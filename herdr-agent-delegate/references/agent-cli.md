@@ -29,10 +29,13 @@
 <skill-dir>/scripts/send_request.py \
   --target <pane-id> \
   --agent <codex|claude|opencode> \
-  --prompt "<依頼本文>"
+  --prompt "<依頼本文>" \
+  --metadata-json '{"agent":"Codex","model":"gpt-5.6-sol","effort":"high"}'
 ```
 
 `send_request.py` は `herdr pane run` で依頼を送信し、30秒以内の `working` 遷移を待つ。Claude Code のみ、長文ペーストが `[Pasted text #1]` として入力欄に留まることがあるため、活性化用の短いプロンプトを追加送信して再び `working` を待つ。
+
+`--metadata-json`は任意で、起動時に固定したAgent / Model / Effortがすべて揃う場合だけ渡す。スクリプトが標準ブロックを依頼末尾へ追加するため、呼び出し側は手書きしない。出自不明の既存paneでは省略し、snapshotを保持する同じpaneへの再送だけ同じ値を使う。
 
 30秒以内に `working` へ遷移しなかった場合、読み取り専用で状態を取得して報告し、異常を報告してこの依頼の送信を停止する。以降の完了待機や出力回収も行わず、人間の判断を待つ。
 

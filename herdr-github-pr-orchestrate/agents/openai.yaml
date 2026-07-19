@@ -1,4 +1,4 @@
 interface:
   display_name: "Herdr GitHub PR Orchestrate"
-  short_description: "Herdr AgentへGitHub Issue実装を委譲しPR metadataとレビューまで管理する"
+  short_description: "Herdr AgentへIssue実装を委譲し起動時metadataとレビューを管理"
   default_prompt: "Use $herdr-github-pr-orchestrate to orchestrate issue implementation, commit, push, PR creation, review, feedback, and recheck through Herdr."

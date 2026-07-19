@@ -1,4 +1,4 @@
 interface:
   display_name: "Herdr Agent Delegate"
   short_description: "Herdr上のCLI Agentへタスクを安全に委譲して結果を回収"
-  default_prompt: "Use $herdr-agent-delegate to delegate this task to a CLI agent in the current Herdr tab and collect the result."
+  default_prompt: "Use $herdr-agent-delegate to delegate this task with optional fixed launch metadata to a CLI agent in Herdr and collect the result."

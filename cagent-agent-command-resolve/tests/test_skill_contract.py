@@ -16,59 +16,28 @@ class SkillContractTest(unittest.TestCase):
         for name in ("agent", "level", "model", "effort"):
             self.assertIn(name, self.skill)
 
-    def test_agent_resolution_matches_cagent_priority(self):
-        self.assertIn("`--agent` を省略", self.skill)
-        priority = "`ユーザー明示の --agent > CAGENT_AGENT > config.default_agent`"
-        self.assertIn(priority, self.skill)
-        self.assertIn("この優先順位で選んだ同じagent ID", self.skill)
-
-    def test_defaults_are_selected_by_omission(self):
-        self.assertIn("`default_agent`", self.skill)
-        self.assertIn("levelを省略して `default_level`", self.skill)
-
-    def test_preflight_failures_do_not_fallback(self):
+    def test_preflight_resolves_then_verifies_fixed_command(self):
         for requirement in (
             "HERDR_ENV=1",
-            "HERDR_PANE_ID",
-            "command -v cagent",
-            "cagent --help",
             "cagent doctor",
-            "直接起動して回避しない",
+            "初回`cagent ... --dry-run`",
+            "freeze_resolution.py",
+            "Agent CLI、Model、Effortが一致した`verified: true`",
+            "直接CLIへfallbackせず停止",
         ):
             self.assertIn(requirement, self.skill)
 
-    def test_preflight_rejects_incompatible_or_unresolvable_cagent(self):
-        for capability in (
-            "rootの対話起動",
-            "`--dry-run`",
-            "`--agent`",
-            "`--model`",
-            "`--effort`",
-            "任意のlevel位置引数",
+    def test_handoff_separates_runtime_and_metadata_values(self):
+        for name in (
+            "base-agent-type",
+            "resolved",
+            "agent-command",
+            "delegation-metadata",
         ):
-            self.assertIn(capability, self.skill)
-
-        self.assertIn("cagent --agent <agent> doctor", self.skill)
-        self.assertIn("同じagent / model / effort / level", self.skill)
-        self.assertIn("選択対象Agentのbin不在", self.skill)
-        self.assertIn("Agent CLIやpaneを起動せず", self.skill)
-
-    def test_normal_flow_uses_only_interactive_cagent_command(self):
-        self.assertIn("cagent [--agent <agent>]", self.skill)
-        for forbidden in ("cagent " + "run", "cagent " + "mux"):
-            occurrences = [
-                line
-                for line in self.skill.splitlines()
-                if forbidden in line and "使わない" not in line
-            ]
-            self.assertEqual([], occurrences)
-
-    def test_handoff_separates_agent_type_from_command(self):
-        self.assertIn("base-agent-type", self.skill)
-        self.assertIn("agent-command", self.skill)
-        self.assertIn("ラッパー名 `cagent`", self.skill)
-        self.assertIn("Agent表示名が必要な後続処理", self.skill)
-        self.assertIn("cagent agent IDやpane・役割識別子を渡さない", self.skill)
+            self.assertIn(name, self.skill)
+        self.assertIn("1値でも欠ける", self.skill)
+        self.assertIn("全体を`null`", self.skill)
+        self.assertIn("Codex Config fallbackを使わない", self.skill)
 
     def test_agent_execution_is_out_of_scope(self):
         for responsibility in (
@@ -81,7 +50,6 @@ class SkillContractTest(unittest.TestCase):
             "cleanup",
         ):
             self.assertIn(responsibility, self.skill)
-        self.assertIn("呼び出し側が持つ", self.skill)
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ review comment への threaded reply と、トップレベルの PR conversation
 3. 対象コメントが review comment か top-level PR comment かを判定する。
 4. 返信本文を作成またはドラフトする。
 5. 対象コメントと返信本文が一意に決まる場合は、投稿前確認を挟まず自動で投稿する。
-6. 投稿本文を確定して API へ渡す直前に `ai-identity-resolve` を必ず適用し、その時点の AI 識別メタ情報を付ける。会話開始時や過去に取得した識別値を再利用しない。
+6. 現在の委譲指示末尾に標準の`herdr-delegation-metadata`がある場合だけ、その3値をAI識別メタ情報へ使う。なければ識別文全体を省略し、再解決しない。
 7. `gh api` で返信または follow-up comment を投稿する。
 8. 投稿結果を確認してユーザーへ報告する。
 
@@ -30,6 +30,7 @@ GitHub コネクタは使わず、`gh` / `gh api` の認証で投稿する。コ
 - Step 1, 3: `references/target-resolution.md`
 - Step 2, 8: `references/error-handling.md`
 - Step 4, 5, 6, 7: `references/posting-rules.md`
+- 委譲メタ情報: `../herdr-agent-delegate/references/delegation-metadata.md`
 
 # 参考資料
 

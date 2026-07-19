@@ -22,6 +22,51 @@ SUPPORTED_AGENTS: Final = ("codex", "claude", "opencode")
 DEFAULT_TIMEOUT_MS: Final = 30_000
 DEFAULT_ACTIVATION_TIMEOUT_MS: Final = 10_000
 DEFAULT_ACTIVATION_TEXT: Final = "実行して"
+METADATA_KEYS: Final = ("agent", "model", "effort")
+INVALID_METADATA_VALUES: Final = {"—"}
+METADATA_INSTRUCTION: Final = (
+    "このメタ情報は現在の委譲タスクにのみ使用し、"
+    "再解決・変更・別Agentへの転用をしないこと。"
+)
+
+
+def parse_metadata(value: str) -> dict[str, str]:
+    """Parse the all-or-nothing delegation metadata JSON."""
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError as exc:
+        raise argparse.ArgumentTypeError(
+            f"--metadata-json must be valid JSON: {exc.msg}"
+        ) from exc
+
+    if not isinstance(parsed, dict) or set(parsed) != set(METADATA_KEYS):
+        raise argparse.ArgumentTypeError(
+            "--metadata-json must contain exactly agent, model, and effort"
+        )
+    if any(
+        not isinstance(parsed[key], str)
+        or not parsed[key].strip()
+        or parsed[key].strip() in INVALID_METADATA_VALUES
+        for key in METADATA_KEYS
+    ):
+        raise argparse.ArgumentTypeError(
+            "--metadata-json values must be non-empty, non-placeholder strings"
+        )
+    return {key: parsed[key] for key in METADATA_KEYS}
+
+
+def build_prompt(prompt: str, metadata: dict[str, str] | None) -> str:
+    """Append one canonical metadata block when a complete snapshot exists."""
+    if metadata is None:
+        return prompt
+    payload = json.dumps(metadata, ensure_ascii=False, separators=(",", ":"))
+    return (
+        f"{prompt.rstrip()}\n\n"
+        "<herdr-delegation-metadata>\n"
+        f"{payload}\n"
+        "</herdr-delegation-metadata>\n\n"
+        f"{METADATA_INSTRUCTION}"
+    )
 
 
 def run_herdr(
@@ -103,8 +148,9 @@ def send_request(args: argparse.Namespace) -> int:
     total_timeout_ms = args.timeout
     activation_timeout_ms = min(args.activation_timeout, total_timeout_ms)
 
+    prompt = build_prompt(args.prompt, args.metadata)
     delivery = run_herdr(
-        ["pane", "run", args.target, args.prompt],
+        ["pane", "run", args.target, prompt],
         timeout=10,
     )
     if delivery.returncode != 0:
@@ -190,6 +236,12 @@ def main() -> None:
         help="agent type running in the target pane",
     )
     parser.add_argument("--prompt", required=True, help="request body to send")
+    parser.add_argument(
+        "--metadata-json",
+        dest="metadata",
+        type=parse_metadata,
+        help="optional all-or-nothing delegation metadata JSON",
+    )
     parser.add_argument(
         "--timeout",
         type=int,

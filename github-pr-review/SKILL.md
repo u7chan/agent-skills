@@ -88,7 +88,7 @@ GitHub Pull Request をレビューし、根拠のある指摘を可能な限り
 
 - PR 本文、次にタイトルの言語へ合わせ、判別できなければ日本語を使う。
 - `references/posting-rules.md` に従い、各コメントへ重要度ラベルを付ける。
-- 投稿本文と payload を確定して API へ渡す直前に `ai-identity-resolve` を必ず適用し、その時点の AI 識別メタ情報を各コメントへ付ける。会話開始時や過去に取得した識別値を再利用しない。
+- 現在の委譲指示末尾に標準の`herdr-delegation-metadata`がある場合だけ、その3値を各コメントのAI識別メタ情報へ使う。なければ識別文全体を省略し、再解決しない。
 - 複数の inline comment は、可能なら `event: "COMMENT"` の review にまとめる。
 - 投稿 API と payload は `references/posting-api.md` を使う。
 - 指摘がない場合は inline comment を作らず、指摘なしの `COMMENT` review を投稿する。根拠付きで確認できた良い点があれば、review 全体の本文へ最大2件だけ記載できる。
@@ -112,5 +112,5 @@ GitHub Pull Request をレビューし、根拠のある指摘を可能な限り
 
 - 投稿した各指摘が、差分上の根拠、発生条件、因果、影響を説明できる。
 - 重要度が確度と影響に合い、事実、推定、質問、好みを混同していない。
-- 重複投稿、PR approval、メタ情報欠落、リテラル `\n` がない。
+- 重複投稿、PR approval、不正なメタ情報、リテラル `\n` がない。
 - 再チェックではコード変更の有無ではなく、元の失敗条件の解消を確認している。

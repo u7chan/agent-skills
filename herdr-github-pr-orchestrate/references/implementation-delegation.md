@@ -24,24 +24,22 @@
 
 ## 3. 実装担当を解決する
 
-ユーザー指定を優先する。Agent種別指定なら準備済みcwdで新規起動し、既存Agent名・ID指定なら`herdr agent get <target>`で解決してidleの場合だけ再利用する。指定なしなら現在の親Agentと同じ種別を新規起動する。
+ユーザー指定を優先する。Agent種別指定なら`cagent-agent-command-resolve`へ明示し、指定なしなら現在の親Agentと同じ種別を明示して、実効Agent / Model / Effortと固定済み`agent-command`を解決して新規起動する。既存Agent名・ID指定なら`herdr agent get <target>`で解決してidleの場合だけ再利用する。
 
-自分自身、存在しないAgent、非idle Agentは使わない。新規Agentの配置と起動は`herdr-agent-delegate`へ任せる。新規AgentはIssue番号があれば`implement-issue-<number>`、なければ作業対象が分かる名前へrenameする。既存Agent名は変更しない。
+自分自身、存在しないAgent、非idle Agentは使わない。新規Agentの配置と起動は`herdr-agent-delegate`へ任せ、cagentの解決結果を書き換えない。新規AgentはIssue番号があれば`implement-issue-<number>`、なければ作業対象が分かる名前へrenameする。既存Agent名は変更しない。出自不明の既存paneではメタ情報を省略する。
 
-## 4. PR Work Metadata スナップショットを記録する
+## 4. PR Work Metadata snapshotを記録する
 
-PR Work Metadata スナップショットとは、PR本文へ渡す役割別のAgent / Model / Effortを固定した記録である。親Agentが記録を管理するが、各値の所有者は対象役割の現在 Agentとする。現在 Agent 以外、別 pane、過去セッションの値を混ぜない。
-
-Agent / Model / Effort は `ai-identity-resolve` の標準契約を適用する。ModelまたはEffortの優先順位はこの文書に再定義しない。子役割の実行値が取得できない場合、親自身や別AgentのCodex ConfigからModelまたはEffortを補完しない。Agent種別、起動コマンド、既定値、過去値から推測しない。
+PR Work Metadata snapshotは、`../../herdr-agent-delegate/references/delegation-metadata.md`の標準3値を役割別に保持した記録である。値はcagent解決時に同じ`agent-command`へ固定し、`send_request.py`へ渡したJSONだけを使う。
 
 | 役割 | 記録条件 | 固定時点 |
 | --- | --- | --- |
-| オーケストレーター | 必須 | 実装 pane の input-ready 確認を終え、実装依頼を送る直前 |
-| 実装 | 必須 | 実装担当と起動時の解決値を確認した時点 |
-| レビュー | 任意 | PR作成前に担当 Agent が会話または解決結果で確定し、値を直接確認できた時点 |
-| レビューFB | 任意 | PR作成前に担当 Agent が会話または解決結果で確定し、値を直接確認できた時点 |
+| オーケストレーター | 現在の親タスク末尾に有効な標準suffixがある | 現在の委譲タスク受領時 |
+| 実装 | 新規paneの3値を起動コマンドへ固定できた | 実装pane起動前 |
+| レビュー | PR作成前に新規paneの3値を固定できた | レビューpane起動前 |
+| レビューFB | PR作成前に新規paneの3値を固定できた | FB pane起動前 |
 
-必須2役割は全セルが`—`でも行を作る。任意役割はAgent 担当自体が未確定なら行を作らない。取得不能なセルだけ `—` とする。PR作成後に解決した役割を過去の本文へ追加せず、既存のレビューコメント・FB 対応コメントの記録方法も変更しない。
+標準suffixのない単体実行・Herdr直接起動のroot、出自不明の既存pane、1値でも欠ける役割には行を作らない。`—`、pane/process info、環境変数、Codex Config、別役割の値で補完しない。PR作成後に解決した役割を過去の本文へ追加しない。
 
 ## 5. 実装タスクを渡す
 
@@ -56,6 +54,8 @@ Agent / Model / Effort は `ai-identity-resolve` の標準契約を適用する�
 - 変更概要、変更ファイル、検証コマンドと結果、未解決事項、ユーザー判断事項を返すこと
 - HerdrのCompletion contractに従うこと
 ```
+
+新規実装paneには、起動時snapshotが完全な場合だけ`send_request.py --metadata-json`で標準suffixを追加する。呼び出し側はブロックを手書きしない。
 
 ユーザー判断事項が返った場合は同じpaneを保持し、親が判断を確認して同じ実装担当へ返す。別Agentや親実装へ切り替えない。
 
