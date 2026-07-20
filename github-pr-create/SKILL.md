@@ -71,6 +71,7 @@ description: >
 
 - upstreamがなければ`git push -u origin <branch>`、あれば通常の`git push`を行う。force pushしない。
 - push失敗時は変更を加えず停止する。
+- 一時ファイルは常にワーキングディレクトリ配下（. または $PWD）に作成する。/tmp は使わない。
 - PR本文を一時ファイルへ保存し、`gh pr create --base <base> --title <title> --body-file <file>`で作成する。
 - 対話入力や`--web`を既定にせず、タイトル・base・本文を明示する。
 

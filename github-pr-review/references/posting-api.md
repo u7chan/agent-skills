@@ -67,7 +67,7 @@ inline review comment の投稿は、原則として `POST /repos/{owner}/{repo}
 
 ## 注意事項
 
-- JSON payload は一時ファイルとして作成し、`gh api --input review-payload.json` で渡す。
+- JSON payload は一時ファイルとして作成し、`gh api --input review-payload.json` で渡す。一時ファイルは常にワーキングディレクトリ配下（. または $PWD）に作成し、/tmp は使わない。
 - 複数行の Markdown コメント本文は別ファイルから読み込んで JSON を生成する。
 - JSON 内では改行が `\n` として表現されるが、GitHub 上のコメント本文は実改行として表示される。
 - 本文にバッククォート、`$()`、引用符、改行が含まれるため、JSON や Markdown コメント本文をシェル引数へ直接埋め込まない。

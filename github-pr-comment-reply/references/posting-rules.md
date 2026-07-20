@@ -36,7 +36,7 @@
 - 推奨パターンは次のとおり。
 
 ```bash
-TMP=$(mktemp)
+TMP=$(mktemp -p . .gh-body.XXXXXX)
 trap 'rm -f "$TMP"' EXIT
 printf '%s\n' "$BODY" > "$TMP"
 ```

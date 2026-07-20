@@ -1,6 +1,6 @@
 # Herdr独立実行
 
-worktreeの作成元解決、base解決、衝突確認、公式create、返却workspace検証は `../../herdr-worktree-create/SKILL.md` を適用する。そのスキルと衝突する場合、本ワークフロー固有の `/tmp` 配置、`eval/` branch、シナリオごとの別worktree・workspace、成功時cleanup規則を優先する。
+worktreeの作成元解決、base解決、衝突確認、公式create、返却workspace検証は `../../herdr-worktree-create/SKILL.md` を適用する。そのスキルと衝突する場合、本ワークフロー固有の `.eval-runs/` 配置、`eval/` branch、シナリオごとの別worktree・workspace、成功時cleanup規則を優先する。
 
 ## 1. プリフライトする
 
@@ -15,7 +15,7 @@ worktreeの作成元解決、base解決、衝突確認、公式create、返却wo
 
 ## 2. snapshotを作る
 
-実行ごとに`/tmp`配下へ推測困難で一意なrun directoryを作り、イテレーション単位の`iteration-N/snapshot`を置く。対象プロンプトと必要な参照ファイルだけを元の相対構造を保ってコピーし、通常ファイルを`0444`、directoryを`0555`にする。秘密、チェックリスト、hold-out、前回出力、改善仮説を含めない。
+実行ごとに`.eval-runs/`配下へ推測困難で一意なrun directoryを作り、イテレーション単位の`iteration-N/snapshot`を置く。対象プロンプトと必要な参照ファイルだけを元の相対構造を保ってコピーし、通常ファイルを`0444`、directoryを`0555`にする。秘密、チェックリスト、hold-out、前回出力、改善仮説を含めない。
 
 全baselineシナリオへ同じsnapshotの絶対パスを渡す。実行Agentにはsnapshotを変更せず、成果物を自分のシナリオworktree内だけへ書くよう指示する。親は実行後にsnapshotのハッシュと権限を開始時記録と照合する。不一致なら隔離失敗として保持・停止する。
 
@@ -23,7 +23,7 @@ worktreeの作成元解決、base解決、衝突確認、公式create、返却wo
 
 ## 3. シナリオworktreeを作る
 
-run ID、iteration、scenario slugを含む安全な`/tmp`配下のpathと、一意な`eval/<run-id>-i<N>-<slug>` branchを割り当てる。作成前にpath、branchが存在しないことを確認し、作成対象として台帳へ記録する。
+run ID、iteration、scenario slugを含む安全な`.eval-runs/`配下のpathと、一意な`eval/<run-id>-i<N>-<slug>` branchを割り当てる。作成前にpath、branchが存在しないことを確認し、作成対象として台帳へ記録する。
 
 各baselineシナリオについて次を直接実行する。ラッパーを追加しない。複数コマンドを先に起動して並列化してよいが、各JSONを個別に保存・検証する。
 
