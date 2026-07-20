@@ -1,6 +1,6 @@
 # agent skills
 
-[![Skills](https://badgen.net/static/skills/32/2ea44f)](#available-skills)
+[![Skills](https://badgen.net/static/skills/33/2ea44f)](#available-skills)
 [![Validation](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml/badge.svg?branch=main)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
 
 コーディングエージェント用のカスタムスキル集です。
@@ -25,6 +25,7 @@
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
+| [github-issue-decompose](github-issue-decompose/SKILL.md) | 既存Issueを本文・全コメントを根拠にSub-issueへ分解し、親をEpic化する | `gh`, GitHub, POSIX shell |
 | [github-issue-create-from-plan](github-issue-create-from-plan/SKILL.md) | 確定済みプランからテンプレートを選び、GitHub Issueを作成・確認する | `gh`, GitHub, POSIX shell |
 | [github-pr-orchestrate](github-pr-orchestrate/SKILL.md) | 未コミット変更の確認から限定commit、PR作成、指定レビュー工程まで統括する | `gh`, `jq` (conditional), Git, GitHub, POSIX shell |
 | [github-pr-create](github-pr-create/SKILL.md) | 非修正型の品質チェック後、commit済み変更をpushしてPRを作成・確認する | `gh`, Git, GitHub, POSIX shell |

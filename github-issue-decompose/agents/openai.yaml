@@ -1,0 +1,5 @@
+interface:
+  display_name: "GitHub Issue Decompose"
+  short_description: "既存IssueをSub-issueへ分解しEpic化する"
+  default_prompt: "Use $github-issue-decompose to decompose an existing GitHub Issue into native Sub-issues, using github-issue-create-from-plan for each child."
+
