@@ -2,6 +2,8 @@
 
 worktreeの作成元解決、base解決、衝突確認、公式create、返却workspace検証は `../../herdr-worktree-create/SKILL.md` を適用する。そのスキルと衝突する場合、本ワークフロー固有の `.eval-runs/` 配置、`eval/` branch、シナリオごとの別worktree・workspace、成功時cleanup規則を優先する。
 
+> **Note**: `.eval-runs/` は評価実行時の一時資源を格納するディレクトリであり、Git 管理対象外にすること。`.git/info/exclude` または `.gitignore` で除外する。
+
 ## 1. プリフライトする
 
 1. `HERDR_ENV=1`、空でない`HERDR_PANE_ID`、`herdr`、`jq`、固定したAgent CLIを確認する。自動インストールや別種別への切替をしない。
