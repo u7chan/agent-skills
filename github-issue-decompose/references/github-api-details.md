@@ -7,6 +7,7 @@ github-issue-decompose が使用する `gh` コマンドとGitHub APIの詳細�
 - GitHubのSub-issue機能が有効なリポジトリであること
 - `gh auth status` が成功し、対象リポジトリへの読み取り・書き込み権限があること
 - `--parent` オプションおよび `--json subIssues` フィールドは `gh` の比較的新しいバージョンで提供される
+- 必要ghバージョン: `gh` v2.94.0 以降（`--parent` フラグ、`parent` / `subIssues` JSONフィールド対応のため）
 
 ## 使用コマンド一覧
 
@@ -28,12 +29,12 @@ GitHub CLIでネイティブSub-issueを検索する:
 ```sh
 gh issue list \
   --repo <owner/repo> \
-  --search "is:issue parent:<parent-number>" \
+  --search "is:issue parent-issue:\"<owner>/<repo>#<parent-number>\"" \
   --json number,title,body,url,labels,state \
   --state all
 ```
 
-- `parent:` 検索はGitHubのSub-issue機能に依存する
+- `parent-issue:` 検索はGitHubのSub-issue機能に依存する
 - `--state all` でOpen/Closed両方を取得し、重複防止に使う
 
 ### 3. 既存ラベルの取得
@@ -75,10 +76,10 @@ gh issue edit <child-number> \
 ```sh
 gh issue view <child-number> \
   --repo <owner/repo> \
-  --json url,title,body,labels,state,parentIssue
+  --json url,title,body,labels,state,parent
 ```
 
-- `parentIssue` フィールドで親子関係を確認する
+- `parent` フィールドで親子関係を確認する
 
 ### 7. 親Issue本文の更新
 

@@ -49,6 +49,8 @@ description: >
 ### 3. Preflight - 書き込み前の確認を行う
 
 - 書き込み権限を確認する。
+- `gh issue edit --help` で `--parent` フラグの存在を確認する。非対応なら書き込み前に停止する。
+- 利用するJSONフィールド（`gh issue view --json parent`、`gh issue view --json subIssues`）が取得可能か確認し、非対応なら停止する。
 - 既存Sub-issueのタイトル・本文・目的を分割提案と照合し、同一目的の重複を除外する。
 - `gh label list`で既存Labelを確認し、各Sub-issueに明確に合うものを特定する。
 - 分割案・ラベル割り当て・情報の移動先マッピングを提示し、ユーザー確認を得る。
@@ -56,9 +58,9 @@ description: >
 
 ### 4. Create - Sub-issueを作成する
 
-- 確定した分割単位ごとに、`github-issue-create-from-plan`のStandardテンプレートを適用して本文を生成する。
-- 各本文に含めるもの: `Related Issues / PRs`（親Issue番号）、`Summary`（目的と範囲）、`Implementation Approach`と`Design Details`（親Issue・コメントから該当する具体情報を移す）、`Tasks`、`Testing`、独立して完了判断できる`Acceptance Criteria`。
-- `gh issue create --body-file`で作成する。
+- Preflightで確定した各分割単位を「確定済みプラン」として`github-issue-create-from-plan`へ渡す。
+- 既存Skillのテンプレート選択・本文生成・Issue作成・結果確認に任せ、本Skill側で重複実装しない。
+- 作成されたIssueのURLと確認結果をLink工程へ引き継ぐ。
 
 ### 5. Link - ネイティブSub-issueとして親子付けする
 
@@ -68,7 +70,7 @@ description: >
 
 ### 6. Verify - 作成結果を再取得して確認する
 
-- 各Sub-issueを`gh issue view --json url,title,body,labels,parentIssue`で再取得する。
+- 各Sub-issueを`gh issue view --json url,title,body,labels,parent`で再取得する。
 - URL、title、labels、本文、親子関係が正しいことを確認する。
 - 元の情報が親またはSub-issueのどこかに保持されていることを確認する。
 - 確認失敗時は親本文を変更せず、作成済みIssue URLと差異を報告して停止する。
@@ -76,6 +78,7 @@ description: >
 ### 7. Compact - 親IssueをEpicへ短縮する
 
 - 全Sub-issueの作成・親子付け・確認が成功した後にだけ実行する。
+- 実行前に親Issueの元本文を退避し、復旧に備える。
 - 親に残す情報: 背景・目的、全体方針、共通制約、完了条件、Phase区分。
 - Sub-issueへ移す情報: 具体的作業、実装詳細、個別Acceptance Criteria、テスト方法。
 - `gh issue edit <parent> --body-file`で本文を更新し、Sub-issue progressが保持されることを確認する。
@@ -84,6 +87,10 @@ description: >
 
 - `gh issue view <parent> --json url,title,body,subIssues`でEpicと全Sub-issue progressを確認する。
 - 情報保持、親子関係、ラベルを最終確認する。
+- **失敗時の復旧**: Compactで親本文がすでに変更済みのため、以下の手順で復旧する。
+  1. 再取得不能、情報欠落、親子不一致の「変更済み」状態を報告する。
+  2. 退避した元本文を`gh issue edit <parent> --body-file`で書き戻し、Compact前の状態に復旧する。
+  3. 作成済みSub-issue URL（リンク済みの「状態不明」を含む）、復旧操作の成否を報告して停止する。
 
 ## 出力
 
