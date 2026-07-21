@@ -32,8 +32,8 @@ bash .scripts/validate-skills.sh
 
 ### スキル設計ルール
 
-スキルのカテゴリ分類、命名規則、依存方向、責務境界、外部依存種別、構造規則、検証基準は [docs/skill-rules.yaml](docs/skill-rules.yaml) を正本とする。
-全スキルのカテゴリ割り当てと依存関係は [docs/skill-categories.yaml](docs/skill-categories.yaml) に記録する。
+スキルのカテゴリ分類、命名規則、依存方向、責務境界、外部依存種別、構造規則、検証基準は [.rules/skill-rules.yaml](.rules/skill-rules.yaml) を正本とする。
+全スキルのカテゴリ割り当てと依存関係は [.rules/skill-categories.yaml](.rules/skill-categories.yaml) に記録する。
 
 #### カテゴリ一覧（依存方向: 上位→下位 のみ許可）
 

@@ -4,7 +4,7 @@
 # このファイルの変更は意図的なルール改定を意味し、レビューを要する。
 #
 # 関連ファイル:
-#   docs/skill-categories.yaml — 全スキルのカテゴリ分類と依存関係
+#   .rules/skill-categories.yaml — 全スキルのカテゴリ分類と依存関係
 #   inventory/skills.yaml       — Phase 1 棚卸しデータ（外部依存、行数等）
 #   AGENTS.md                   — エージェント向け保守手順
 
@@ -217,7 +217,7 @@ dependencies:
       同一カテゴリ内のスキル間依存は、以下の条件をすべて満たす場合に許可する。
       1. 循環参照がない
       2. 汎用→特殊、または親→子の方向である
-      3. depends_on が正本（docs/skill-categories.yaml）に明記されている
+      3. depends_on が正本（.rules/skill-categories.yaml）に明記されている
 
     allowed_examples:
       - example: "git-changes-commit → git-commit-message-suggest"
@@ -289,9 +289,9 @@ dependencies:
 
   # --- 4.4 依存メタデータ正本 ---
   metadata:
-    canonical_source: "docs/skill-categories.yaml"
+    canonical_source: ".rules/skill-categories.yaml"
     description: >
-      スキル間依存の正本は docs/skill-categories.yaml の depends_on フィールドとする。
+      スキル間依存の正本は .rules/skill-categories.yaml の depends_on フィールドとする。
       SKILL.md 内の自然言語による言及は補助的であり、自動抽出可能だが検証の正本とはしない。
       正本の更新は skill-categories.yaml の編集を伴い、自動抽出結果との diff で正当性を確認する。
 
@@ -387,7 +387,7 @@ external_dependencies:
       values:
         - unconditional: "親スキルの起動時に常に子スキルをロードする"
         - conditional: "親スキルが特定フローでのみ子スキルを利用する"
-      canonical_location: "docs/skill-categories.yaml の depends_on_edge_condition"
+      canonical_location: ".rules/skill-categories.yaml の depends_on_edge_condition"
 
     algorithm:
       step_1:
@@ -517,7 +517,7 @@ validation:
       subject: "分類網羅性"
       description: >
         全アクティブスキル（配布対象 33 件 + 保守専用 1 件 = 34 件）が
-        docs/skill-categories.yaml でカテゴリ分類され、
+        .rules/skill-categories.yaml でカテゴリ分類され、
         かつ正本に存在しないスキル名の余剰エントリがない。
       mechanical_check: >
         validate-skills.sh と同一のアクティブスキル探索範囲（.system/ と .archive/ を除外）で

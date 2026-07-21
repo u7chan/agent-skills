@@ -4,7 +4,7 @@
 # 依存関係の正本はこのファイルの depends_on フィールドとする。
 #
 # 関連ファイル:
-#   docs/skill-rules.yaml       — カテゴリ定義・ルールの詳細
+#   .rules/skill-rules.yaml       — カテゴリ定義・ルールの詳細
 #   inventory/skills.yaml       — Phase 1 棚卸しデータ（外部依存、行数、disposition 等）
 #   inventory/dependency-graph.yaml — 自動抽出された依存グラフ
 
