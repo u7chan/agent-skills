@@ -37,7 +37,7 @@ bash .scripts/validate-skills.sh
 
 #### カテゴリ一覧（依存方向: 上位→下位 のみ許可）
 
-| カテゴリ | 概要 | 依存可能 |
+| カテゴリ | 概要 | 依存可能（他カテゴリ） |
 |----------|------|----------|
 | `orchestration` | 高次ワークフロー統括 | github, git, design, skill, tool, dependency |
 | `github` | GitHubプラットフォーム操作 | git, design, tool |
@@ -46,6 +46,8 @@ bash .scripts/validate-skills.sh
 | `skill` | スキル管理 | —（leaf） |
 | `tool` | 独立ツール | —（leaf） |
 | `dependency` | 依存パッケージ管理 | —（leaf） |
+
+同一カテゴリ内のスキル間依存は §4.2 に従う（循環なし・汎用→特殊方向・正本への明記が条件）。
 
 #### 外部依存種別
 

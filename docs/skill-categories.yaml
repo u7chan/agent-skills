@@ -21,9 +21,10 @@ meta:
 # ============================================================
 category_summary:
   - id: orchestration
-    count: 6
+    count: 7
     skills:
       - cagent-agent-command-resolve
+      - github-pr-orchestrate
       - herdr-agent-delegate
       - herdr-github-create-issue
       - herdr-github-pr-orchestrate
@@ -31,14 +32,13 @@ category_summary:
       - herdr-worktree-create
 
   - id: github
-    count: 8
+    count: 7
     skills:
       - github-issue-create-from-plan
       - github-issue-decompose
       - github-pr-comment-reply
       - github-pr-create
       - github-pr-feedback-address
-      - github-pr-orchestrate
       - github-pr-post-merge-cleanup
       - github-pr-review
 
@@ -87,7 +87,7 @@ category_summary:
 # ============================================================
 skills:
 
-  # --- orchestration (6) ---
+  # --- orchestration (7) ---
   - name: cagent-agent-command-resolve
     category: orchestration
     classification: distributable
@@ -164,10 +164,9 @@ skills:
       Herdr 上の独立 Agent で prompt をシナリオ実行し、
       非公開要件で採点して曖昧さを 1 テーマずつ最小改善する。
     depends_on:
-      - agent-skill-design
-      - agent-skill-refine
       - herdr-agent-delegate
       - herdr-worktree-create
+      # agent-skill-design, agent-skill-refine は routes_to（評価対象skillの設計評価であり、無条件ロード不要）
     external_dependencies_ref: inventory/skills.yaml
     known_issues: []
 
@@ -185,7 +184,24 @@ skills:
       - ref: F006
         note: "git-worktree-create との重複候補。共通ロジックの抽出を検討。"
 
-  # --- github (8) ---
+  - name: github-pr-orchestrate
+    category: orchestration
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      未コミット変更の確認から限定 commit、push、PR 作成、
+      指定レビュー工程までを統括する。
+      Herdr での委譲や pane 管理は行わない。
+    depends_on:
+      - git-changes-commit
+      - github-pr-create
+      - github-pr-review
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F008
+        note: "herdr-github-pr-orchestrate との重複候補。"
+
+  # --- github (7) ---
   - name: github-issue-create-from-plan
     category: github
     classification: distributable
@@ -249,23 +265,6 @@ skills:
       - github-pr-comment-reply
     external_dependencies_ref: inventory/skills.yaml
     known_issues: []
-
-  - name: github-pr-orchestrate
-    category: github
-    classification: distributable
-    naming: conforms
-    primary_responsibility: >
-      未コミット変更の確認から限定 commit、push、PR 作成、
-      指定レビュー工程までを統括する。
-      Herdr での委譲や pane 管理は行わない。
-    depends_on:
-      - git-changes-commit
-      - github-pr-create
-      - github-pr-review
-    external_dependencies_ref: inventory/skills.yaml
-    known_issues:
-      - ref: F008
-        note: "herdr-github-pr-orchestrate との重複候補。"
 
   - name: github-pr-post-merge-cleanup
     category: github
@@ -369,8 +368,7 @@ skills:
     primary_responsibility: >
       計画、意思決定、アイデアを領域を問わず一問ずつ徹底的に掘り下げ、
       前提と判断を明確にする。
-    depends_on:
-      - design-plan-grill
+    depends_on: []   # design-plan-grill は routes_to（設計特化壁打ちへの条件付き委譲）
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F007
@@ -602,9 +600,17 @@ dependency_notes:
       - from: github-pr-orchestrate
         to: herdr-github-pr-orchestrate
         relation: mention
+      - from: grilling
+        to: design-plan-grill
+        relation: routes_to
+        note: "設計特化壁打ちへの条件付き委譲（旧 depends_on から是正）"
       - from: herdr-github-create-issue
         to: [cagent-agent-command-resolve, github-issue-create-from-plan, herdr-agent-delegate]
         relation: routes_to
+      - from: herdr-prompt-evaluate
+        to: [agent-skill-design, agent-skill-refine]
+        relation: routes_to
+        note: "評価対象skillの設計評価・リファイン評価であり、無条件ロード不要（旧 depends_on から是正）"
       - from: herdr-worktree-create
         to: herdr-github-pr-orchestrate
         relation: used_by

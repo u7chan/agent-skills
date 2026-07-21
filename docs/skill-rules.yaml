@@ -220,18 +220,12 @@ dependencies:
       3. depends_on が正本（docs/skill-categories.yaml）に明記されている
 
     allowed_examples:
-      - example: "grilling → design-plan-grill"
-        reason: "design カテゴリ内。grilling（汎用壁打ち）が design-plan-grill（設計特化）へルーティング"
       - example: "git-changes-commit → git-commit-message-suggest"
         reason: "git カテゴリ内。commit が message 提案へ委譲"
-      - example: "github-pr-orchestrate → github-pr-create"
-        reason: "github カテゴリ内。統括が個別作成へ委譲"
       - example: "github-pr-feedback-address → github-pr-comment-reply"
         reason: "github カテゴリ内。FB 対応が返信へ委譲"
       - example: "git-worktree-create → git-branch-create"
         reason: "git カテゴリ内。worktree が branch へ委譲"
-      - example: "github-pr-orchestrate → github-pr-review"
-        reason: "github カテゴリ内。統括がレビューへ委譲"
 
   # --- 4.3 参照方式 ---
   reference_format:
@@ -271,11 +265,16 @@ dependencies:
     depends_on_spec:
       type: "list of skill name strings"
       empty_meaning: "他スキルに依存しない（完全に自己完結）"
-      relation: "このスキルが実行時に依存するスキル。depends_on されたスキルのロードが前提となる。"
+      relation: "このスキルが主要機能を実行するために無条件でロードを前提とするスキル。depends_on されたスキルの指示・定義なしでは当該スキルは動作しない。"
+      criteria:
+        - "当該スキルが起動時に常に load/参照する場合 → depends_on"
+        - "特定条件下でのみ処理を委譲・分岐する場合 → routes_to（depends_on には含めない）"
+        - "定義・概念を引用するが実行時ロード不要の場合 → mention"
+        - "判定が曖昧な場合は、ロードが無条件かつ主要機能に必須かを基準とする"
 
     other_relations:
       routes_to:
-        definition: "特定条件下で別スキルへ処理を委譲する指示。依存ではない（呼び出し元が判断する）。"
+        definition: "特定条件下で別スキルへ処理を委譲する指示。依存ではない（呼び出し元が条件判断し、委譲しないフローでは対象スキルなしでも動作する）。"
       mention:
         definition: "ドキュメント上の言及。依存関係ではない。"
       used_by:
@@ -317,32 +316,71 @@ external_dependencies:
         通常フローでは使用されない。
       example: "npx（playwright-cli、Playwright CLI 非存在時のフォールバック）"
 
-  # --- 5.2 Effective External Dependencies の算出 ---
+  # --- 5.2 入力形式（README セルからの機械抽出規則） ---
+  input_format:
+    description: >
+      各スキルの README.md の External Dependencies 列から機械的に type を抽出する規則。
+
+    grammar:
+      cell_format: "依存名1, 依存名2 (type), 依存名3"
+      type_annotation: >
+        依存名の直後に半角丸括弧で type 記号 1 文字を記述する。
+        記号は R / C / O / F のいずれか 1 文字。
+        例: `gh CLI (R)`, `web access (C)`, `librsvg (O)`, `npx (F)`
+      default:
+        when_absent: "type 注記がない依存は required (R) とみなす。既定値で問題ない場合も明示的な R 注記を推奨する。"
+      normalization:
+        rule: "依存名先頭・末尾の空白を除去し、連続する空白を 1 つに正規化する。type 注記内の空白も除去する。"
+      error_rules:
+        unknown_type: >
+          定義された 4 種別（R/C/O/F）以外の注記（typo 含む）は ERROR として報告する。
+          例: `(conditonal)` → ERROR（正しくは `(C)`）
+        unclosed_paren: "閉じ括弧のない注記 `(R` など）は ERROR とする。"
+        multiple_annotations: "1 依存名に複数の type 注記がある場合は ERROR とする。"
+
+    canonical_source: "README.md 各スキルの External Dependencies 列"
+    parser_spec: "Phase 3 の検証スクリプトはこの grammar に従って README をパースし、V-EXT-001 で未知 type を検出する。"
+
+  # --- 5.3 Effective External Dependencies の算出 ---
   effective_calculation:
     description: >
       各スキルの effective external dependencies（実効外部依存）は以下で算出する。
+
+    edge_condition:
+      description: >
+        depends_on エッジには利用条件（edge usage condition）を付与できる。
+        既定は unconditional（無条件）。conditional 指定されたエッジは、
+        親スキルが特定条件下でのみ子スキルを利用することを示す。
+      values:
+        - unconditional: "親スキルの起動時に常に子スキルをロードする"
+        - conditional: "親スキルが特定フローでのみ子スキルを利用する"
+      canonical_location: "docs/skill-categories.yaml の depends_on_edge_condition"
 
     algorithm:
       step_1:
         label: "直接依存の収集"
         description: "当該スキルの README が宣言する外部依存を Direct とする。"
       step_2:
-        label: "推移依存の収集"
+        label: "推移依存の収集（エッジ条件付き）"
         description: >
           depends_on する全スキルの effective deps を再帰的に収集し Transitive とする。
+          収集時にエッジの usage condition を記録する。
+          unconditional エッジを経由した依存はそのまま伝搬する。
+          conditional エッジを経由した依存には conditional フラグを付与する。
           depends_on エッジが存在しないスキルについてはこのステップをスキップする。
       step_3:
         label: "結合"
         description: "Effective = Direct ∪ Transitive（依存名で dedup）"
       step_4:
-        label: "type 解決"
+        label: "type 解決（条件付き伝搬考慮）"
         description: >
-          同一の依存名が異なる type で出現した場合、
-          厳しさ順 required > conditional > optional > fallback で解決する。
+          同一の依存名が異なる type で出現した場合、以下を優先順に適用して解決する。
+          1. conditional エッジのみを経由する推移依存は、元の type に関わらず自スキルの conditional として扱う
+          2. それ以外の重複は厳しさ順 required > conditional > optional > fallback で解決する
       step_5:
         label: "optional/fallback の伝搬抑制"
         description: >
-          optional および fallback 依存は推移伝搬しない。
+          optional および fallback 依存は、conditional エッジの有無に関わらず推移伝搬しない。
           依存先スキルが optional/fallback で動作するなら、
           呼び出し元にとって必須ではないとみなす。
 
@@ -444,8 +482,14 @@ validation:
     - id: V-CAT-001
       level: ERROR
       subject: "分類網羅性"
-      description: "全配布対象スキルが docs/skill-categories.yaml でカテゴリ分類されている"
-      mechanical_check: "skill-categories.yaml の skills に全スキル名が出現することを確認"
+      description: >
+        全アクティブスキル（配布対象 33 件 + 保守専用 1 件 = 34 件）が
+        docs/skill-categories.yaml でカテゴリ分類され、
+        かつ正本に存在しないスキル名の余剰エントリがない。
+      mechanical_check: >
+        validate-skills.sh と同一のアクティブスキル探索範囲（.system/ と .archive/ を除外）で
+        SKILL.md を収集し、全スキル名が skill-categories.yaml の skills にちょうど1回出現し、
+        逆に skills にのみ存在するスキル名がないことを確認。
 
     - id: V-CAT-002
       level: ERROR
@@ -462,21 +506,30 @@ validation:
 
     - id: V-DEP-002
       level: ERROR
-      subject: "逆方向カテゴリ依存"
-      description: "カテゴリ間の依存方向が §4.1 の prohibited に該当しない"
+      subject: "カテゴリ間依存方向"
+      description: >
+        異なるカテゴリ間の depends_on エッジが from カテゴリの allowed_depends_on
+        に含まれ、かつ to カテゴリの may_be_depended_on_by が空でなければ
+        from カテゴリを含むことを確認する。
+        order 比較のみでは許可リスト外の依存を検出できないため、
+        カテゴリ定義の許可リストを正本として判定する。
       mechanical_check: >
-        各 depends_on エッジについて、
-        from の category.order と to の category.order を比較し、
-        prohibited に列挙された方向を検出。
+        各 depends_on エッジの from と to のカテゴリが異なる場合:
+        1. to.category.id が from.category.allowed_depends_on に含まれることを確認
+        2. to.category.may_be_depended_on_by が空でなければ、from.category.id が含まれることを確認
+        1 または 2 を満たさないエッジを ERROR とする。
+        order 比較および prohibited 列挙は補助情報として併用する。
 
     - id: V-DEP-003
       level: ERROR
       subject: "物理パス参照"
-      description: "他スキルへの ../ 相対パス参照がない（§4.3 prohibited_patterns）"
+      description: "他スキルへの ../ 相対パス参照および repo-root 相対パス参照がない（§4.3）"
       mechanical_check: >
-        全 SKILL.md および references/ 内ファイルを対象に、
-        prohibited_patterns にマッチする行を正規表現検出。
-        既知例外（allowed_patterns）に該当するものは除外。
+        全 SKILL.md および references/ 内ファイルを対象に、以下を検出する。
+        1. prohibited_patterns（../ 相対パス）にマッチする行を正規表現検出
+        2. 既知の配布スキル名の直後に /SKILL.md、/references/、/scripts/ が続く行を検出（repo-root 相対参照）
+        既知例外（allowed_patterns）に該当するものと、自スキル内参照（自スキル名に一致）は除外。
+        既に存在する repo-root 相対参照は既知負債として記録し、Phase 3 実装時に WARNING として報告する。
 
     - id: V-DEP-004
       level: WARNING
@@ -499,8 +552,14 @@ validation:
     - id: V-EXT-001
       level: ERROR
       subject: "外部依存 type の有効性"
-      description: "全スキルの外部依存 type が required/conditional/optional/fallback のいずれかである"
-      mechanical_check: "不明な type 値の検出"
+      description: >
+        全スキルの外部依存 type が §5.1 の 4 種別（R/C/O/F）のいずれかであり、
+        §5.2 の入力形式 grammar に従ってパース可能であること。
+        未知の type 注記、不完全な注記、複数注記は ERROR とする。
+      mechanical_check: >
+        README の External Dependencies 列を §5.2 grammar でパースし、
+        各依存の type が required/conditional/optional/fallback に解決されることを確認。
+        未注記は required へ解決し、定義外の注記は ERROR として報告する。
 
     - id: V-EXT-002
       level: WARNING
@@ -534,13 +593,13 @@ validation:
       mechanical_check: "ファイル存在確認（validate-skills.sh 既存）"
 
     - id: V-STR-002
-      level: WARNING
+      level: ERROR
       subject: "SKILL.md 行数"
       description: "SKILL.md の行数が 180 以下である"
       mechanical_check: "wc -l カウント（validate-skills.sh 既存）。例外リスト照合。"
 
     - id: V-STR-003
-      level: WARNING
+      level: ERROR
       subject: "references/ 参照整合性"
       description: "SKILL.md 内の references/ 参照が実ファイルと一致する"
       mechanical_check: "references/... 記法を抽出し、実ファイル存在を確認（validate-skills.sh 既存）"
