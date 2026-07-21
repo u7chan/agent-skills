@@ -507,16 +507,24 @@ def extract_external_deps(skill_name: str,
         for which_match in re.finditer(r"`which (\w+)`", content):
             add_dep(which_match.group(1), "required", f"{rel_path} (which)")
 
-        # Python import 文（コードブロック内）
-        for code in re.findall(r"```(?:py|python|bash|sh)?\n(.*?)```", content, re.DOTALL):
+        # 全コードブロックから import 文を抽出（Python / JS / TS）
+        for code in re.findall(r"```[^\n]*\n(.*?)```", content, re.DOTALL):
+            # Python: from/import
             for imp in re.finditer(r"(?:^|\n)(?:from|import)\s+([a-zA-Z_]\w+)", code):
                 mod = imp.group(1)
                 if mod.lower() in ("os", "sys", "json", "re", "yaml", "pathlib",
-                                   "subprocess", "shutil", "typing", "io", "time",
-                                   "hashlib", "collections", "dataclasses", "importlib",
-                                   "__future__", "argparse", "logging", "tempfile"):
+                                    "subprocess", "shutil", "typing", "io", "time",
+                                    "hashlib", "collections", "dataclasses", "importlib",
+                                    "__future__", "argparse", "logging", "tempfile"):
                     continue
                 add_dep(mod, "required", f"{rel_path} (code-import)")
+            # JS/TS: import { ... } from '...' / import ... from '...'
+            for imp in re.finditer(r"(?:^|\n)\s*import\s+(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+['\"]([^'\"]+)['\"]", code):
+                mod = imp.group(1)
+                if mod.startswith(".") or mod.startswith("node:"):
+                    continue
+                pkg = mod.split("/")[0] if mod.startswith("@") else mod.split("/")[0]
+                add_dep(pkg, "required", f"{rel_path} (code-import)")
 
         # 実ファイルの import 文（.py ファイルの直接解析）
         if rel_path.endswith(".py"):

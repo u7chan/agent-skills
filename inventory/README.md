@@ -49,7 +49,7 @@ python3 .scripts/inventory.py
 - `nodes`: スキル名、パス、分類、行数
 - `edges`: スキル間の参照関係（`from` → `to`）
 - `cycles`: 検出された循環参照
-- `reverse_dependencies`: レイヤー逆方向依存候補
+- `reverse_dependency_candidates`: レイヤー逆方向依存候補
 - `physical_path_refs`: 相対パス（`../`）による物理参照
 
 ### findings.yaml
@@ -59,10 +59,9 @@ python3 .scripts/inventory.py
 
 ## Key Findings Summary
 
-### 循環参照 (2件)
+### 循環参照 (0件)
 
-1. `herdr-github-pr-orchestrate` → `herdr-worktree-create` → `herdr-github-pr-orchestrate`
-2. `github-pr-create` → `github-pr-orchestrate` → `github-pr-create`
+`depends_on` エッジのみを対象としたTarjan SCCによる循環検出では、循環参照は検出されなかった。
 
 ### 肥大化注意 (5件)
 
@@ -75,13 +74,16 @@ python3 .scripts/inventory.py
 - `github-pr-orchestrate` / `herdr-github-pr-orchestrate`
 - `agent-skill-design` / `agent-skill-refine`（責務境界は明確、統合不要の判断）
 
-### 逆方向依存 (16件)
+### 逆方向依存候補 (2件)
 
-主に Herdr（オーケストレーション層）から Git/GitHub（操作層）への依存。アーキテクチャ上は期待される方向であり、レイヤー定義の再考が必要。
+- `github-pr-comment-reply` (primitive) → `herdr-agent-delegate` (orchestration)
+- `github-pr-review` (primitive) → `herdr-agent-delegate` (orchestration)
 
-### 物理パス参照 (22件)
+GitHubスキルからHerdr Agentへの委譲手順参照に起因する。いずれも `references/posting-rules.md` 内の手順記述に基づく。
 
-`../skill-name/SKILL.md` 形式のスキル間参照。特に `herdr-github-pr-orchestrate`(8件) と `herdr-prompt-evaluate`(3件) が多い。Phase 2 でシンボリックリンク方式への移行時に解消候補。
+### 物理パス参照 (32件)
+
+`../` による相対パス参照。内訳: `skill_internal`（スキル間参照）26件、`general`（worktree出力先や symlink targetなどの一般パス）6件。スキル間参照では `github-pr-orchestrate`(4件) や `herdr-github-pr-orchestrate`(4件) が多く、Phase 2 でシンボリックリンク方式への移行時に解消候補。
 
 ## Limitations
 

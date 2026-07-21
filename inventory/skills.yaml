@@ -63,7 +63,10 @@ skills:
   has_evaluation_samples: false
   skill_references: []
   path_references: []
-  external_dependencies: []
+  external_dependencies:
+  - name: motion
+    type: required
+    source: references/fluid-motion.md (code-import)
   disposition: keep
   findings: []
 - name: bun-dependency-update
