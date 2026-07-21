@@ -1,0 +1,14 @@
+generated_by: .scripts/inventory.py
+scope: distributable + .claude/skills/ (maintenance-only)
+total_skills: 34
+distributable: 33
+maintenance: 1
+total_dependency_edges: 22
+total_other_references: 15
+cycles_found: 0
+reverse_dependency_candidates: 2
+physical_path_refs_found: 32
+total_findings: 13
+oversize_skills: 0
+near_limit_skills: 5
+duplication_candidates: 4
