@@ -254,6 +254,39 @@ dependencies:
       - pattern: "../SKILL.md"
         scope: "自スキル内参照（references/ → own SKILL.md）"
 
+    detection_logic:
+      description: >
+        物理パス参照の検出は、表記形式（../, repo-root相対, 絶対パス）の
+        文字列マッチに依存せず、以下の手順で行う。
+      procedure:
+        step_1:
+          label: "スキルroot一覧の収集"
+          description: >
+            全配布対象スキルおよび保守専用スキルのトップレベルディレクトリパス
+            （例: `herdr-agent-delegate/`, `.claude/skills/skills-readme-sync/`）
+            をスキルroot一覧として収集する。
+            除外対象（.system/, .archive/）は含めない。
+        step_2:
+          label: "参照パスの解決"
+          description: >
+            SKILL.md および references/ 内の全ファイルを走査し、
+            Markdownリンク（`[text](path)`）、コードブロック内のパス文字列、
+            インラインの相対パス表記を抽出する。
+            各参照パスを、そのファイルの存在位置を基点に実ファイルシステムパスへ解決する。
+        step_3:
+          label: "スキルroot照合"
+          description: >
+            解決された絶対パスまたはリポジトリルート相対パスが、
+            スキルroot一覧のいずれかの配下を示すか判定する。
+            参照元スキル自身のroot配下である場合は除外する。
+            参照先がスキルroot一覧に含まれないパス（.claude/ 配下の非スキルパス、
+            worktree出力先など）は許可対象として除外する。
+        step_4:
+          label: "違反判定"
+          description: >
+            自スキル以外のスキルroot配下を指す参照を検出した場合、
+            参照元ファイル・行番号・参照先スキル名を ERROR として報告する。
+
   # --- 4.4 依存メタデータ正本 ---
   metadata:
     canonical_source: "docs/skill-categories.yaml"
@@ -523,13 +556,15 @@ validation:
     - id: V-DEP-003
       level: ERROR
       subject: "物理パス参照"
-      description: "他スキルへの ../ 相対パス参照および repo-root 相対パス参照がない（§4.3）"
+      description: "他スキル配下への物理パス参照がない（§4.3）。表記形式（../, repo-root相対, 絶対パス）に依存せず、実ファイルシステム上のパス解決で判定する。"
       mechanical_check: >
-        全 SKILL.md および references/ 内ファイルを対象に、以下を検出する。
-        1. prohibited_patterns（../ 相対パス）にマッチする行を正規表現検出
-        2. 既知の配布スキル名の直後に /SKILL.md、/references/、/scripts/ が続く行を検出（repo-root 相対参照）
-        既知例外（allowed_patterns）に該当するものと、自スキル内参照（自スキル名に一致）は除外。
-        既に存在する repo-root 相対参照は既知負債として記録し、Phase 3 実装時に WARNING として報告する。
+        §4.3 detection_logic に従い、以下の手順で機械判定する。
+        1. 全配布対象・保守専用スキルのトップレベルディレクトリパスをスキルroot一覧として収集
+        2. 全 SKILL.md および references/ 内ファイルから Markdown リンク・コードブロック内パス・
+           インライン相対パスを抽出し、ファイル位置を基点に実パスへ解決
+        3. 解決パスが自スキル以外のスキルroot配下を示す場合を ERROR として報告
+        4. 解決不能なパス（シンボリックな参照、動的パス）は WARNING として報告
+        allowed_patterns に該当するパス（.claude/skills, worktree 出力先, 自スキル内参照）は除外する。
 
     - id: V-DEP-004
       level: WARNING

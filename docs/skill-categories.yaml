@@ -125,7 +125,10 @@ skills:
     primary_responsibility: >
       Herdr 上で確定済みプランの GitHub Issue 作成を
       cagent low の新規 Agent へ委譲し、作成結果を確認する。
-    depends_on: []   # routes_to のみ（cagent-agent-command-resolve, github-issue-create-from-plan, herdr-agent-delegate）
+    depends_on:
+      - cagent-agent-command-resolve
+      - github-issue-create-from-plan
+      - herdr-agent-delegate
     external_dependencies_ref: inventory/skills.yaml
     known_issues: []
 
@@ -195,7 +198,7 @@ skills:
     depends_on:
       - git-changes-commit
       - github-pr-create
-      - github-pr-review
+      # github-pr-review は routes_to（レビュー明示時のみの条件付き委譲）
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F008
@@ -604,9 +607,10 @@ dependency_notes:
         to: design-plan-grill
         relation: routes_to
         note: "設計特化壁打ちへの条件付き委譲（旧 depends_on から是正）"
-      - from: herdr-github-create-issue
-        to: [cagent-agent-command-resolve, github-issue-create-from-plan, herdr-agent-delegate]
+      - from: github-pr-orchestrate
+        to: github-pr-review
         relation: routes_to
+        note: "レビュー明示時のみの条件付き委譲（旧 depends_on から是正）"
       - from: herdr-prompt-evaluate
         to: [agent-skill-design, agent-skill-refine]
         relation: routes_to
