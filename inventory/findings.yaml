@@ -1,0 +1,87 @@
+generated_by: .scripts/inventory.py
+total_findings: 13
+auto_detected: 5
+manual: 8
+findings:
+- type: near_limit
+  skill: bun-dependency-update
+  line_count: 151
+  reason: approaches 180-line limit (151)
+  recommendation: monitor, consider reducing
+  auto_detected: true
+- type: near_limit
+  skill: herdr-agent-delegate
+  line_count: 173
+  reason: approaches 180-line limit (173)
+  recommendation: monitor, consider reducing
+  auto_detected: true
+- type: near_limit
+  skill: herdr-github-pr-orchestrate
+  line_count: 156
+  reason: approaches 180-line limit (156)
+  recommendation: monitor, consider reducing
+  auto_detected: true
+- type: near_limit
+  skill: npm-dependency-update
+  line_count: 153
+  reason: approaches 180-line limit (153)
+  recommendation: monitor, consider reducing
+  auto_detected: true
+- type: near_limit
+  skill: uv-dependency-update
+  line_count: 161
+  reason: approaches 180-line limit (161)
+  recommendation: monitor, consider reducing
+  auto_detected: true
+- type: duplication_candidate
+  skills:
+  - git-worktree-create
+  - herdr-worktree-create
+  reason: 両者とも独立したworktree作成が責務。git-worktree-create は純粋なgit操作、herdr-worktree-create はHerdrコマンドによる作成。責務が重複しているが、利用コンテキストが異なるため統合には慎重な判断が必要。
+  auto_detected: false
+  recommendation: 統合候補。共通のworktree作成ロジックを抽出し、ラッパーとしてgit/herdr版を提供する構成を検討。
+- type: duplication_candidate
+  skills:
+  - grilling
+  - design-plan-grill
+  reason: grilling は領域非依存の壁打ち、design-plan-grill は設計に特化した壁打ち。責務が重複しており、design-plan-grill は grilling の特殊化。grilling の SKILL.md
+    内でも design-plan-grill への委譲を指示している。
+  auto_detected: false
+  recommendation: 統合候補。design-plan-grill を grilling のサブモードとして統合するか、grilling を design-plan-grill に吸収。
+- type: duplication_candidate
+  skills:
+  - github-pr-orchestrate
+  - herdr-github-pr-orchestrate
+  reason: 両者ともPR作成の統括フロー。github-pr-orchestrate は非Herdr環境、herdr-github-pr-orchestrate はHerdr環境向け。herdr版はgithub版の共通スキルを参照している。
+  auto_detected: false
+  recommendation: 統合候補。共通フローを抽出し、Herdr/非Herdrの差異だけを切り替え可能にする。
+- type: duplication_candidate
+  skills:
+  - agent-skill-design
+  - agent-skill-refine
+  reason: agent-skill-design は新規作成・要件追加・全面再設計、agent-skill-refine は挙動を変えずに短文化・高密度化。責務は明確に分離されているが、密接に関連しており、参照関係も強い。
+  auto_detected: false
+  recommendation: 分割統合は不要。責務境界が明確で適切に分離されている。
+- type: oversize_detail
+  skill: herdr-agent-delegate
+  line_count: 173
+  reason: 173行。Agent委譲の全工程（プリフライト、宛先解決、pane配置、依頼送信、結果回収）を1ファイルに収めており、責務が大きい。references/ は既に存在するが、SKILL.md 自体の構造を再検討する余地がある。
+  recommendation: 工程ごとに references/ へ分割し、SKILL.md はルーティングと主要ルールのみに絞る。
+  auto_detected: false
+- type: near_limit_detail
+  skill: herdr-github-pr-orchestrate
+  line_count: 156
+  reason: 156行。実装委譲からPR作成、レビュー、FB対応までの全工程をカバーしており、工程ごとの分岐条件も多い。references/ に実装委譲とレビューループの詳細は分離済み。
+  recommendation: モニタリング。180行を超える前に工程分岐の一部を references/ に移すことを検討。
+  auto_detected: false
+- type: complexity
+  skill: cagent-agent-command-resolve
+  reason: cagent の解決ロジックと Agent Command の生成を1スキルで扱っている。scripts/ に実装があり、SKILL.md はそれらの使い方を説明する構成。責務は明確だが、cagent 自体のバージョンアップに追従が必要。
+  recommendation: 現状維持。scripts/ への分離は適切に行われている。
+  auto_detected: false
+- type: common_dependency
+  dependency: posix shell
+  type_class: required
+  usage_count: 24
+  reason: 全スキルの 24/34 が依存。共通依存として暗黙的に扱うことを検討。
+  auto_detected: false
