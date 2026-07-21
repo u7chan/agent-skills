@@ -1,0 +1,620 @@
+# Skill Categories — 全スキルのカテゴリ分類と依存関係
+#
+# Phase 2 成果物。全 34 スキルのカテゴリ分類、依存関係、命名適合性を記録する。
+# 依存関係の正本はこのファイルの depends_on フィールドとする。
+#
+# 関連ファイル:
+#   .rules/skill-rules.yaml       — カテゴリ定義・ルールの詳細
+#   inventory/skills.yaml       — Phase 1 棚卸しデータ（外部依存、行数、disposition 等）
+#   inventory/dependency-graph.yaml — 自動抽出された依存グラフ
+
+meta:
+  version: "1.0.0"
+  phase: 2
+  total_skills: 34
+  distributable: 33
+  maintenance: 1
+  generated: "2026-07-21"
+
+# ============================================================
+# カテゴリ別サマリ
+# ============================================================
+category_summary:
+  - id: orchestration
+    count: 7
+    skills:
+      - cagent-agent-command-resolve
+      - github-pr-orchestrate
+      - herdr-agent-delegate
+      - herdr-github-create-issue
+      - herdr-github-pr-orchestrate
+      - herdr-prompt-evaluate
+      - herdr-worktree-create
+
+  - id: github
+    count: 7
+    skills:
+      - github-issue-create-from-plan
+      - github-issue-decompose
+      - github-pr-comment-reply
+      - github-pr-create
+      - github-pr-feedback-address
+      - github-pr-post-merge-cleanup
+      - github-pr-review
+
+  - id: git
+    count: 4
+    skills:
+      - git-branch-create
+      - git-changes-commit
+      - git-commit-message-suggest
+      - git-worktree-create
+
+  - id: design
+    count: 2
+    skills:
+      - design-plan-grill
+      - grilling
+
+  - id: skill
+    count: 3
+    skills:
+      - agent-skill-design
+      - agent-skill-refine
+      - skills-readme-sync
+
+  - id: tool
+    count: 8
+    skills:
+      - apple-interface-design
+      - codex-skills-link
+      - html-artifact-format
+      - image-to-svg
+      - japanese-text-refine
+      - playwright-cli
+      - qa-test-design
+      - tailwind-ui-compose
+
+  - id: dependency
+    count: 3
+    skills:
+      - bun-dependency-update
+      - npm-dependency-update
+      - uv-dependency-update
+
+# ============================================================
+# 全スキル分類
+# ============================================================
+skills:
+
+  # --- orchestration (7) ---
+  - name: cagent-agent-command-resolve
+    category: orchestration
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      cagent で agent、task level、model、effort を解決し、
+      実行値を固定した agent-command と委譲メタ情報を返す。
+      pane 作成、Agent 起動、送信、待機は行わない。
+    depends_on: []   # herdr-agent-delegate は mention のみ
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F012
+        note: "cagent のバージョンアップ追従が必要。scripts/ への分離は適切。"
+
+  - name: herdr-agent-delegate
+    category: orchestration
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      Herdr 上で CLI Agent へタスクを委譲し、
+      公式プリミティブで pane 配置、送信、完了待機、出力回収を行う。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F002
+        note: "173 行。180 行制限に近接。工程ごとの references/ 分割を検討。"
+      - ref: F010
+        note: "責務が大きい。全工程を 1 ファイルに収めている。"
+
+  - name: herdr-github-create-issue
+    category: orchestration
+    classification: distributable
+    naming: borderline
+    naming_note: "service が `herdr-github` の 2 要素。上位委譲の性質から許容。"
+    primary_responsibility: >
+      Herdr 上で確定済みプランの GitHub Issue 作成を
+      cagent low の新規 Agent へ委譲し、作成結果を確認する。
+    depends_on:
+      - cagent-agent-command-resolve
+      - github-issue-create-from-plan
+      - herdr-agent-delegate
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: herdr-github-pr-orchestrate
+    category: orchestration
+    classification: distributable
+    naming: borderline
+    naming_note: "service が `herdr-github` の 2 要素。herdr 上の github 統括を明示。"
+    primary_responsibility: >
+      GitHub Issue 確認から実装委譲、commit、PR 作成、
+      レビュー・FB 対応・再チェックまでを統括する。
+      pane 配置・送信・待機の詳細は herdr-agent-delegate へ委ねる。
+    depends_on:
+      - cagent-agent-command-resolve
+      - git-branch-create
+      - git-changes-commit
+      - github-pr-create
+      - github-pr-feedback-address
+      - github-pr-review
+      - herdr-agent-delegate
+      - herdr-worktree-create
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F003
+        note: "156 行。180 行制限に近接。工程分岐の一部を references/ に移すことを検討。"
+      - ref: F008
+        note: "github-pr-orchestrate との重複候補。共通フロー抽出を検討。"
+      - ref: F011
+        note: "実装委譲から PR 作成、レビュー、FB 対応まで全工程をカバー。"
+
+  - name: herdr-prompt-evaluate
+    category: orchestration
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      Herdr 上の独立 Agent で prompt をシナリオ実行し、
+      非公開要件で採点して曖昧さを 1 テーマずつ最小改善する。
+    depends_on:
+      - herdr-agent-delegate
+      - herdr-worktree-create
+      # agent-skill-design, agent-skill-refine は routes_to（評価対象skillの設計評価であり、無条件ロード不要）
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: herdr-worktree-create
+    category: orchestration
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      Herdr 公式コマンドで独立した worktree を作成し、
+      ブランチ命名、衝突確認、workspace 作成、実装先の引き継ぎまで扱う。
+    depends_on:
+      - git-branch-create
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F006
+        note: "git-worktree-create との重複候補。共通ロジックの抽出を検討。"
+
+  - name: github-pr-orchestrate
+    category: orchestration
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      未コミット変更の確認から限定 commit、push、PR 作成、
+      指定レビュー工程までを統括する。
+      Herdr での委譲や pane 管理は行わない。
+    depends_on:
+      - git-changes-commit
+      - github-pr-create
+      # github-pr-review は routes_to（レビュー明示時のみの条件付き委譲）
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F008
+        note: "herdr-github-pr-orchestrate との重複候補。"
+
+  # --- github (7) ---
+  - name: github-issue-create-from-plan
+    category: github
+    classification: distributable
+    naming: borderline
+    naming_note: "action が `create-from-plan` と複合。責務の固有性から許容。"
+    primary_responsibility: >
+      合意済みの設計プランからテンプレートを選び、
+      GitHub Issue を作成して結果を確認する。
+      プラン作成・再設計・壁打ちは行わない。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: github-issue-decompose
+    category: github
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      既存 Issue を本文と全コメントを根拠にレビュー可能な作業単位へ分解し、
+      GitHub ネイティブの Sub-issue として登録する。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: github-pr-comment-reply
+    category: github
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      GitHub PR の review comment や conversation comment への返信を行う。
+    depends_on:
+      - herdr-agent-delegate   # VIOLATION: github → orchestration 逆方向依存
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: V-DEP-002
+        note: >
+          逆方向カテゴリ依存（github → orchestration）。
+          references/posting-rules.md 内の Herdr 投稿手順参照に起因。
+          Phase 3 で解消要。
+
+  - name: github-pr-create
+    category: github
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      commit 済み変更の非書き込み品質チェック後、
+      push して PR を作成・確認する。
+      変更の修正・stage・commit は行わない。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: github-pr-feedback-address
+    category: github
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      既存 GitHub PR への feedback 対応を行う。
+      未解決 feedback の検証、修正、テスト、commit、push、返信まで。
+    depends_on:
+      - github-pr-comment-reply
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: github-pr-post-merge-cleanup
+    category: github
+    classification: distributable
+    naming: borderline
+    naming_note: "action が `post-merge-cleanup` と長い。操作の一意性から許容。"
+    primary_responsibility: >
+      マージ済み PR の base branch へ戻り、
+      最新化してローカル作業ブランチを削除する。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: github-pr-review
+    category: github
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      指定された GitHub PR のレビューや再チェックを行い、
+      PR 上へコメントする。
+    depends_on:
+      - herdr-agent-delegate   # VIOLATION: github → orchestration 逆方向依存
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: V-DEP-002
+        note: >
+          逆方向カテゴリ依存（github → orchestration）。
+          references/posting-rules.md 内の Herdr 投稿手順参照に起因。
+          Phase 3 で解消要。
+
+  # --- git (4) ---
+  - name: git-branch-create
+    category: git
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      Git ブランチ名の提案やブランチ作成を行う。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: git-changes-commit
+    category: git
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      現在のタスクで作成した変更だけを安全に commit する。
+      差分確認、対象 path の限定 stage、commit、結果確認を行い、
+      push や PR 作成は行わない。
+    depends_on:
+      - git-commit-message-suggest
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: git-commit-message-suggest
+    category: git
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      Git の変更内容に合うコミットメッセージの提案を行う。
+      stage や commit は実行しない。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: git-worktree-create
+    category: git
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      コーディングエージェント用の独立した git worktree を作成する。
+      基点ブランチ特定、ブランチ命名、衝突確認、実装先引き継ぎまで。
+    depends_on:
+      - git-branch-create
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F006
+        note: "herdr-worktree-create との重複候補。"
+
+  # --- design (2) ---
+  - name: design-plan-grill
+    category: design
+    classification: distributable
+    naming: borderline
+    naming_note: "action が `grill`。壁打ちを表す慣用語として許容。"
+    primary_responsibility: >
+      実装前の計画・デザイン・要件を一問ずつ厳しく壁打ちし、
+      調査と推奨回答を交えて合意まで進める。
+      通常モードと docs-backed モードを持つ。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F007
+        note: "grilling との重複候補。design-plan-grill は grilling の特殊化。"
+
+  - name: grilling
+    category: design
+    classification: distributable
+    naming: exception
+    naming_reason: "gerund 形の単一単語名。領域非依存の壁打ち活動を表す。"
+    primary_responsibility: >
+      計画、意思決定、アイデアを領域を問わず一問ずつ徹底的に掘り下げ、
+      前提と判断を明確にする。
+    depends_on: []   # design-plan-grill は routes_to（設計特化壁打ちへの条件付き委譲）
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F007
+        note: "design-plan-grill との重複候補。統合または明確な使い分けを検討。"
+
+  # --- skill (3) ---
+  - name: agent-skill-design
+    category: skill
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      新規 Agent Skill の作成、既存ワークフローのスキル化、
+      既存 Skill への要件追加・責務変更・全面再設計、または設計レビューを行う。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F009
+        note: "agent-skill-refine と密接に関連。責務境界は明確で適切に分離されている。"
+
+  - name: agent-skill-refine
+    category: skill
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      既存 Agent Skill 一式を、期待する判断・行動・成果物を変えず、
+      必要最小限の編集で短く高密度に改善する。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F009
+        note: "agent-skill-design と密接に関連。責務境界は明確。"
+
+  - name: skills-readme-sync
+    category: skill
+    classification: maintenance
+    naming: borderline
+    naming_note: "service 相当が `skills`。スキル管理の文脈で許容。"
+    primary_responsibility: >
+      スキル追加・改名・削除・大幅変更時に README の
+      Available Skills 表を現在の配布対象スキル構成へ同期する。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  # --- tool (8) ---
+  - name: apple-interface-design
+    category: tool
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      Apple 流の設計原則を Web UI へ翻案する。
+      Apple らしい UI、iOS 風の操作感、滑らかなモーションの設計・実装・レビュー。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: codex-skills-link
+    category: tool
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      .claude/skills を指す .codex/skills symlink を正しい相対パスで作成する。
+      操作対象は .codex/skills だけとし、.codex 全体は削除しない。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: html-artifact-format
+    category: tool
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      AI 向け Markdown と人間向け HTML を判断し、
+      内容規模に応じて single-screen-brief / scroll-report / tabbed-workspace の
+      HTML 構成を選んで生成する。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: image-to-svg
+    category: tool
+    classification: distributable
+    naming: exception
+    naming_reason: "変換操作を `to` で表現する慣用的な名前。暗黙の convert アクションを含む。"
+    primary_responsibility: >
+      画像（PNG/JPEG/スクリーンショット）を編集可能な SVG に変換する。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: japanese-text-refine
+    category: tool
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      日本語文書を目的と文書種別に応じて校正、自然化、執筆、推敲する。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: playwright-cli
+    category: tool
+    classification: distributable
+    naming: exception
+    naming_reason: "ツール名 + 対象種別の 2 要素構成。action 要素を含まない慣用的名前。"
+    primary_responsibility: >
+      Playwright CLI で独立ブラウザを操作し、画面を検証する。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: qa-test-design
+    category: tool
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      QA 観点出し、テスト設計、テストケース洗い出しを体系的に行う。
+      仕様・機能・実装・PR・画面・API に対してテスト観点一覧を作る。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  - name: tailwind-ui-compose
+    category: tool
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      Tailwind で画面を新規設計・リスタイルするとき、
+      レイアウト提案や JSX/TSX 生成を行う。
+      composition-first の UI 設計を扱う。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+
+  # --- dependency (3) ---
+  - name: bun-dependency-update
+    category: dependency
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      Bun アプリの依存関係を一括で非メジャー更新、または
+      特定パッケージをメジャー更新する。
+      upstream 調査、ユーザー確認、1 パッケージずつの更新、プロジェクト検証まで。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F001
+        note: "151 行。180 行制限に近接。監視対象。"
+
+  - name: npm-dependency-update
+    category: dependency
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      npm アプリの依存関係を一括で非メジャー更新、または
+      特定パッケージをメジャー更新する。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F004
+        note: "153 行。180 行制限に近接。監視対象。"
+
+  - name: uv-dependency-update
+    category: dependency
+    classification: distributable
+    naming: conforms
+    primary_responsibility: >
+      uv 管理の Python プロジェクトで依存関係を一括で非メジャー更新、
+      または特定パッケージをメジャー更新する。
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues:
+      - ref: F005
+        note: "161 行。180 行制限に近接。監視対象。"
+
+# ============================================================
+# 依存関係の特記事項
+# ============================================================
+dependency_notes:
+  reverse_violations:
+    description: >
+      以下の depends_on は カテゴリ依存方向ルール（§4.1）に違反している。
+      Phase 3 で解消が必要。
+    items:
+      - from: github-pr-comment-reply
+        to: herdr-agent-delegate
+        direction: "github → orchestration"
+        root_cause: "references/posting-rules.md 内の Herdr 投稿手順への参照"
+      - from: github-pr-review
+        to: herdr-agent-delegate
+        direction: "github → orchestration"
+        root_cause: "references/posting-rules.md 内の Herdr 投稿手順への参照"
+
+  routes_to_not_depends:
+    description: >
+      以下の参照は routes_to または mention であり、depends_on ではない。
+      呼び出し元スキルが状況に応じて委譲先を判断する。
+    items:
+      - from: cagent-agent-command-resolve
+        to: herdr-agent-delegate
+        relation: mention
+      - from: git-worktree-create
+        to: herdr-github-pr-orchestrate
+        relation: used_by
+      - from: github-issue-create-from-plan
+        to: design-plan-grill
+        relation: routes_to
+      - from: github-issue-create-from-plan
+        to: html-artifact-format
+        relation: mention
+      - from: github-issue-decompose
+        to: design-plan-grill
+        relation: mention
+      - from: github-issue-decompose
+        to: github-issue-create-from-plan
+        relation: mention
+      - from: github-pr-comment-reply
+        to: github-pr-review
+        relation: mention
+      - from: github-pr-create
+        to: github-pr-orchestrate
+        relation: mention
+      - from: github-pr-feedback-address
+        to: git-commit-message-suggest
+        relation: mention
+      - from: github-pr-orchestrate
+        to: github-pr-feedback-address
+        relation: mention
+      - from: github-pr-orchestrate
+        to: herdr-github-pr-orchestrate
+        relation: mention
+      - from: grilling
+        to: design-plan-grill
+        relation: routes_to
+        note: "設計特化壁打ちへの条件付き委譲（旧 depends_on から是正）"
+      - from: github-pr-orchestrate
+        to: github-pr-review
+        relation: routes_to
+        note: "レビュー明示時のみの条件付き委譲（旧 depends_on から是正）"
+      - from: herdr-prompt-evaluate
+        to: [agent-skill-design, agent-skill-refine]
+        relation: routes_to
+        note: "評価対象skillの設計評価・リファイン評価であり、無条件ロード不要（旧 depends_on から是正）"
+      - from: herdr-worktree-create
+        to: herdr-github-pr-orchestrate
+        relation: used_by
