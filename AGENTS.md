@@ -29,3 +29,29 @@ bash .scripts/validate-skills.sh
 ```
 
 この検証では、`SKILL.md` の行数、`references/` の参照切れ、README の `Available Skills` と実スキル一覧、スキル数バッジ、依存カラムの一致を確認します。
+
+### スキル設計ルール
+
+スキルのカテゴリ分類、命名規則、依存方向、責務境界、外部依存種別、構造規則、検証基準は [docs/skill-rules.yaml](docs/skill-rules.yaml) を正本とする。
+全スキルのカテゴリ割り当てと依存関係は [docs/skill-categories.yaml](docs/skill-categories.yaml) に記録する。
+
+#### カテゴリ一覧（依存方向: 上位→下位 のみ許可）
+
+| カテゴリ | 概要 | 依存可能 |
+|----------|------|----------|
+| `orchestration` | 高次ワークフロー統括 | github, git, design, skill, tool, dependency |
+| `github` | GitHubプラットフォーム操作 | git, design, tool |
+| `git` | Gitローカル操作 | tool |
+| `design` | 設計・計画支援 | —（leaf） |
+| `skill` | スキル管理 | —（leaf） |
+| `tool` | 独立ツール | —（leaf） |
+| `dependency` | 依存パッケージ管理 | —（leaf） |
+
+#### 外部依存種別
+
+| 種別 | 記号 | 意味 |
+|------|------|------|
+| `required` | R | 必須。なければスキルは機能しない |
+| `conditional` | C | 特定フローでのみ必要 |
+| `optional` | O | 代替手段あり。なくても動作する |
+| `fallback` | F | 主手段が使えない場合の最終代替 |

@@ -25,6 +25,7 @@ find_skill_files() {
   find . \
     -path './.git' -prune -o \
     -path './.archive' -prune -o \
+    -path './.system' -prune -o \
     -path './.codex' -prune -o \
     -path './node_modules' -prune -o \
     -type f -name 'SKILL.md' -print |
