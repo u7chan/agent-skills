@@ -33,7 +33,8 @@ skills:
   path_references: []
   external_dependencies: []
   disposition: keep
-  findings: []
+  findings:
+  - F009
 - name: agent-skill-refine
   current_path: agent-skill-refine
   classification: distributable
@@ -48,7 +49,8 @@ skills:
   path_references: []
   external_dependencies: []
   disposition: keep
-  findings: []
+  findings:
+  - F009
 - name: apple-interface-design
   current_path: apple-interface-design
   classification: distributable
@@ -90,7 +92,8 @@ skills:
     type: conditional
     source: README
   disposition: keep
-  findings: []
+  findings:
+  - F001
 - name: cagent-agent-command-resolve
   current_path: cagent-agent-command-resolve
   classification: distributable
@@ -102,7 +105,10 @@ skills:
   has_tests: true
   has_evaluation_samples: false
   skill_references:
-  - herdr-agent-delegate
+  - name: herdr-agent-delegate
+    relation: mention
+    source_file: SKILL.md
+    source_line: 24
   path_references: []
   external_dependencies:
   - name: herdr
@@ -111,20 +117,21 @@ skills:
   - name: cagent
     type: required
     source: README
-  - name: python 3
+  - name: python
     type: required
     source: README
-  - name: selected agent cli
+  - name: agent cli
     type: required
     source: README
   - name: posix shell
     type: required
     source: README
-  - name: python3
+  - name: shlex
     type: required
-    source: SKILL.md (command -v)
+    source: scripts/freeze_resolution.py (import)
   disposition: keep
-  findings: []
+  findings:
+  - F012
 - name: codex-skills-link
   current_path: codex-skills-link
   classification: distributable
@@ -137,7 +144,10 @@ skills:
   has_evaluation_samples: false
   skill_references: []
   path_references:
-  - ../.claude/skills
+  - path: ../.claude/skills
+    type: general
+    source_file: SKILL.md
+    source_line: 56
   external_dependencies:
   - name: posix shell
     type: required
@@ -161,7 +171,8 @@ skills:
   path_references: []
   external_dependencies: []
   disposition: keep
-  findings: []
+  findings:
+  - F007
 - name: git-branch-create
   current_path: git-branch-create
   classification: distributable
@@ -194,9 +205,15 @@ skills:
   has_tests: true
   has_evaluation_samples: false
   skill_references:
-  - git-commit-message-suggest
+  - name: git-commit-message-suggest
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 42
   path_references:
-  - ../git-commit-message-suggest/SKILL.md
+  - path: ../git-commit-message-suggest/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 42
   external_dependencies:
   - name: git
     type: required
@@ -238,13 +255,31 @@ skills:
   has_tests: false
   has_evaluation_samples: false
   skill_references:
-  - git-branch-create
-  - herdr-github-pr-orchestrate
+  - name: git-branch-create
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 10
+  - name: herdr-github-pr-orchestrate
+    relation: used_by
+    source_file: SKILL.md
+    source_line: 17
   path_references:
-  - ../<repo-name>-worktrees
-  - ../<repo-name>-worktrees/<branch-slug>
-  - ../agent-skills-worktrees/feature-issue-91-git-worktree-create-skill
-  - ../git-branch-create/SKILL.md
+  - path: ../<repo-name>-worktrees
+    type: general
+    source_file: SKILL.md
+    source_line: 58
+  - path: ../<repo-name>-worktrees/<branch-slug>
+    type: general
+    source_file: SKILL.md
+    source_line: 58
+  - path: ../agent-skills-worktrees/feature-issue-91-git-worktree-create-skill
+    type: general
+    source_file: SKILL.md
+    source_line: 67
+  - path: ../git-branch-create/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 10
   external_dependencies:
   - name: git
     type: required
@@ -253,7 +288,8 @@ skills:
     type: required
     source: README
   disposition: keep
-  findings: []
+  findings:
+  - F006
 - name: github-issue-create-from-plan
   current_path: github-issue-create-from-plan
   classification: distributable
@@ -265,14 +301,20 @@ skills:
   has_tests: true
   has_evaluation_samples: false
   skill_references:
-  - design-plan-grill
-  - html-artifact-format
+  - name: design-plan-grill
+    relation: routes_to
+    source_file: SKILL.md
+    source_line: 17
+  - name: html-artifact-format
+    relation: mention
+    source_file: SKILL.md
+    source_line: 16
   path_references: []
   external_dependencies:
   - name: gh
     type: required
     source: README
-  - name: github
+  - name: github api
     type: required
     source: README
   - name: posix shell
@@ -291,14 +333,20 @@ skills:
   has_tests: false
   has_evaluation_samples: false
   skill_references:
-  - design-plan-grill
-  - github-issue-create-from-plan
+  - name: design-plan-grill
+    relation: mention
+    source_file: SKILL.md
+    source_line: 17
+  - name: github-issue-create-from-plan
+    relation: mention
+    source_file: SKILL.md
+    source_line: 16
   path_references: []
   external_dependencies:
   - name: gh
     type: required
     source: README
-  - name: github
+  - name: github api
     type: required
     source: README
   - name: posix shell
@@ -317,10 +365,23 @@ skills:
   has_tests: false
   has_evaluation_samples: false
   skill_references:
-  - github-pr-review
-  - herdr-agent-delegate
+  - name: github-pr-review
+    relation: mention
+    source_file: SKILL.md
+    source_line: 37
+  - name: herdr-agent-delegate
+    relation: depends_on
+    source_file: references/posting-rules.md
+    source_line: 10
   path_references:
-  - ../herdr-agent-delegate/references/delegation-metadata.md
+  - path: ../../herdr-agent-delegate/references/delegation-metadata.md
+    type: skill_internal
+    source_file: references/posting-rules.md
+    source_line: 10
+  - path: ../herdr-agent-delegate/references/delegation-metadata.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 33
   external_dependencies:
   - name: gh
     type: required
@@ -344,7 +405,10 @@ skills:
   has_tests: true
   has_evaluation_samples: false
   skill_references:
-  - github-pr-orchestrate
+  - name: github-pr-orchestrate
+    relation: mention
+    source_file: SKILL.md
+    source_line: 16
   path_references: []
   external_dependencies:
   - name: gh
@@ -353,7 +417,7 @@ skills:
   - name: git
     type: required
     source: README
-  - name: github
+  - name: github api
     type: required
     source: README
   - name: posix shell
@@ -372,8 +436,14 @@ skills:
   has_tests: false
   has_evaluation_samples: false
   skill_references:
-  - git-commit-message-suggest
-  - github-pr-comment-reply
+  - name: git-commit-message-suggest
+    relation: mention
+    source_file: SKILL.md
+    source_line: 89
+  - name: github-pr-comment-reply
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 21
   path_references: []
   external_dependencies:
   - name: gh
@@ -401,15 +471,39 @@ skills:
   has_tests: true
   has_evaluation_samples: false
   skill_references:
-  - git-changes-commit
-  - github-pr-create
-  - github-pr-feedback-address
-  - github-pr-review
-  - herdr-github-pr-orchestrate
+  - name: git-changes-commit
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 60
+  - name: github-pr-create
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 68
+  - name: github-pr-feedback-address
+    relation: mention
+    source_file: SKILL.md
+    source_line: 76
+  - name: github-pr-review
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 74
+  - name: herdr-github-pr-orchestrate
+    relation: mention
+    source_file: SKILL.md
+    source_line: 18
   path_references:
-  - ../git-changes-commit/SKILL.md
-  - ../github-pr-create/SKILL.md
-  - ../github-pr-review/SKILL.md
+  - path: ../git-changes-commit/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 60
+  - path: ../github-pr-create/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 68
+  - path: ../github-pr-review/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 74
   external_dependencies:
   - name: gh
     type: required
@@ -420,14 +514,15 @@ skills:
   - name: git
     type: required
     source: README
-  - name: github
+  - name: github api
     type: required
     source: README
   - name: posix shell
     type: required
     source: README
   disposition: keep
-  findings: []
+  findings:
+  - F008
 - name: github-pr-post-merge-cleanup
   current_path: github-pr-post-merge-cleanup
   classification: distributable
@@ -462,8 +557,16 @@ skills:
   has_scripts: false
   has_tests: false
   has_evaluation_samples: false
-  skill_references: []
-  path_references: []
+  skill_references:
+  - name: herdr-agent-delegate
+    relation: depends_on
+    source_file: references/posting-rules.md
+    source_line: 27
+  path_references:
+  - path: ../../herdr-agent-delegate/references/delegation-metadata.md
+    type: skill_internal
+    source_file: references/posting-rules.md
+    source_line: 27
   external_dependencies:
   - name: gh
     type: required
@@ -490,11 +593,15 @@ skills:
   has_tests: false
   has_evaluation_samples: false
   skill_references:
-  - design-plan-grill
+  - name: design-plan-grill
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 53
   path_references: []
   external_dependencies: []
   disposition: keep
-  findings: []
+  findings:
+  - F007
 - name: herdr-agent-delegate
   current_path: herdr-agent-delegate
   classification: distributable
@@ -506,7 +613,15 @@ skills:
   has_tests: true
   has_evaluation_samples: false
   skill_references: []
-  path_references: []
+  path_references:
+  - path: ../SKILL.md
+    type: general
+    source_file: references/agent-cli.md
+    source_line: 55
+  - path: ../scripts/send_request.py
+    type: general
+    source_file: references/agent-cli.md
+    source_line: 26
   external_dependencies:
   - name: herdr
     type: required
@@ -514,7 +629,7 @@ skills:
   - name: jq
     type: required
     source: README
-  - name: python 3
+  - name: python
     type: required
     source: README
   - name: posix shell
@@ -524,7 +639,9 @@ skills:
     type: required
     source: README
   disposition: keep
-  findings: []
+  findings:
+  - F002
+  - F010
 - name: herdr-github-create-issue
   current_path: herdr-github-create-issue
   classification: distributable
@@ -536,9 +653,18 @@ skills:
   has_tests: true
   has_evaluation_samples: false
   skill_references:
-  - cagent-agent-command-resolve
-  - github-issue-create-from-plan
-  - herdr-agent-delegate
+  - name: cagent-agent-command-resolve
+    relation: routes_to
+    source_file: SKILL.md
+    source_line: 16
+  - name: github-issue-create-from-plan
+    relation: routes_to
+    source_file: SKILL.md
+    source_line: 16
+  - name: herdr-agent-delegate
+    relation: routes_to
+    source_file: SKILL.md
+    source_line: 16
   path_references: []
   external_dependencies:
   - name: herdr
@@ -556,7 +682,7 @@ skills:
   - name: git
     type: required
     source: README
-  - name: python 3
+  - name: python
     type: required
     source: README
   - name: posix shell
@@ -568,31 +694,94 @@ skills:
   current_path: herdr-github-pr-orchestrate
   classification: distributable
   responsibility: GitHub Issueや実装タスクについて、Issue確認、作業領域準備、Herdr Agentへの実装委譲、成果確認、 共通Skillによる限定commit・PR作成、レビュー、FB対応、再チェックを統括するときに使う
-  description: GitHub Issueや実装タスクについて、Issue確認、作業領域準備、Herdr Agentへの実装委譲、成果確認、 共通Skillによる限定commit・PR作成、レビュー、FB対応、再チェックを統括するときに使う。
-    pane配置、readiness、送信、待機、出力回収の詳細はherdr-agent-delegateへ委ねる。
+  description: GitHub Issueや実装タスクについて、Issue確認、作業領域準備、Herdr Agentへの実装委譲、成果確認、 共通Skillによる限定commit・PR作成、レビュー、FB対応、再チェックを統括するときに使う。 pane配置、readiness、送信、待機、出力回収の詳細はherdr-agent-delegateへ委ねる。
   line_count: 156
   has_references: true
   has_scripts: false
   has_tests: true
   has_evaluation_samples: false
   skill_references:
-  - cagent-agent-command-resolve
-  - git-branch-create
-  - git-changes-commit
-  - github-pr-create
-  - github-pr-feedback-address
-  - github-pr-review
-  - herdr-agent-delegate
-  - herdr-worktree-create
+  - name: cagent-agent-command-resolve
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 36
+  - name: git-branch-create
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 32
+  - name: git-changes-commit
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 33
+  - name: github-pr-create
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 34
+  - name: github-pr-feedback-address
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 38
+  - name: github-pr-review
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 37
+  - name: herdr-agent-delegate
+    relation: depends_on
+    source_file: references/implementation-delegation.md
+    source_line: 3
+  - name: herdr-worktree-create
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 31
   path_references:
-  - ../cagent-agent-command-resolve/SKILL.md
-  - ../git-branch-create/SKILL.md
-  - ../git-changes-commit/SKILL.md
-  - ../github-pr-create/SKILL.md
-  - ../github-pr-feedback-address/SKILL.md
-  - ../github-pr-review/SKILL.md
-  - ../herdr-agent-delegate/SKILL.md
-  - ../herdr-worktree-create/SKILL.md
+  - path: ../../git-changes-commit/SKILL.md
+    type: skill_internal
+    source_file: references/implementation-delegation.md
+    source_line: 74
+  - path: ../../github-pr-create/SKILL.md
+    type: skill_internal
+    source_file: references/implementation-delegation.md
+    source_line: 74
+  - path: ../../herdr-agent-delegate/SKILL.md
+    type: skill_internal
+    source_file: references/implementation-delegation.md
+    source_line: 3
+  - path: ../../herdr-agent-delegate/references/delegation-metadata.md
+    type: skill_internal
+    source_file: references/implementation-delegation.md
+    source_line: 33
+  - path: ../cagent-agent-command-resolve/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 36
+  - path: ../git-branch-create/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 32
+  - path: ../git-changes-commit/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 33
+  - path: ../github-pr-create/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 34
+  - path: ../github-pr-feedback-address/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 38
+  - path: ../github-pr-review/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 37
+  - path: ../herdr-agent-delegate/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 35
+  - path: ../herdr-worktree-create/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 31
   external_dependencies:
   - name: herdr
     type: required
@@ -606,7 +795,7 @@ skills:
   - name: git
     type: required
     source: README
-  - name: python 3
+  - name: python
     type: required
     source: README
   - name: posix shell
@@ -616,7 +805,10 @@ skills:
     type: required
     source: README
   disposition: keep
-  findings: []
+  findings:
+  - F003
+  - F008
+  - F011
 - name: herdr-prompt-evaluate
   current_path: herdr-prompt-evaluate
   classification: distributable
@@ -628,14 +820,43 @@ skills:
   has_tests: false
   has_evaluation_samples: false
   skill_references:
-  - agent-skill-design
-  - agent-skill-refine
-  - herdr-agent-delegate
-  - herdr-worktree-create
+  - name: agent-skill-design
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 15
+  - name: agent-skill-refine
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 16
+  - name: herdr-agent-delegate
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 10
+  - name: herdr-worktree-create
+    relation: depends_on
+    source_file: references/herdr-execution.md
+    source_line: 3
   path_references:
-  - ../herdr-agent-delegate/SKILL.md
-  - ../herdr-agent-delegate/references/agent-cli.md
-  - ../herdr-worktree-create/SKILL.md
+  - path: ../../herdr-agent-delegate/SKILL.md
+    type: skill_internal
+    source_file: references/herdr-execution.md
+    source_line: 50
+  - path: ../../herdr-worktree-create/SKILL.md
+    type: skill_internal
+    source_file: references/herdr-execution.md
+    source_line: 3
+  - path: ../herdr-agent-delegate/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 10
+  - path: ../herdr-agent-delegate/references/agent-cli.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 10
+  - path: ../herdr-worktree-create/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 10
   external_dependencies:
   - name: herdr
     type: required
@@ -646,7 +867,7 @@ skills:
   - name: git
     type: required
     source: README
-  - name: python 3
+  - name: python
     type: required
     source: README
   - name: posix shell
@@ -668,10 +889,19 @@ skills:
   has_tests: false
   has_evaluation_samples: false
   skill_references:
-  - git-branch-create
-  - herdr-github-pr-orchestrate
+  - name: git-branch-create
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 10
+  - name: herdr-github-pr-orchestrate
+    relation: used_by
+    source_file: SKILL.md
+    source_line: 17
   path_references:
-  - ../git-branch-create/SKILL.md
+  - path: ../git-branch-create/SKILL.md
+    type: skill_internal
+    source_file: SKILL.md
+    source_line: 10
   external_dependencies:
   - name: herdr
     type: required
@@ -683,14 +913,13 @@ skills:
     type: required
     source: README
   disposition: keep
-  findings: []
+  findings:
+  - F006
 - name: html-artifact-format
   current_path: html-artifact-format
   classification: distributable
-  responsibility: AI向け成果物をMarkdownのまま残すか、人間向けレビュー・共有成果物として単一HTMLへ変換するかを判断し、内容規模に応じて single-screen-brief / scroll-report /
-    tabbed-workspace のHTML構成を選んで生成する時に使う
-  description: AI向け成果物をMarkdownのまま残すか、人間向けレビュー・共有成果物として単一HTMLへ変換するかを判断し、内容規模に応じて single-screen-brief / scroll-report / tabbed-workspace
-    のHTML構成を選んで生成する時に使う。HTML化する場合は、SVG図・色分けテーブル・カード・Before/After比較などの視覚化要素を素材に合わせて組み込み、文字だけの逐語変換にはしない。プラン、Issue、レビューまとめ、レポート、ポストモーテム、教育資料、軽量プロトタイプを人間が読みやすいHTMLにしたい時に使う。
+  responsibility: AI向け成果物をMarkdownのまま残すか、人間向けレビュー・共有成果物として単一HTMLへ変換するかを判断し、内容規模に応じて single-screen-brief / scroll-report / tabbed-workspace のHTML構成を選んで生成する時に使う
+  description: AI向け成果物をMarkdownのまま残すか、人間向けレビュー・共有成果物として単一HTMLへ変換するかを判断し、内容規模に応じて single-screen-brief / scroll-report / tabbed-workspace のHTML構成を選んで生成する時に使う。HTML化する場合は、SVG図・色分けテーブル・カード・Before/After比較などの視覚化要素を素材に合わせて組み込み、文字だけの逐語変換にはしない。プラン、Issue、レビューまとめ、レポート、ポストモーテム、教育資料、軽量プロトタイプを人間が読みやすいHTMLにしたい時に使う。
   line_count: 56
   has_references: true
   has_scripts: false
@@ -717,8 +946,14 @@ skills:
   skill_references: []
   path_references: []
   external_dependencies:
-  - name: librsvg / inkscape / browser (one required)
-    type: required
+  - name: librsvg
+    type: optional
+    source: README
+  - name: inkscape
+    type: optional
+    source: README
+  - name: browser
+    type: optional
     source: README
   disposition: keep
   findings: []
@@ -750,7 +985,10 @@ skills:
   skill_references: []
   path_references: []
   external_dependencies:
-  - name: node.js / npm
+  - name: node
+    type: required
+    source: README
+  - name: npm
     type: required
     source: README
   - name: rg
@@ -763,7 +1001,8 @@ skills:
     type: conditional
     source: README
   disposition: keep
-  findings: []
+  findings:
+  - F004
 - name: playwright-cli
   current_path: playwright-cli
   classification: distributable
@@ -777,7 +1016,7 @@ skills:
   skill_references: []
   path_references: []
   external_dependencies:
-  - name: playwright cli
+  - name: playwright
     type: required
     source: README
   - name: browser
@@ -786,7 +1025,10 @@ skills:
   - name: posix shell
     type: required
     source: README
-  - name: node.js / `npx
+  - name: node
+    type: fallback
+    source: README
+  - name: npx
     type: fallback
     source: README
   disposition: keep
@@ -853,4 +1095,5 @@ skills:
     type: conditional
     source: README
   disposition: keep
-  findings: []
+  findings:
+  - F005

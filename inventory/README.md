@@ -17,6 +17,8 @@
 python3 .scripts/inventory.py
 ```
 
+**Prerequisites**: Python 3.9+ with PyYAML (`pip install pyyaml`).
+
 再実行により同一リビジョンから同一結果が得られる（決定論的）。
 
 ## Scope
