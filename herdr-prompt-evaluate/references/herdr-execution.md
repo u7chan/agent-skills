@@ -45,9 +45,9 @@ herdr worktree create \
 
 ## 4. root paneで新規Agentを実行する
 
-各`root_pane`へ固定種別のCLIを`herdr pane run <pane-id> '<agent-command>'`で起動する。シナリオごと・イテレーションごと・hold-outで必ず新規Agentを使い、既存Agentや前回Agentを再利用しない。
+各`root_pane`へ`<skill-dir>/../herdr-agent-delegate/scripts/launch_agent.py --name <name> --kind <codex|claude|opencode> --pane-id <root_pane> [--native-args-file <args.json>]`で起動する。シナリオごと・イテレーションごと・hold-outで必ず新規Agentを使い、既存Agentや前回Agentを再利用しない。
 
-起動後は`../../herdr-agent-delegate/SKILL.md`の契約どおり、agent-status検出、Agent別input-ready、直接送信、working遷移を別々に確認する。依頼は同スキルの`scripts/send_request.py`で送る。全シナリオへ送信してから個別にCompletion contractで待ち、`recent-unwrapped`出力を回収する。
+起動後は`../../herdr-agent-delegate/SKILL.md`の契約どおり、`herdr agent start`でAgentを起動し、`herdr agent prompt`で依頼を送信する。全シナリオへ送信してから個別に`herdr agent wait`で待ち、`herdr agent read`で出力を回収する。
 
 依頼には次だけを含める。
 
@@ -63,14 +63,14 @@ herdr worktree create \
 - 再試行回数、対象、各理由を返すこと。なければ0回とすること
 - タスク開始後のsteps概数と数え方を返すこと
 - 未解決事項を返すこと
-- HerdrのCompletion contractに従って結果を確定すること
+- Herdrの`herdr agent wait`に従って結果を確定すること
 ```
 
 評価、チェックリスト、critical、期待解、採点式、改善テーマ、他シナリオの情報を含めない。対象がスキルでも、自動トリガーの成否ではなく明示的に対象を使わせて実行内容を評価する。
 
 ## 5. 回収して親が検査する
 
-Completion contractで最終状態が`idle`または`done`と確認でき、pane出力を回収できた時だけ成果物検査へ進む。親は各worktreeで次を直接確認する。
+`herdr agent wait`で最終状態が`idle`または`done`と確認でき、pane出力を回収できた時だけ成果物検査へ進む。親は各worktreeで次を直接確認する。
 
 - 成果物が指定worktree内だけにある。
 - GitのHEAD、追跡差分、未追跡ファイル、外部状態が許容範囲内である。
@@ -91,7 +91,7 @@ herdr worktree remove --workspace <created-workspace-id> --force --json
 
 返却JSONを確認し、対象workspaceとworktreeがなくなったことを読み取り確認する。その後、作成前に不存在を確認し台帳へ記録した今回のbranchだけを、実行用Gitリポジトリで削除する。branch名と対象OIDを再確認し、他branchを削除しない。snapshotは対応する全シナリオのcleanup成功後だけ削除する。
 
-blocked、timeout、送信失敗、回収失敗、Completion contract違反、snapshot不一致、副作用、採点不能、cleanup失敗のworkspace、pane、worktree、branch、snapshotは診断用に保持する。成功した別シナリオの資源は個別にcleanupしてよい。既存資源と今回作成していない資源は操作しない。
+blocked、timeout、送信失敗、回収失敗、`herdr agent wait`違反、snapshot不一致、副作用、採点不能、cleanup失敗のworkspace、pane、worktree、branch、snapshotは診断用に保持する。成功した別シナリオの資源は個別にcleanupしてよい。既存資源と今回作成していない資源は操作しない。
 
 ## 7. 実行台帳を報告する
 

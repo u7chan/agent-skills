@@ -27,8 +27,8 @@ class IssueCreationContractTest(unittest.TestCase):
         self.assertIn("セクション自体を作らない", self.skill)
 
     def test_child_metadata_matches_fixed_launch_values(self):
-        self.assertIn("同じ3値を明示した`agent-command`", self.skill)
-        self.assertIn("同じJSONを`send_request.py --metadata-json`へ渡す", self.skill)
+        self.assertIn("同じ3値を明示した`agent-kind`", self.skill)
+        self.assertIn("標準ブロックとして依頼末尾へ付与する", self.skill)
         self.assertIn("標準ブロックは手書きしない", self.skill)
 
     def test_parent_compares_pre_and_post_delegation_snapshots(self):
@@ -53,7 +53,7 @@ class IssueCreationContractTest(unittest.TestCase):
             self.assertIn(forbidden_contract, self.skill)
 
     def test_forbidden_operations_fail_closed_and_keep_pane(self):
-        self.assertIn("herdr pane read --source recent-unwrapped", self.skill)
+        self.assertIn("herdr agent read --source recent-unwrapped", self.skill)
         self.assertIn("paneを診断用に保持して停止", self.skill)
         for operation in ("HTML生成", "再委譲", "commit", "push", "PR作成"):
             self.assertIn(operation, self.skill)

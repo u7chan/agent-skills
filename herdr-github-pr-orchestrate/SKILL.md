@@ -3,7 +3,7 @@ name: herdr-github-pr-orchestrate
 description: >
   GitHub Issueや実装タスクについて、Issue確認、作業領域準備、Herdr Agentへの実装委譲、成果確認、
   共通Skillによる限定commit・PR作成、レビュー、FB対応、再チェックを統括するときに使う。
-  pane配置、readiness、送信、待機、出力回収の詳細はherdr-agent-delegateへ委ねる。
+  pane配置、送信、待機、出力回収の詳細はherdr-agent-delegateへ委ねる。
 ---
 
 # Herdr GitHub PR Orchestrate
@@ -21,10 +21,10 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 - 作業領域の準備後は Herdr で 1 体の実装担当 Agent へ同期委譲する。親 Agent は実装せず、成果確認と最終検証後に commit、push、PR 作成を行う。
 - 実装担当とレビュー担当は役割ごとに独立して解決する。指定のない役割は現在動作しているエージェントと同じ種別を新規起動する。ユーザーが明示的に指定した場合はその種別を優先する。
 - PR 作成後は Herdr で同期レビューし、親 Agent が指摘の分類、FB 対応の成果確認、再チェック、pane cleanup まで管理する。
-- pane配置、Agent起動、readiness、依頼送信、完了待機、出力回収は`herdr-agent-delegate`の契約を適用し、本Skillでは再定義しない。
+- pane配置、Agent起動、依頼送信、完了待機、出力回収は`herdr-agent-delegate`の契約を適用し、本Skillでは再定義しない。
 - 限定stage・commitは`git-changes-commit`、push・PR作成は`github-pr-create`の契約を適用し、本Skillでは共通手順を再定義しない。
 - 実装委譲の失敗では自動再試行、親による代替実装、別 Agent への切り替えを行わない。
-- レビュー、FB 対応、再チェックの失敗を PR 作成失敗と混同しない。自動再試行、別 Agent への切り替え、Herdr 外での代替実行はしない。
+- レビュー、FB 対応、再チェックの失敗を PR 作成失敗と混同しない。自動再試行、Herdr 外での代替実行はしない。ただし再チェックで対応可能な残件が返った場合は失敗扱いにせず、規定の次FBラウンドとして別の新規Agentセッションへ委譲する。
 
 ## 参照するスキル
 
@@ -47,9 +47,9 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 - 破壊的操作、履歴改変、無関係な変更の巻き込みが必要になる。
 - 既存ブランチ、worktree、未コミット変更が今回専用か判断できず、安全に分離できない。
 - `git fetch origin`、品質確認、`gh` 認証、push、PR 作成が失敗し、自力で解消できない。
-- 実装委譲で Herdr 外、CLI 不足、指定 Agent の不存在・非 idle、起動・送信・待機・回収の失敗、部分実装、成果確認の失敗、または Completion contract 違反が起きる。
+- 実装委譲で Herdr 外、CLI 不足、指定 Agent の不存在・非 idle、起動・送信・待機・回収の失敗、部分実装、成果確認の失敗、または `herdr agent wait` 違反が起きる。
 - 実装担当が `blocked`、`timeout`、またはユーザー判断事項を返す。
-- レビュー工程で Herdr 外、CLI 不足、指定 Agent の不存在・非 idle、起動・送信・待機・投稿・回収・成果確認の失敗、または Completion contract 違反が起きる。
+- レビュー工程で Herdr 外、CLI 不足、指定 Agent の不存在・非 idle、起動・送信・待機・投稿・回収・成果確認の失敗、または `herdr agent wait` 違反が起きる。
 - FB 対応または再チェックが `question`、`blocked`、`timeout`、上限到達、同一指摘の連続未解消に至る。
 
 実装委譲の停止では作業ツリーと pane を保持する。レビュー工程の停止では作成済み PR と失敗した pane を診断用に保持する。
@@ -77,10 +77,10 @@ worktree が明示された場合:
 
 ### 3. Herdr で実装して検証する
 
-- `cagent-agent-command-resolve`で新規実装担当の実効値と固定済み起動コマンドを解決し、`references/implementation-delegation.md`に従って実装と変更に直接関連する検証を同期委譲する。
+- `cagent-agent-command-resolve`で新規実装担当の実効値を固定し（`agent-kind`・`native-agent-args`・`delegation-metadata`）、`references/implementation-delegation.md`に従って実装と変更に直接関連する検証を同期委譲する。
 - `references/implementation-delegation.md`のPR Work Metadata snapshot契約に従い、有効な標準メタ情報を持つ役割だけを保持する。現在の委譲指示に標準suffixがない親自身の行は作らない。
 - 実装担当へ `herdr-github-pr-orchestrate` を使わせず、commit、push、PR 作成、別の実装 Agent への再委譲を禁止する。
-- 成功結果を保持したまま回収し、Completion contract、差分、未追跡ファイル、要求充足、検証結果を親が確認する。
+- 成功結果を保持したまま回収し、`herdr agent wait` の結果、差分、未追跡ファイル、要求充足、検証結果を親が確認する。
 - 親が formatter、lint、test、build から変更範囲に必要な最終検証を実行する。成果確認と最終検証の成功後だけ新規起動した pane を閉じて commit へ進む。
 - ユーザー判断事項があれば同じ実装担当へ回答を返す。失敗時は自動再試行や親による代替実装を行わず停止する。
 
@@ -130,10 +130,11 @@ worktree が明示された場合:
 
 ### 6. Herdr でレビューする
 
-- 新規担当は`cagent-agent-command-resolve`で実効値を固定し、`references/review-loop.md`に従ってレビューAgentへ`github-pr-review`を同期委譲する。
+- 新規担当は`cagent-agent-command-resolve`で実効値を固定し（`agent-kind`・`native-agent-args`）、`references/review-loop.md`に従ってレビューAgentへ`github-pr-review`を同期委譲する。
 - 結果を回収し、各指摘を `対応可能`、`ユーザー判断が必要`、`対応不能／対象外` に分類する。
 - 確認不要で対応可能な指摘を 1 体の専用 FB 対応 Agent へまとめて委譲する。同一ブランチへ並列変更させない。
 - 差分、検証、commit、push、返信を親が確認してから、同じレビュー Agent へ元指摘だけの再チェックを依頼する。
+- 再チェックで確認不要な`partial` / `unresolved`が返った次FBラウンドは前回FB Agentを再利用せず、別paneの新規セッションへ委譲する。ユーザー指定がなければ`codex`・task level `high`をcagentへ明示して解決する。
 - 解消まで反復する。FB 対応は最大 3 回、同一指摘が 2 回連続で解消しなければ停止する。
 - 成功時だけ、親が新規起動した pane を規定の時点で閉じる。再利用 pane と失敗・待機中の pane は閉じない。
 
@@ -148,7 +149,7 @@ worktree が明示された場合:
 - [ ] 実装担当と親の責務、成果確認、最終検証、共通Skillによるcommit、PR 作成の順序が明確である
 - [ ] 実装とレビューを独立して Agent 解決でき、種別、既存 Agent、未指定時は現在のエージェント種別を使う分岐と作業ディレクトリが明確である
 - [ ] 同じ作業ディレクトリへ複数の実装担当が書き込まず、失敗時の変更と診断情報が保持される
-- [ ] レビュー結果の分類、直列 FB 対応、親の成果確認、同じ Agent の再チェックが明確である
+- [ ] レビュー結果の分類、直列 FB 対応、再指摘時の別FB Agent、親の成果確認、同じレビュー Agent の再チェックが明確である
 - [ ] 最大 3 回、連続 2 回未解消、ユーザー判断待ち、工程失敗の停止条件がある
 - [ ] 新規・再利用、成功・失敗で pane cleanup が区別される
 - [ ] PR 成功とレビュー工程の失敗が区別され、診断情報が保持される

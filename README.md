@@ -39,10 +39,10 @@
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
 | [herdr-worktree-create](herdr-worktree-create/SKILL.md) | Herdr 公式コマンドで独立した worktree と workspace を作成する | Herdr, Git, POSIX shell |
-| [cagent-agent-command-resolve](cagent-agent-command-resolve/SKILL.md) | cagentの実効Agent・Model・Effortを起動コマンドへ固定し、任意の委譲メタ情報を返す | Herdr, `cagent`, Python 3, selected Agent CLI, POSIX shell |
-| [herdr-agent-delegate](herdr-agent-delegate/SKILL.md) | Herdr公式プリミティブでCLI Agentを配置し、任意の起動時メタ情報付きで送信・待機・出力回収を行う | Herdr, `jq`, Python 3, POSIX shell, Agent CLI |
-| [herdr-github-create-issue](herdr-github-create-issue/SKILL.md) | 確定済みプランのIssue作成をHerdrの新規Agentへ委譲する | Herdr, `cagent`, `gh`, `jq`, Git, Python 3, POSIX shell |
-| [herdr-github-pr-orchestrate](herdr-github-pr-orchestrate/SKILL.md) | Issue確認から実装委譲、commit、push、PR作成、レビュー・FB対応・再チェックまで統括する | Herdr, `gh`, `jq`, Git, Python 3, POSIX shell, Agent CLI |
+| [cagent-agent-command-resolve](cagent-agent-command-resolve/SKILL.md) | cagentの実効Agent・Model・Effortをagent-kind・native-agent-argsへ固定し、任意の委譲メタ情報を返す | Herdr, `cagent`, Python 3, selected Agent CLI, POSIX shell |
+| [herdr-agent-delegate](herdr-agent-delegate/SKILL.md) | Herdr 0.7.5公式API（agent start/prompt/wait/read/send-keys）でCLI Agentを配置し、任意の起動時メタ情報付きで送信・待機・出力回収を行う | Herdr, `jq`, Python 3, POSIX shell, Agent CLI |
+| [herdr-github-create-issue](herdr-github-create-issue/SKILL.md) | 確定済みプランのIssue作成をHerdrの新規Agentへ委譲する | Herdr, `cagent`, `gh`, `jq`, Git, Python 3, POSIX shell, selected Agent CLI |
+| [herdr-github-pr-orchestrate](herdr-github-pr-orchestrate/SKILL.md) | Issue確認から実装委譲、commit、push、PR作成、レビュー・FB対応・再チェックまで統括する | Herdr, `cagent`, `gh`, `jq`, Git, Python 3, POSIX shell, Agent CLI |
 | [herdr-prompt-evaluate](herdr-prompt-evaluate/SKILL.md) | Herdrの独立Agentでプロンプトを実証評価し、観測した1テーマを最小改善する | Herdr, `jq`, Git, Python 3, POSIX shell, Agent CLI |
 
 ### 実装 / 成果物生成
