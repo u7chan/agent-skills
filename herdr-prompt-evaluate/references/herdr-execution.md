@@ -1,6 +1,6 @@
 # Herdr独立実行
 
-worktreeの作成元解決、base解決、衝突確認、公式create、返却workspace検証は `../../herdr-worktree-create/SKILL.md` を適用する。そのスキルと衝突する場合、本ワークフロー固有の `.eval-runs/` 配置、`eval/` branch、シナリオごとの別worktree・workspace、成功時cleanup規則を優先する。
+worktreeの作成元解決、base解決、衝突確認、公式create、返却workspace検証は `herdr-worktree-create` を適用する。そのスキルと衝突する場合、本ワークフロー固有の `.eval-runs/` 配置、`eval/` branch、シナリオごとの別worktree・workspace、成功時cleanup規則を優先する。
 
 > **Note**: `.eval-runs/` は評価実行時の一時資源を格納するディレクトリであり、Git 管理対象外にすること。`.git/info/exclude` または `.gitignore` で除外する。
 
@@ -45,9 +45,9 @@ herdr worktree create \
 
 ## 4. root paneで新規Agentを実行する
 
-各`root_pane`へ`<skill-dir>/../herdr-agent-delegate/scripts/launch_agent.py --name <name> --kind <codex|claude|opencode> --pane-id <root_pane> [--native-args-file <args.json>]`で起動する。シナリオごと・イテレーションごと・hold-outで必ず新規Agentを使い、既存Agentや前回Agentを再利用しない。
+各`root_pane`では`herdr-agent-delegate`のAgent起動手順へ固定済み起動値を渡す。シナリオごと・イテレーションごと・hold-outで必ず新規Agentを使い、既存Agentや前回Agentを再利用しない。
 
-起動後は`../../herdr-agent-delegate/SKILL.md`の契約どおり、`herdr agent start`でAgentを起動し、`herdr agent prompt`で依頼を送信する。全シナリオへ送信してから個別に`herdr agent wait`で待ち、`herdr agent read`で出力を回収する。
+起動後は`herdr-agent-delegate`の契約どおり、`herdr agent start`でAgentを起動し、`herdr agent prompt`で依頼を送信する。全シナリオへ送信してから個別に`herdr agent wait`で待ち、`herdr agent read`で出力を回収する。
 
 依頼には次だけを含める。
 

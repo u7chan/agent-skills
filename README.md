@@ -10,46 +10,46 @@
 ## Available Skills
 
 スキルは利用目的ごとにグルーピングしてあります。グループ内の並びは関連の強さや作業フローの順です。
-`External Dependencies` は実行に必要な CLI、ランタイム、外部サービスを示します。`—` は必須の外部依存がないこと、`conditional` は特定フローでのみ必要なこと、`optional` は代替手段、`fallback` は最終的な代替取得元であることを表します。
+`External Dependencies` は実行に必要な CLI、ランタイム、外部サービスを示します。依存名の後ろに `(R)`（required: 必須）、`(C)`（conditional: 条件付き）、`(O)`（optional: 代替可能）、`(F)`（fallback: 最終代替）を付けます。`—` は外部依存が1件もない場合だけ使います。
 
 ### Git ローカル操作
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [git-branch-create](git-branch-create/SKILL.md) | ブランチ名を提案し、ブランチを作成する | Git, POSIX shell |
-| [git-worktree-create](git-worktree-create/SKILL.md) | 独立した git worktree を作成し、並列作業用の作業領域を用意する | Git, POSIX shell |
-| [git-commit-message-suggest](git-commit-message-suggest/SKILL.md) | 変更内容に合うコミットメッセージだけを提案し、stageやcommitは行わない | Git, POSIX shell |
-| [git-changes-commit](git-changes-commit/SKILL.md) | 今回の変更だけを限定stageし、安全にcommitして結果を確認する | Git, POSIX shell |
+| [git-branch-create](git-branch-create/SKILL.md) | ブランチ名を提案し、ブランチを作成する | Git (R), POSIX shell (R) |
+| [git-worktree-create](git-worktree-create/SKILL.md) | 独立した git worktree を作成し、並列作業用の作業領域を用意する | Git (R), POSIX shell (R) |
+| [git-commit-message-suggest](git-commit-message-suggest/SKILL.md) | 変更内容に合うコミットメッセージだけを提案し、stageやcommitは行わない | Git (R), POSIX shell (R) |
+| [git-changes-commit](git-changes-commit/SKILL.md) | 今回の変更だけを限定stageし、安全にcommitして結果を確認する | Git (R), POSIX shell (R) |
 
 ### GitHub Issue / PR
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [github-issue-decompose](github-issue-decompose/SKILL.md) | 既存Issueを本文・全コメントを根拠にSub-issueへ分解し、親をEpic化する | `gh`, GitHub, POSIX shell |
-| [github-issue-create-from-plan](github-issue-create-from-plan/SKILL.md) | 確定済みプランからテンプレートを選び、GitHub Issueを作成・確認する | `gh`, GitHub, POSIX shell |
-| [github-pr-orchestrate](github-pr-orchestrate/SKILL.md) | 未コミット変更の確認から限定commit、PR作成、指定レビュー工程まで統括する | `gh`, `jq` (conditional), Git, GitHub, POSIX shell |
-| [github-pr-create](github-pr-create/SKILL.md) | 非修正型の品質チェック後、commit済み変更をpushしてPRを作成・確認する | `gh`, Git, GitHub, POSIX shell |
-| [github-pr-feedback-address](github-pr-feedback-address/SKILL.md) | GitHub PR のレビュー指摘を確認し、実装対応から返信まで行う | `gh`, Git, GitHub API, POSIX shell |
-| [github-pr-review](github-pr-review/SKILL.md) | 指定した GitHub PR をレビューし、FB 対応後の再チェックまで行う | `gh`, `jq`, GitHub API, POSIX shell |
-| [github-pr-comment-reply](github-pr-comment-reply/SKILL.md) | GitHub PR の review comment や conversation comment に返信する | `gh`, GitHub API, POSIX shell |
-| [github-pr-post-merge-cleanup](github-pr-post-merge-cleanup/SKILL.md) | マージ済み PR の基準ブランチへ戻り、ローカル作業ブランチを安全に整理する | `gh`, Git, POSIX shell |
+| [github-issue-decompose](github-issue-decompose/SKILL.md) | 既存Issueを本文・全コメントを根拠にSub-issueへ分解し、親をEpic化する | `gh` (R), GitHub (R), POSIX shell (R) |
+| [github-issue-create-from-plan](github-issue-create-from-plan/SKILL.md) | 確定済みプランからテンプレートを選び、GitHub Issueを作成・確認する | `gh` (R), GitHub (R), POSIX shell (R) |
+| [github-pr-orchestrate](github-pr-orchestrate/SKILL.md) | 未コミット変更の確認から限定commit、PR作成、指定レビュー工程まで統括する | `gh` (R), `jq` (C), Git (R), GitHub (R), POSIX shell (R) |
+| [github-pr-create](github-pr-create/SKILL.md) | 非修正型の品質チェック後、commit済み変更をpushしてPRを作成・確認する | `gh` (R), Git (R), GitHub (R), POSIX shell (R) |
+| [github-pr-feedback-address](github-pr-feedback-address/SKILL.md) | GitHub PR のレビュー指摘を確認し、実装対応から返信まで行う | `gh` (R), Git (R), GitHub API (R), POSIX shell (R) |
+| [github-pr-review](github-pr-review/SKILL.md) | 指定した GitHub PR をレビューし、FB 対応後の再チェックまで行う | `gh` (R), `jq` (R), GitHub API (R), POSIX shell (R) |
+| [github-pr-comment-reply](github-pr-comment-reply/SKILL.md) | GitHub PR の review comment や conversation comment に返信する | `gh` (R), GitHub API (R), POSIX shell (R) |
+| [github-pr-post-merge-cleanup](github-pr-post-merge-cleanup/SKILL.md) | マージ済み PR の基準ブランチへ戻り、ローカル作業ブランチを安全に整理する | `gh` (R), Git (R), POSIX shell (R) |
 
 ### Agent委譲 / オーケストレーション
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [herdr-worktree-create](herdr-worktree-create/SKILL.md) | Herdr 公式コマンドで独立した worktree と workspace を作成する | Herdr, Git, POSIX shell |
-| [cagent-agent-command-resolve](cagent-agent-command-resolve/SKILL.md) | cagentの実効Agent・Model・Effortをagent-kind・native-agent-argsへ固定し、任意の委譲メタ情報を返す | Herdr, `cagent`, Python 3, selected Agent CLI, POSIX shell |
-| [herdr-agent-delegate](herdr-agent-delegate/SKILL.md) | Herdr 0.7.5公式API（agent start/prompt/wait/read/send-keys）でCLI Agentを配置し、任意の起動時メタ情報付きで送信・待機・出力回収を行う | Herdr, `jq`, Python 3, POSIX shell, Agent CLI |
-| [herdr-github-create-issue](herdr-github-create-issue/SKILL.md) | 確定済みプランのIssue作成をHerdrの新規Agentへ委譲する | Herdr, `cagent`, `gh`, `jq`, Git, Python 3, POSIX shell, selected Agent CLI |
-| [herdr-github-pr-orchestrate](herdr-github-pr-orchestrate/SKILL.md) | Issue確認から実装委譲、commit、push、PR作成、レビュー・FB対応・再チェックまで統括する | Herdr, `cagent`, `gh`, `jq`, Git, Python 3, POSIX shell, Agent CLI |
-| [herdr-prompt-evaluate](herdr-prompt-evaluate/SKILL.md) | Herdrの独立Agentでプロンプトを実証評価し、観測した1テーマを最小改善する | Herdr, `jq`, Git, Python 3, POSIX shell, Agent CLI |
+| [herdr-worktree-create](herdr-worktree-create/SKILL.md) | Herdr 公式コマンドで独立した worktree と workspace を作成する | Herdr (R), Git (R), POSIX shell (R) |
+| [cagent-agent-command-resolve](cagent-agent-command-resolve/SKILL.md) | cagentの実効Agent・Model・Effortをagent-kind・native-agent-argsへ固定し、任意の委譲メタ情報を返す | Herdr (R), `cagent` (R), Python 3 (R), selected Agent CLI (R), POSIX shell (R) |
+| [herdr-agent-delegate](herdr-agent-delegate/SKILL.md) | Herdr 0.7.5公式API（agent start/prompt/wait/read/send-keys）でCLI Agentを配置し、任意の起動時メタ情報付きで送信・待機・出力回収を行う | Herdr (R), `jq` (R), Python 3 (R), POSIX shell (R), Agent CLI (R) |
+| [herdr-github-create-issue](herdr-github-create-issue/SKILL.md) | 確定済みプランのIssue作成をHerdrの新規Agentへ委譲する | Herdr (R), `cagent` (R), `gh` (R), `jq` (R), Git (R), Python 3 (R), POSIX shell (R), selected Agent CLI (R) |
+| [herdr-github-pr-orchestrate](herdr-github-pr-orchestrate/SKILL.md) | Issue確認から実装委譲、commit、push、PR作成、レビュー・FB対応・再チェックまで統括する | Herdr (R), `cagent` (R), `gh` (R), `jq` (R), Git (R), Python 3 (R), POSIX shell (R), Agent CLI (R) |
+| [herdr-prompt-evaluate](herdr-prompt-evaluate/SKILL.md) | Herdrの独立Agentでプロンプトを実証評価し、観測した1テーマを最小改善する | Herdr (R), `jq` (R), Git (R), Python 3 (R), POSIX shell (R), Agent CLI (R) |
 
 ### 実装 / 成果物生成
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [html-artifact-format](html-artifact-format/SKILL.md) | AI向けMarkdownと人間向けHTMLを判断し、視覚化要素入りの単一HTMLを生成する | POSIX shell |
+| [html-artifact-format](html-artifact-format/SKILL.md) | AI向けMarkdownと人間向けHTMLを判断し、視覚化要素入りの単一HTMLを生成する | POSIX shell (R) |
 
 ### 要件定義 / 設計対話
 
@@ -74,28 +74,28 @@
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [bun-dependency-update](bun-dependency-update/SKILL.md) | Bun アプリの依存更新を非メジャー/major の分岐付きで安全に進める | Bun, `rg`, POSIX shell, web access (conditional) |
-| [npm-dependency-update](npm-dependency-update/SKILL.md) | npm アプリの依存更新を非メジャー/major の分岐付きで安全に進める | Node.js / npm, `rg`, POSIX shell, web access (conditional) |
-| [uv-dependency-update](uv-dependency-update/SKILL.md) | uv 管理の Python 依存更新を非メジャー/major の分岐付きで安全に進める | `uv`, Python, `rg`, POSIX shell, web access (conditional) |
+| [bun-dependency-update](bun-dependency-update/SKILL.md) | Bun アプリの依存更新を非メジャー/major の分岐付きで安全に進める | Bun (R), `rg` (R), POSIX shell (R), web access (C) |
+| [npm-dependency-update](npm-dependency-update/SKILL.md) | npm アプリの依存更新を非メジャー/major の分岐付きで安全に進める | Node.js (R), npm (R), `rg` (R), POSIX shell (R), web access (C) |
+| [uv-dependency-update](uv-dependency-update/SKILL.md) | uv 管理の Python 依存更新を非メジャー/major の分岐付きで安全に進める | `uv` (R), Python (R), `rg` (R), POSIX shell (R), web access (C) |
 
 ### UI / フロントエンド
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
 | [apple-interface-design](apple-interface-design/SKILL.md) | Appleの設計思想をWebへ翻案し、流体モーションとアクセシブルなUIを設計・レビューする | — |
-| [tailwind-ui-compose](tailwind-ui-compose/SKILL.md) | 画面構成から始めて Tailwind UI の設計と実装方針を整える | Tailwind CSS project |
+| [tailwind-ui-compose](tailwind-ui-compose/SKILL.md) | 画面構成から始めて Tailwind UI の設計と実装方針を整える | Tailwind CSS project (R) |
 
 ### ブラウザ操作 / 検証
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [playwright-cli](playwright-cli/SKILL.md) | Playwright CLI の独立ブラウザで localhost などの画面検証を進める | Playwright CLI, browser, POSIX shell, Node.js / `npx` (fallback) |
+| [playwright-cli](playwright-cli/SKILL.md) | Playwright CLI の独立ブラウザで localhost などの画面検証を進める | Playwright CLI (R), browser (R), POSIX shell (R), Node.js (F), `npx` (F) |
 
 ### Experimental
 
 | Skill | Description | External Dependencies |
 |-------|-------------|-----------------------|
-| [image-to-svg](image-to-svg/SKILL.md) | 画像（PNG/JPEG）を編集可能な SVG に変換する | librsvg / Inkscape / browser (one required) |
+| [image-to-svg](image-to-svg/SKILL.md) | 画像（PNG/JPEG）を編集可能な SVG に変換する | librsvg (O), Inkscape (O), browser (O) |
 
 ### スキル作成 / メンテナンス
 
@@ -103,7 +103,25 @@
 |-------|-------------|-----------------------|
 | [agent-skill-design](agent-skill-design/SKILL.md) | Agent Skillの新規作成、仕様変更、全面再設計、設計レビューを行う | — |
 | [agent-skill-refine](agent-skill-refine/SKILL.md) | 既存Agent Skillを挙動を変えず短く高密度に改善する | — |
-| [codex-skills-link](codex-skills-link/SKILL.md) | `.codex/skills`だけを操作し、`.claude/skills`をCodexから再利用できるようにリンクする | POSIX shell, coreutils |
+| [codex-skills-link](codex-skills-link/SKILL.md) | `.codex/skills`だけを操作し、`.claude/skills`をCodexから再利用できるようにリンクする | POSIX shell (R), coreutils (R) |
+
+`image-to-svg` は `librsvg`、Inkscape、browser のいずれか1つが必要です。候補を個別に `(O)` と記載し、複数導入を必須とはしません。
+
+## Validation
+
+検証は次の順で実行します。
+
+```sh
+bash .scripts/run-tests.sh
+bash .scripts/validate-skills.sh
+bash .scripts/validate-skills.sh --graph /tmp/skill-dependency-graph.md
+```
+
+`--graph PATH` は `.rules/skill-categories.yaml` の `depends_on` と README の直接外部依存から決定的なグラフを生成します。ERROR が1件でもあれば終了コード1、WARNINGだけなら終了コード0です。検証ERROR時は既存の出力を変更せず、出力先I/Oエラーは通常diagnosticを表示した上で終了コード2にします。
+
+カテゴリとスキル間依存の正本は `.rules/skill-categories.yaml`、検証基準は `.rules/skill-rules.yaml`、配布Skillの外部依存の正本は README の `External Dependencies` 列です。保守Skillの直接外部依存は `skill-categories.yaml` の当該エントリへ記録します。スキルや依存を変更したときは `python3 .scripts/inventory.py` で4つのinventory YAMLを再生成します。通常検証は一時生成した期待値とchecked-in版を比較し、陳腐化をERRORにします。
+
+例外は `.rules/skill-rules.yaml` の `validation.exceptions` に記録します。WARNING と `V-STR-002` に限り、`check_id`、`target`、非空の具体的な`reason`が揃った一意な記録だけを認め、抑制結果も理由付きWARNINGとして表示します。他のERROR、未知ID、存在しないtargetは禁止です。
 
 ## Setup
 

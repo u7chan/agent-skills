@@ -5,8 +5,8 @@ description: Herdr 0.7.5公式APIでCLI Agentを配置し、任意の委譲メ�
 
 # Herdr Agent Delegate
 
-`agent-kind`（`codex`/`claude`/`opencode`）と `native-agent-args`（JSON配列）は `../cagent-agent-command-resolve/SKILL.md` が解決し本Skillは書き換えない。
-Agent名は `^[a-z][a-z0-9_-]{0,31}$`、同一workspace内一意必須。委譲メタ情報は3キーが揃った場合だけ `references/delegation-metadata.md` に従い付与。
+`agent-kind`（`codex`/`claude`/`opencode`）と `native-agent-args`（JSON配列）は `cagent-agent-command-resolve` が解決し本Skillは書き換えない。
+Agent名は `^[a-z][a-z0-9_-]{0,31}$`、同一workspace内一意必須。委譲メタ情報は3キーが揃った場合だけ `references/delegation-metadata.md` に従い付与。Agent CLIの詳細は`references/agent-cli.md`を読む。
 
 ## 禁止事項
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: Leaf validator
+  short_description: xxxxxxxxxxxxxxxxxxxxxxxxx
+  default_prompt: Use $tool-leaf-validate.

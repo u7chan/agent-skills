@@ -7,7 +7,7 @@ description: >
 
 # 概要
 
-コーディングエージェントが並列で安全に作業できるように、現在の作業ツリーを切り替えず、Herdr 管理の独立した worktree と作業ブランチを作成するスキル。ブランチ名は `../git-branch-create/SKILL.md` の命名ルールを使い、作成には Herdr 公式の `herdr worktree create` を使う。
+コーディングエージェントが並列で安全に作業できるように、現在の作業ツリーを切り替えず、Herdr 管理の独立した worktree と作業ブランチを作成するスキル。ブランチ名は `git-branch-create` の命名ルールを使い、作成には Herdr 公式の `herdr worktree create` を使う。
 
 # 使用タイミング
 
@@ -55,7 +55,7 @@ description: >
 
 ## 3. ブランチ名と worktree パスを決める
 
-- `../git-branch-create/SKILL.md` を読み、ブランチ名の生成ルールを適用する。
+- `git-branch-create` を読み、ブランチ名の生成ルールを適用する。
 - Issue がある場合は、ブランチ名に `issue-123` を含める。
 - 標準のブランチ名は `<type>/<description>` とする。
 - worktree パス用の `branch-slug` は、ブランチ名の `/` を `-` に置換して作る。

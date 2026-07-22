@@ -1,6 +1,6 @@
 # Herdr レビュー・FB対応・再チェック契約
 
-PR作成成功後に読む。pane配置、Agent起動、送信、待機、出力回収は`../../herdr-agent-delegate/SKILL.md`へ一元化し、ここではAgent選択、分類、反復上限、成果確認、cleanupだけを定める。
+PR作成成功後に読む。pane配置、Agent起動、送信、待機、出力回収は`herdr-agent-delegate`へ一元化し、ここではAgent選択、分類、反復上限、成果確認、cleanupだけを定める。
 
 ## PR Work Metadata スナップショット
 

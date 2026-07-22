@@ -1,0 +1,6 @@
+schema_version: 2
+generated_by: .scripts/inventory.py
+total_findings: 0
+auto_detected: 0
+manual: 0
+findings: []

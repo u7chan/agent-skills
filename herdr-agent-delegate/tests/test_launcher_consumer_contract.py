@@ -11,11 +11,6 @@ REPO_ROOT = Path(__file__).parents[2]
 LAUNCHER = REPO_ROOT / "herdr-agent-delegate" / "scripts" / "launch_agent.py"
 CONSUMERS = (
     (
-        REPO_ROOT / "cagent-agent-command-resolve",
-        Path("SKILL.md"),
-        "<skill-dir>/../herdr-agent-delegate/scripts/launch_agent.py",
-    ),
-    (
         REPO_ROOT / "herdr-agent-delegate",
         Path("SKILL.md"),
         "<skill-dir>/scripts/launch_agent.py",
@@ -24,11 +19,6 @@ CONSUMERS = (
         REPO_ROOT / "herdr-agent-delegate",
         Path("references/agent-cli.md"),
         "<skill-dir>/scripts/launch_agent.py",
-    ),
-    (
-        REPO_ROOT / "herdr-prompt-evaluate",
-        Path("references/herdr-execution.md"),
-        "<skill-dir>/../herdr-agent-delegate/scripts/launch_agent.py",
     ),
 )
 
@@ -91,6 +81,15 @@ class LauncherConsumerContractTest(unittest.TestCase):
                 )
                 self.assertEqual(proc.returncode, 0, proc.stderr)
                 self.assertEqual(json.loads(proc.stdout), expected_argv)
+
+    def test_logical_skill_references_replace_cross_skill_launcher_paths(self):
+        for path in (
+            REPO_ROOT / "cagent-agent-command-resolve" / "SKILL.md",
+            REPO_ROOT / "herdr-prompt-evaluate" / "references" / "herdr-execution.md",
+        ):
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("`herdr-agent-delegate`", text)
+            self.assertNotIn("../herdr-agent-delegate/scripts/launch_agent.py", text)
 
 
 if __name__ == "__main__":

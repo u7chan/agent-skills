@@ -1,0 +1,62 @@
+meta: {version: '1'}
+categories:
+  - id: orchestration
+    label: Orchestration
+    order: 1
+    allowed_depends_on: [git, tool]
+    may_be_depended_on_by: []
+  - id: git
+    label: Git
+    order: 2
+    allowed_depends_on: [tool]
+    may_be_depended_on_by: [orchestration]
+  - id: tool
+    label: Tool
+    order: 3
+    allowed_depends_on: []
+    may_be_depended_on_by: [git, orchestration]
+naming:
+  exceptions: []
+  borderline: []
+validation:
+  exception_schema:
+    required_fields: [check_id, target, reason]
+    suppressible_levels: [WARNING]
+    suppressible_error_check_ids: [V-STR-002]
+  exceptions: []
+  checks:
+    - {id: V-CFG-001, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-CFG-002, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-CAT-001, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-CAT-002, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-DEP-001, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-DEP-002, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-DEP-003, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-DEP-004, level: WARNING, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-DEP-005, level: WARNING, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-DEP-006, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-DEP-007, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-EXT-001, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-EXT-002, level: WARNING, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-EXT-003, level: WARNING, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-EXT-004, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-EXT-005, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-NAM-001, level: WARNING, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-NAM-002, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-NAM-003, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-STR-001, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-STR-002, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-STR-003, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-STR-004, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-STR-005, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-STR-006, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-ARC-001, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-ARC-002, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-ARC-003, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-PUB-001, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-PUB-002, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-INV-001, level: ERROR, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-CMP-001, level: WARNING, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-CMP-002, level: WARNING, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-CMP-003, level: WARNING, subject: fixture, description: fixture, mechanical_check: fixture}
+    - {id: V-CMP-004, level: WARNING, subject: fixture, description: fixture, mechanical_check: fixture}

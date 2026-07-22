@@ -11,6 +11,8 @@
 | `findings.yaml` | 自動検出 + 人手判断による所見（肥大化、重複候補、分割統合候補） |
 | `summary.yaml` | 数値サマリ |
 
+4ファイルはいずれもトップレベルに`schema_version: 2`を持つ。`skills.yaml`はREADME/正本由来の直接依存と静的証拠を分離し、`dependency-graph.yaml`は正本の`depends_on`だけを`edges`へ入れる。
+
 ## Generation
 
 ```sh
@@ -19,7 +21,7 @@ python3 .scripts/inventory.py
 
 **Prerequisites**: Python 3.9+ with PyYAML (`pip install pyyaml`).
 
-再実行により同一リビジョンから同一結果が得られる（決定論的）。
+再実行により同一リビジョンから同一結果が得られる（決定論的）。`bash .scripts/validate-skills.sh` は4ファイルを一時生成してchecked-in版と比較し、陳腐化を `V-INV-001` ERRORにする。
 
 ## Scope
 
@@ -40,7 +42,8 @@ python3 .scripts/inventory.py
 - `has_references` / `has_scripts` / `has_tests`: サブディレクトリの有無
 - `skill_references`: 本文中で言及される他スキル名の一覧
 - `path_references`: 本文中の`../`相対パス参照
-- `external_dependencies`: 外部依存とその種別（required/conditional/optional/fallback）、情報源（README/SKILL.md）
+- `external_dependencies`: 外部依存とその種別（required/conditional/optional/fallback）、宣言元（配布SkillはREADME、保守Skillは正本）
+- `external_dependency_evidence`: import・静的commandの確認証拠（宣言を自動上書きしない）
 - `disposition`: 維持判断（Phase 2で決定。現時点では全件`keep`）
 - `findings`: 当該スキルに関する所見
 
@@ -63,9 +66,9 @@ python3 .scripts/inventory.py
 
 `depends_on` エッジのみを対象としたTarjan SCCによる循環検出では、循環参照は検出されなかった。
 
-### 肥大化注意 (5件)
+### 肥大化注意 (4件)
 
-150行を超えるが180行制限内: bun-dependency-update(151), herdr-agent-delegate(173), herdr-github-pr-orchestrate(156), npm-dependency-update(153), uv-dependency-update(161)
+150行を超えるが180行制限内: bun-dependency-update(151), herdr-github-pr-orchestrate(157), npm-dependency-update(153), uv-dependency-update(161)
 
 ### 重複候補 (4件)
 
@@ -74,19 +77,16 @@ python3 .scripts/inventory.py
 - `github-pr-orchestrate` / `herdr-github-pr-orchestrate`
 - `agent-skill-design` / `agent-skill-refine`（責務境界は明確、統合不要の判断）
 
-### 逆方向依存候補 (2件)
+### 逆方向依存候補 (0件)
 
-- `github-pr-comment-reply` (primitive) → `herdr-agent-delegate` (orchestration)
-- `github-pr-review` (primitive) → `herdr-agent-delegate` (orchestration)
+正本の`depends_on`にはカテゴリ逆方向依存がない。
 
-GitHubスキルからHerdr Agentへの委譲手順参照に起因する。いずれも `references/posting-rules.md` 内の手順記述に基づく。
+### 物理パス参照 (4件)
 
-### 物理パス参照 (32件)
-
-`../` による相対パス参照。内訳: `skill_internal`（スキル間参照）26件、`general`（worktree出力先や symlink targetなどの一般パス）6件。スキル間参照では `github-pr-orchestrate`(4件) や `herdr-github-pr-orchestrate`(4件) が多く、Phase 2 でシンボリックリンク方式への移行時に解消候補。
+いずれも `.claude/skills` のsymlink targetまたはworktree出力先を示す`general`参照で、他Skill内部への物理参照はない。
 
 ## Limitations
 
 - スキル参照の自動抽出は正規表現ベースであり、自然言語での間接的な参照や「上位移譲」のような概念的な依存は捉えられない
-- 外部依存の抽出はREADMEテーブルを優先するが、`command -v`パターンやコードブロック内のimportのみ補完する。網羅的な動的依存解析ではない
+- 外部依存の証拠はPython AST、JS/TSの静的import/require、文書・shellの静的commandを対象とし、動的に組み立てられる依存は解析しない
 - `disposition` はPhase 2で決定するため、現時点では全件 `keep`

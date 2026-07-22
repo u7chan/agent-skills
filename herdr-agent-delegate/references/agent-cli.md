@@ -2,7 +2,7 @@
 
 ## 起動契約
 
-`agent-kind`（`codex`/`claude`/`opencode`）と `native-agent-args`（JSON配列）は `../../cagent-agent-command-resolve/SKILL.md` の `freeze_resolution.py` が解決。本Skillは書き換えない。
+`agent-kind`（`codex`/`claude`/`opencode`）と `native-agent-args`（JSON配列）は `cagent-agent-command-resolve` が解決。本Skillは書き換えない。
 
 `agent-kind` を実行ファイル名から推測しない。
 

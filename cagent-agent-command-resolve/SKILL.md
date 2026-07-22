@@ -98,13 +98,9 @@ preflight用の`--dry-run`は実際の`agent-command`に含めない。Modelま�
 
 ## 5. 呼び出し側へ返す
 
-`agent-kind`、`resolved`、`native-agent-args`、`agent-command`、`delegation-metadata`を分離して返す。呼び出し側（`herdr-agent-delegate`）は次でAgentを起動する:
-
-```bash
-<skill-dir>/../herdr-agent-delegate/scripts/launch_agent.py --name <name> --kind <agent-kind> --pane-id <pane-id> [--native-args-file <args.json>]
-```
-
-`launch_agent.py` が `subprocess.run` で `herdr agent start` を実行しexit/stdout/stderrを伝播する。
+`agent-kind`、`resolved`、`native-agent-args`、`agent-command`、`delegation-metadata`を分離して返す。
+呼び出し側は`herdr-agent-delegate`のAgent起動手順へ固定済みの`agent-kind`と
+`native-agent-args`を渡す。起動helperが`herdr agent start`を実行し、exit/stdout/stderrを伝播する。
 
 `delegation-metadata`は、表示用Agent名、Model、Effortがすべて非空で、同じagent ID、Model、Effortが`agent-command`へ明示され、再dry-runで一致した場合だけ次の形で返す。
 

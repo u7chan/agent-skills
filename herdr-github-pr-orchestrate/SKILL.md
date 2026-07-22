@@ -28,14 +28,14 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 
 ## 参照するスキル
 
-- worktree: `../herdr-worktree-create/SKILL.md`
-- ブランチ: `../git-branch-create/SKILL.md`
-- 限定stage / commit: `../git-changes-commit/SKILL.md`
-- push / PR 作成: `../github-pr-create/SKILL.md`
-- Herdr 委譲: `../herdr-agent-delegate/SKILL.md`
-- cagent解決: `../cagent-agent-command-resolve/SKILL.md`
-- レビュー / 再チェック: `../github-pr-review/SKILL.md`
-- FB 対応: `../github-pr-feedback-address/SKILL.md`
+- worktree: `herdr-worktree-create`
+- ブランチ: `git-branch-create`
+- 限定stage / commit: `git-changes-commit`
+- push / PR 作成: `github-pr-create`
+- Herdr 委譲: `herdr-agent-delegate`
+- cagent解決: `cagent-agent-command-resolve`
+- レビュー / 再チェック: `github-pr-review`
+- FB 対応: `github-pr-feedback-address`
 
 実装前に `references/implementation-delegation.md`、PR 作成後に `references/review-loop.md` を必ず読む。各ファイルの Agent 解決、タスク内容、成果確認、pane 管理に従う。
 

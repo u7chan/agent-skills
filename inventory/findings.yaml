@@ -1,7 +1,8 @@
+schema_version: 2
 generated_by: .scripts/inventory.py
-total_findings: 13
-auto_detected: 5
-manual: 8
+total_findings: 11
+auto_detected: 4
+manual: 7
 findings:
 - id: F001
   type: near_limit
@@ -10,18 +11,11 @@ findings:
   reason: approaches 180-line limit (151)
   recommendation: monitor, consider reducing
   auto_detected: true
-- id: F002
-  type: near_limit
-  skill: herdr-agent-delegate
-  line_count: 173
-  reason: approaches 180-line limit (173)
-  recommendation: monitor, consider reducing
-  auto_detected: true
 - id: F003
   type: near_limit
   skill: herdr-github-pr-orchestrate
-  line_count: 156
-  reason: approaches 180-line limit (156)
+  line_count: 157
+  reason: approaches 180-line limit (157)
   recommendation: monitor, consider reducing
   auto_detected: true
 - id: F004
@@ -70,18 +64,11 @@ findings:
   reason: agent-skill-design は新規作成・要件追加・全面再設計、agent-skill-refine は挙動を変えずに短文化・高密度化。責務は明確に分離されているが、密接に関連しており、参照関係も強い。
   auto_detected: false
   recommendation: 分割統合は不要。責務境界が明確で適切に分離されている。
-- id: F010
-  type: oversize_detail
-  skill: herdr-agent-delegate
-  line_count: 173
-  reason: 173行。Agent委譲の全工程（プリフライト、宛先解決、pane配置、依頼送信、結果回収）を1ファイルに収めており、責務が大きい。references/ は既に存在するが、SKILL.md 自体の構造を再検討する余地がある。
-  recommendation: 工程ごとに references/ へ分割し、SKILL.md はルーティングと主要ルールのみに絞る。
-  auto_detected: false
 - id: F011
   type: near_limit_detail
   skill: herdr-github-pr-orchestrate
-  line_count: 156
-  reason: 156行。実装委譲からPR作成、レビュー、FB対応までの全工程をカバーしており、工程ごとの分岐条件も多い。references/ に実装委譲とレビューループの詳細は分離済み。
+  line_count: 157
+  reason: 157行。実装委譲からPR作成、レビュー、FB対応までの全工程をカバーしており、工程ごとの分岐条件も多い。references/ に実装委譲とレビューループの詳細は分離済み。
   recommendation: モニタリング。180行を超える前に工程分岐の一部を references/ に移すことを検討。
   auto_detected: false
 - id: F012
@@ -90,7 +77,7 @@ findings:
   reason: cagent の解決ロジックと Agent Command の生成を1スキルで扱っている。scripts/ に実装があり、SKILL.md はそれらの使い方を説明する構成。責務は明確だが、cagent 自体のバージョンアップに追従が必要。
   recommendation: 現状維持。scripts/ への分離は適切に行われている。
   auto_detected: false
-- id: F013
+- id: F-COMMON-POSIX-SHELL
   type: common_dependency
   dependency: posix shell
   type_class: required

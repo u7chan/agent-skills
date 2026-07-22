@@ -86,14 +86,14 @@ reviewer の指摘をそのまま仕様とみなさず、現在のコードと�
 - コード変更がない場合は、この手順をスキップする。空コミットを作らない。
 - `git status --short` と `git diff` で変更範囲を確認する。
 - この作業の変更だけを stage する。`git add .` は使わない。
-- commit messageは`git-commit-message-suggest/SKILL.md`から提案を受ける。呼び出し側である本Skillが対象変更だけを限定stageし、feedback対応用typeでcommitする。
+- commit messageは`git-commit-message-suggest`から提案を受ける。呼び出し側である本Skillが対象変更だけを限定stageし、feedback対応用typeでcommitする。
 - 既存 commit を勝手に amend / rebase しない。
 - 現在ブランチを push し、upstream がなければ設定する。force push はしない。
 
 ## 7. feedback へ返信する
 
 - review comment には threaded reply、top-level comment には follow-up comment を投稿する。
-- 投稿方法は `github-pr-comment-reply/SKILL.md` に従う。
+- 投稿方法は `github-pr-comment-reply` に従う。
 - 返信対象、分類、変更内容、commit、検証結果を`github-pr-comment-reply`へ引き渡す。AI識別値は別途組み立てず、現在の委譲指示に有効な標準suffixがある場合だけ同スキルのconsumer契約で使う。
 - `actionable` には、変更内容、元の失敗条件をどう閉じたか、commit、検証結果を書く。
 - `already-fixed` / `not-applicable` には、判断根拠となる現在のコードや仕様を書く。

@@ -89,13 +89,14 @@ skills:
 
   # --- orchestration (7) ---
   - name: cagent-agent-command-resolve
+    path: cagent-agent-command-resolve
     category: orchestration
     classification: distributable
     naming: conforms
     primary_responsibility: >
       cagent で agent、task level、model、effort を解決し、
       実行値を固定した agent-command と委譲メタ情報を返す。
-      pane 作成、Agent 起動、送信、待機は行わない。
+      pane 作成、Agent 起動、readiness 確認、送信、待機、回収は行わない。
     depends_on: []   # herdr-agent-delegate は mention のみ
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
@@ -103,21 +104,20 @@ skills:
         note: "cagent のバージョンアップ追従が必要。scripts/ への分離は適切。"
 
   - name: herdr-agent-delegate
+    path: herdr-agent-delegate
     category: orchestration
     classification: distributable
     naming: conforms
     primary_responsibility: >
-      Herdr 上で CLI Agent へタスクを委譲し、
-      公式プリミティブで pane 配置、送信、完了待機、出力回収を行う。
-    depends_on: []
+      Herdr 0.7.5 公式 API で CLI Agent を配置し、cagent の固定済み起動値を使って
+      Agent 起動、任意のメタ情報付き送信、完了待機、出力回収を行う。
+    depends_on:
+      - cagent-agent-command-resolve
     external_dependencies_ref: inventory/skills.yaml
-    known_issues:
-      - ref: F002
-        note: "173 行。180 行制限に近接。工程ごとの references/ 分割を検討。"
-      - ref: F010
-        note: "責務が大きい。全工程を 1 ファイルに収めている。"
+    known_issues: []
 
   - name: herdr-github-create-issue
+    path: herdr-github-create-issue
     category: orchestration
     classification: distributable
     naming: borderline
@@ -133,6 +133,7 @@ skills:
     known_issues: []
 
   - name: herdr-github-pr-orchestrate
+    path: herdr-github-pr-orchestrate
     category: orchestration
     classification: distributable
     naming: borderline
@@ -153,13 +154,14 @@ skills:
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F003
-        note: "156 行。180 行制限に近接。工程分岐の一部を references/ に移すことを検討。"
+        note: "157 行。180 行制限に近接。工程分岐の一部を references/ に移すことを検討。"
       - ref: F008
         note: "github-pr-orchestrate との重複候補。共通フロー抽出を検討。"
       - ref: F011
         note: "実装委譲から PR 作成、レビュー、FB 対応まで全工程をカバー。"
 
   - name: herdr-prompt-evaluate
+    path: herdr-prompt-evaluate
     category: orchestration
     classification: distributable
     naming: conforms
@@ -174,6 +176,7 @@ skills:
     known_issues: []
 
   - name: herdr-worktree-create
+    path: herdr-worktree-create
     category: orchestration
     classification: distributable
     naming: conforms
@@ -188,6 +191,7 @@ skills:
         note: "git-worktree-create との重複候補。共通ロジックの抽出を検討。"
 
   - name: github-pr-orchestrate
+    path: github-pr-orchestrate
     category: orchestration
     classification: distributable
     naming: conforms
@@ -206,6 +210,7 @@ skills:
 
   # --- github (7) ---
   - name: github-issue-create-from-plan
+    path: github-issue-create-from-plan
     category: github
     classification: distributable
     naming: borderline
@@ -219,6 +224,7 @@ skills:
     known_issues: []
 
   - name: github-issue-decompose
+    path: github-issue-decompose
     category: github
     classification: distributable
     naming: conforms
@@ -230,22 +236,18 @@ skills:
     known_issues: []
 
   - name: github-pr-comment-reply
+    path: github-pr-comment-reply
     category: github
     classification: distributable
     naming: conforms
     primary_responsibility: >
       GitHub PR の review comment や conversation comment への返信を行う。
-    depends_on:
-      - herdr-agent-delegate   # VIOLATION: github → orchestration 逆方向依存
+    depends_on: []
     external_dependencies_ref: inventory/skills.yaml
-    known_issues:
-      - ref: V-DEP-002
-        note: >
-          逆方向カテゴリ依存（github → orchestration）。
-          references/posting-rules.md 内の Herdr 投稿手順参照に起因。
-          Phase 3 で解消要。
+    known_issues: []
 
   - name: github-pr-create
+    path: github-pr-create
     category: github
     classification: distributable
     naming: conforms
@@ -258,6 +260,7 @@ skills:
     known_issues: []
 
   - name: github-pr-feedback-address
+    path: github-pr-feedback-address
     category: github
     classification: distributable
     naming: conforms
@@ -270,6 +273,7 @@ skills:
     known_issues: []
 
   - name: github-pr-post-merge-cleanup
+    path: github-pr-post-merge-cleanup
     category: github
     classification: distributable
     naming: borderline
@@ -282,24 +286,20 @@ skills:
     known_issues: []
 
   - name: github-pr-review
+    path: github-pr-review
     category: github
     classification: distributable
     naming: conforms
     primary_responsibility: >
       指定された GitHub PR のレビューや再チェックを行い、
       PR 上へコメントする。
-    depends_on:
-      - herdr-agent-delegate   # VIOLATION: github → orchestration 逆方向依存
+    depends_on: []
     external_dependencies_ref: inventory/skills.yaml
-    known_issues:
-      - ref: V-DEP-002
-        note: >
-          逆方向カテゴリ依存（github → orchestration）。
-          references/posting-rules.md 内の Herdr 投稿手順参照に起因。
-          Phase 3 で解消要。
+    known_issues: []
 
   # --- git (4) ---
   - name: git-branch-create
+    path: git-branch-create
     category: git
     classification: distributable
     naming: conforms
@@ -310,6 +310,7 @@ skills:
     known_issues: []
 
   - name: git-changes-commit
+    path: git-changes-commit
     category: git
     classification: distributable
     naming: conforms
@@ -323,6 +324,7 @@ skills:
     known_issues: []
 
   - name: git-commit-message-suggest
+    path: git-commit-message-suggest
     category: git
     classification: distributable
     naming: conforms
@@ -334,6 +336,7 @@ skills:
     known_issues: []
 
   - name: git-worktree-create
+    path: git-worktree-create
     category: git
     classification: distributable
     naming: conforms
@@ -349,6 +352,7 @@ skills:
 
   # --- design (2) ---
   - name: design-plan-grill
+    path: design-plan-grill
     category: design
     classification: distributable
     naming: borderline
@@ -364,6 +368,7 @@ skills:
         note: "grilling との重複候補。design-plan-grill は grilling の特殊化。"
 
   - name: grilling
+    path: grilling
     category: design
     classification: distributable
     naming: exception
@@ -379,6 +384,7 @@ skills:
 
   # --- skill (3) ---
   - name: agent-skill-design
+    path: agent-skill-design
     category: skill
     classification: distributable
     naming: conforms
@@ -392,6 +398,7 @@ skills:
         note: "agent-skill-refine と密接に関連。責務境界は明確で適切に分離されている。"
 
   - name: agent-skill-refine
+    path: agent-skill-refine
     category: skill
     classification: distributable
     naming: conforms
@@ -405,6 +412,7 @@ skills:
         note: "agent-skill-design と密接に関連。責務境界は明確。"
 
   - name: skills-readme-sync
+    path: .claude/skills/skills-readme-sync
     category: skill
     classification: maintenance
     naming: borderline
@@ -414,10 +422,12 @@ skills:
       Available Skills 表を現在の配布対象スキル構成へ同期する。
     depends_on: []
     external_dependencies_ref: inventory/skills.yaml
+    external_dependencies: []
     known_issues: []
 
   # --- tool (8) ---
   - name: apple-interface-design
+    path: apple-interface-design
     category: tool
     classification: distributable
     naming: conforms
@@ -429,6 +439,7 @@ skills:
     known_issues: []
 
   - name: codex-skills-link
+    path: codex-skills-link
     category: tool
     classification: distributable
     naming: conforms
@@ -440,6 +451,7 @@ skills:
     known_issues: []
 
   - name: html-artifact-format
+    path: html-artifact-format
     category: tool
     classification: distributable
     naming: conforms
@@ -452,6 +464,7 @@ skills:
     known_issues: []
 
   - name: image-to-svg
+    path: image-to-svg
     category: tool
     classification: distributable
     naming: exception
@@ -463,6 +476,7 @@ skills:
     known_issues: []
 
   - name: japanese-text-refine
+    path: japanese-text-refine
     category: tool
     classification: distributable
     naming: conforms
@@ -473,6 +487,7 @@ skills:
     known_issues: []
 
   - name: playwright-cli
+    path: playwright-cli
     category: tool
     classification: distributable
     naming: exception
@@ -484,6 +499,7 @@ skills:
     known_issues: []
 
   - name: qa-test-design
+    path: qa-test-design
     category: tool
     classification: distributable
     naming: conforms
@@ -495,6 +511,7 @@ skills:
     known_issues: []
 
   - name: tailwind-ui-compose
+    path: tailwind-ui-compose
     category: tool
     classification: distributable
     naming: conforms
@@ -508,6 +525,7 @@ skills:
 
   # --- dependency (3) ---
   - name: bun-dependency-update
+    path: bun-dependency-update
     category: dependency
     classification: distributable
     naming: conforms
@@ -522,6 +540,7 @@ skills:
         note: "151 行。180 行制限に近接。監視対象。"
 
   - name: npm-dependency-update
+    path: npm-dependency-update
     category: dependency
     classification: distributable
     naming: conforms
@@ -535,6 +554,7 @@ skills:
         note: "153 行。180 行制限に近接。監視対象。"
 
   - name: uv-dependency-update
+    path: uv-dependency-update
     category: dependency
     classification: distributable
     naming: conforms
@@ -553,17 +573,9 @@ skills:
 dependency_notes:
   reverse_violations:
     description: >
-      以下の depends_on は カテゴリ依存方向ルール（§4.1）に違反している。
-      Phase 3 で解消が必要。
-    items:
-      - from: github-pr-comment-reply
-        to: herdr-agent-delegate
-        direction: "github → orchestration"
-        root_cause: "references/posting-rules.md 内の Herdr 投稿手順への参照"
-      - from: github-pr-review
-        to: herdr-agent-delegate
-        direction: "github → orchestration"
-        root_cause: "references/posting-rules.md 内の Herdr 投稿手順への参照"
+      既知のカテゴリ逆方向依存。Phase 3 で GitHub 側へ consumer 規則を局所化し、
+      現在は該当なし。
+    items: []
 
   routes_to_not_depends:
     description: >
