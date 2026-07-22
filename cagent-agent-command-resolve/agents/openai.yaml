@@ -1,4 +1,4 @@
 interface:
   display_name: "Cagent Agent Command Resolve"
-  short_description: "cagentの実効値を起動コマンドと委譲メタ情報へ固定"
-  default_prompt: "Use $cagent-agent-command-resolve to freeze cagent Agent, Model, and Effort into a launch command and optional delegation metadata without starting an agent."
+  short_description: "cagentの実効値をagent-kind・native-agent-argsと委譲メタ情報へ固定"
+  default_prompt: "Use $cagent-agent-command-resolve to freeze cagent Agent, Model, Effort into agent-kind, native-agent-args (JSON array), and optional delegation metadata without starting an agent."

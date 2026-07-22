@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Freeze cagent dry-run values into a launch command and metadata snapshot."""
+"""Freeze cagent dry-run values into agent-kind, native agent args, and metadata snapshot.
+
+For Herdr 0.7.5: the output includes ``agent_kind`` and ``native_agent_args``
+suitable for ``herdr agent start <name> --kind <kind> --pane <id> -- <args>``.
+The legacy ``agent_command`` key is retained for consumers that need the full
+``cagent`` wrapper command (e.g. pre-Herdr flows).
+"""
 
 from __future__ import annotations
 
@@ -8,7 +14,6 @@ import json
 import shlex
 from pathlib import Path
 from typing import Final
-
 
 DISPLAY_AGENTS: Final = {
     "codex": "Codex",
@@ -28,7 +33,11 @@ def option_value(arguments: list[str], *names: str) -> str | None:
     return None
 
 
-def parse_dry_run(output: str) -> tuple[str | None, str | None, str | None]:
+def parse_dry_run(output: str) -> tuple[str | None, str | None, str | None, list[str]]:
+    """Return (agent_cli_name, model, effort, native_args).
+
+    native_args are the argv elements after the first (CLI path).
+    """
     lines = [line.strip() for line in output.splitlines() if line.strip()]
     effort = next(
         (
@@ -44,7 +53,8 @@ def parse_dry_run(output: str) -> tuple[str | None, str | None, str | None]:
     command = shlex.split(command_line) if command_line else []
     agent_cli = Path(command[0]).name if command else None
     model = option_value(command, "--model", "-m")
-    return agent_cli, model, effort
+    native_args = command[1:] if len(command) > 1 else []
+    return agent_cli, model, effort, native_args
 
 
 def freeze_resolution(
@@ -55,19 +65,20 @@ def freeze_resolution(
     dry_run: str,
     verification_dry_run: str | None = None,
 ) -> dict[str, object]:
-    agent_cli, model, effort = parse_dry_run(dry_run)
-    command = ["cagent", "--agent", agent_id]
+    agent_cli, model, effort, native_args = parse_dry_run(dry_run)
+
+    agent_command_parts = ["cagent", "--agent", agent_id]
     if model:
-        command.extend(["--model", model])
+        agent_command_parts.extend(["--model", model])
     if effort:
-        command.extend(["--effort", effort])
+        agent_command_parts.extend(["--effort", effort])
     if level:
-        command.append(level)
+        agent_command_parts.append(level)
 
     verified = False
     if verification_dry_run is not None:
-        verification = parse_dry_run(verification_dry_run)
-        if verification != (agent_cli, model, effort):
+        _a, _m, _e, v_native_args = parse_dry_run(verification_dry_run)
+        if (_a, _m, _e, v_native_args) != (agent_cli, model, effort, native_args):
             raise ValueError("fixed command dry-run does not match initial resolution")
         verified = True
 
@@ -86,7 +97,10 @@ def freeze_resolution(
 
     return {
         "base_agent_type": base_agent_type,
-        "agent_command": shlex.join(command),
+        "agent_kind": base_agent_type,
+        "agent_command": shlex.join(agent_command_parts),
+        "native_agent_args": native_args,
+        "native_agent_args_joined": shlex.join(native_args) if native_args else "",
         "verified": verified,
         "resolved": {
             "agent_id": agent_id,

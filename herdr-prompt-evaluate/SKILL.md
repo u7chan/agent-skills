@@ -53,7 +53,7 @@ description: Herdr上の独立した新規Agentで、スキル、コマンドプ
 - 3回以上連続して不明瞭点が減らない。
 - Herdrの起動、送信、待機、回収、JSON検証が失敗する。
 - 副作用をシナリオworktree内へ隔離できない。
-- blocked、timeout、Completion contract違反になる。
+- blocked、timeout、`herdr agent wait`違反になる。
 - 最大イテレーションへ到達する。
 - 最小修正の範囲を超える。
 
@@ -61,4 +61,4 @@ description: Herdr上の独立した新規Agentで、スキル、コマンドプ
 
 正常に回収・採点したworkspaceと今回作成したbranchだけを確認して削除する。失敗・未採点資源は診断用に保持する。各回の変更テーマ、採点、critical、不明瞭点、裁量補完、steps、duration、retries、収束・hold-out、最終変更、停止理由、保持資源を報告する。
 
-実行Agentの報告だけで成功を判断せず、Completion contract、回収出力、成果物、採点結果を親が確認して`converged`、`stopped`、`skipped`を確定する。
+実行Agentの報告だけで成功を判断せず、`herdr agent wait`の結果、回収出力、成果物、採点結果を親が確認して`converged`、`stopped`、`skipped`を確定する。
