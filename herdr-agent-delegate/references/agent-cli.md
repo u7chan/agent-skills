@@ -1,61 +1,64 @@
 # Agent CLI運用差分
 
-## 起動契約と入力可能確認
+## 起動契約
 
-`base-agent-type` と `agent-command` を分ける。前者は入力可能判定・送信・完了判定に、後者はpaneでの起動だけに使う。`agent-command` がラッパーでも、実体に対応する `base-agent-type` を使い、実行ファイル名から推測しない。
+`agent-kind`（`codex`/`claude`/`opencode`）と `native-agent-args`（JSON配列）は `../../cagent-agent-command-resolve/SKILL.md` の `freeze_resolution.py` が解決。本Skillは書き換えない。
 
-| `base-agent-type` | 未指定時の直接起動コマンド | `wait_for_input_ready.py` の表示条件 |
-| --- | --- | --- |
-| `codex` | `codex` | 行頭の入力プロンプト `›` |
-| `claude` | `claude` | 行頭の入力プロンプト `❯` |
-| `opencode` | `opencode` | 入力欄フッター `ctrl+p commands` |
-| その他 | ユーザー指定 | 事前に定義できる固有プロンプト |
+`agent-kind` を実行ファイル名から推測しない。
 
-別の解決処理から渡された `agent-command` は書き換えない。未指定の場合だけ、`base-agent-type` に対応する直接起動コマンドへユーザー指定の引数を加える。コマンドは `herdr pane run <pane-id> '<command>'` の1引数として送る。`--no-focus` は `herdr pane split` や `herdr tab create` などの pane 配置操作で使うフォーカス制御オプションであり、`herdr pane run` には追加しない。`herdr pane run <pane-id> '<command>'` の後ろに `--no-focus` を付けると `<command>` の引数として解釈され、`codex --no-focus` などで起動に失敗する。
+## Agent起動
 
-新規起動は次の公式プリミティブを順に使う。
+`launch_agent.py` が `subprocess.run` で `herdr agent start` を直接実行しexit/stdout/stderrを伝播:
 
-1. `herdr pane split` のJSONから新規 `pane_id` を読む。
-2. `herdr pane run <pane-id> '<command>'` でAgentを起動する。
-3. `herdr wait agent-status <pane-id> --status idle --timeout 30000` で検出を待つ。
-4. `wait_for_input_ready.py` が内部で使う `herdr wait output` と `herdr pane read --source recent-unwrapped` の両方で入力欄を確認する。
-5. trust、login、初期設定画面なら自動承認せず、paneを保持して報告する。
+```bash
+<skill-dir>/scripts/launch_agent.py --name <name> --kind <kind> --pane-id <id> [--native-args-file <args.json>]
+```
+
+`--print-argv` を付けると実行せずJSON argv出力（検証用）。`native-args-file` = freeze_resolution `native_agent_args` JSON配列。双方向対話可能なinteractive readiness保証。失敗時pane保持・報告。
+
+eval/@sh禁止。`--no-focus` はpane配置操作用、`agent start` に追加不可。
 
 ## 依頼送信
 
-入力可能を確認してから、Enter込みの公式操作を直接使う。`herdr agent send <pane-id> "<文字列>"` は文字列入力のみを行いEnterを送らないため、実行開始が必要な依頼送信には使わない。Agent種別ごとの差異は `../scripts/send_request.py` で吸収する。
+1. 本文を一時ファイルへ書く。メタ情報完全時は `build_prompt.py` で組立:
 
 ```bash
-<skill-dir>/scripts/send_request.py \
-  --target <pane-id> \
-  --agent <codex|claude|opencode> \
-  --prompt "<依頼本文>" \
-  --metadata-json '{"agent":"Codex","model":"gpt-5.6-sol","effort":"high"}'
+<skill-dir>/scripts/build_prompt.py --prompt-file <tmp> --metadata-json '<JSON>' > <built>
 ```
 
-`send_request.py` は `herdr pane run` で依頼を送信し、30秒以内の `working` 遷移を待つ。Claude Code のみ、長文ペーストが `[Pasted text #1]` として入力欄に留まることがあるため、活性化用の短いプロンプトを追加送信して再び `working` を待つ。
+3キー完全・非空・`—`拒否検証。不完全時 `--metadata-json` 省略。
 
-`--metadata-json`は任意で、起動時に固定したAgent / Model / Effortがすべて揃う場合だけ渡す。スクリプトが標準ブロックを依頼末尾へ追加するため、呼び出し側は手書きしない。出自不明の既存paneでは省略し、snapshotを保持する同じpaneへの再送だけ同じ値を使う。
-
-30秒以内に `working` へ遷移しなかった場合、読み取り専用で状態を取得して報告し、異常を報告してこの依頼の送信を停止する。以降の完了待機や出力回収も行わず、人間の判断を待つ。
+2. 組立済プロンプトを二重引用符で送信（単一引用符直接禁止）:
 
 ```bash
-herdr pane get <pane-id>
-herdr pane read <pane-id> --source recent-unwrapped --lines 80
+BUILT="$(cat <built>)"
+herdr agent prompt <target> "$BUILT" --wait --until working --timeout 30000
 ```
+
+`--wait --until working` でworking遷移待機。失敗時 `herdr agent read` で状態取得し停止。
 
 ## 完了と回収
 
-`herdr tab list` で対象tabの `focused` を確認し、foregroundなら `idle`、backgroundなら `done` を `herdr wait agent-status` で待つ。waitの終了後は成否にかかわらず `herdr pane get` を実行し、最終状態が `idle` または `done` の場合だけ完了として、次を実行する。
-
 ```bash
-herdr pane read <pane-id> --source recent-unwrapped --lines 120
+herdr agent wait <target> --timeout 1800000
 ```
 
-実行可能な分岐と最終確認は `../SKILL.md` の `completion-wait-contract` に従う。waitがtimeoutしても最終状態では `idle` と `done` の双方を完了扱いにし、`working`、`blocked`、`unknown`、取得不能は未完了とする。独自ポーリング、marker、replyファイルによる判定は追加しない。
+本フローでは `--timeout` のみ指定。待機後 `herdr agent get <target>` で最終状態（pane ID保持時のみ `pane get` 可）。`idle`/`done`→完了。
 
-## 既存Agentの再利用
+```bash
+herdr agent read <target> --source recent-unwrapped --lines 120
+```
 
-明示された対象を `herdr agent get` で操作直前に確認し、`idle` の時だけ再利用する。自分自身、`done`、`blocked`、`working`、`unknown` は再利用しない。
+1MB超はファイル保存。独自ポーリング/marker/replyファイル禁止。
 
-pane IDはcloseなどで変化し得る。`agent get`、`pane current`、create/splitレスポンスから都度読む。
+## 追加操作
+
+```bash
+herdr agent send-keys <target> 'Enter'
+```
+
+working Agentへ追加prompt禁止。
+
+## 既存Agent再利用
+
+`herdr agent get` で都度確認。`idle` 時のみ再利用。IDは都度読み。

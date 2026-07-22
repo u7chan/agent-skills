@@ -22,22 +22,28 @@ class SkillContractTest(unittest.TestCase):
             "cagent doctor",
             "初回`cagent ... --dry-run`",
             "freeze_resolution.py",
-            "Agent CLI、Model、Effortが一致した`verified: true`",
-            "直接CLIへfallbackせず停止",
         ):
             self.assertIn(requirement, self.skill)
 
-    def test_handoff_separates_runtime_and_metadata_values(self):
+    def test_doctor_retry_only_communication_errors(self):
+        self.assertIn("モデル一覧取得や通信の一過性", self.skill)
+        self.assertIn("設定・認証・非互換エラーは即停止", self.skill)
+        self.assertIn("最大2回", self.skill)
+        self.assertIn("dry-runや直接CLI fallbackは禁止", self.skill)
+
+    def test_handoff_returns_kind_and_native_args(self):
         for name in (
-            "base-agent-type",
-            "resolved",
+            "agent-kind",
+            "native-agent-args",
             "agent-command",
             "delegation-metadata",
         ):
             self.assertIn(name, self.skill)
+        self.assertIn("herdr agent start", self.skill)
+        self.assertIn("--kind", self.skill)
+        self.assertIn("JSON配列", self.skill)
         self.assertIn("1値でも欠ける", self.skill)
         self.assertIn("全体を`null`", self.skill)
-        self.assertIn("Codex Config fallbackを使わない", self.skill)
 
     def test_agent_execution_is_out_of_scope(self):
         for responsibility in (

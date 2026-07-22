@@ -43,10 +43,16 @@ class AiWorkMetadataContractTest(unittest.TestCase):
 
     def test_recheck_reuses_original_snapshot_only(self):
         self.assertIn("cagent-agent-command-resolve", self.skill)
-        self.assertIn("固定済み`agent-command`", self.delegation)
+        self.assertIn("固定済み`agent-kind`・`native-agent-args`", self.delegation)
         self.assertIn("初回起動時の同じsnapshotを再送", self.review_loop)
         self.assertIn("出自不明の再利用paneならメタ情報を送らない", self.review_loop)
         self.assertIn("親の値を転用しない", self.review_loop)
+
+    def test_repeated_feedback_uses_fresh_codex_high_session_by_default(self):
+        self.assertIn("前回のFB Agent・pane・sessionを再利用せず", self.review_loop)
+        self.assertIn("`agent=codex`、task level=`high`", self.review_loop)
+        self.assertIn("fb-pr-<number>-r<round>", self.review_loop)
+        self.assertIn("ユーザーが次FB担当のAgentまたはtask levelを明示", self.review_loop)
 
 
 if __name__ == "__main__":
