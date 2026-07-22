@@ -70,6 +70,7 @@ SHELL_BUILTINS_AND_STANDARD = {
     "fi", "for", "function", "getopts", "hash", "if", "local", "printf", "pwd", "read",
     "readonly", "return", "set", "shift", "test", "then", "time", "trap", "true", "type",
     "typeset", "ulimit", "umask", "unalias", "unset", "until", "wait", "while",
+    "source",
     "awk", "basename", "cat", "chmod", "cmp", "cp", "cut", "date", "dirname", "find",
     "grep", "head", "ln", "ls", "mkdir", "mktemp", "mv", "readlink", "rm", "sed", "sort",
     "tail", "tee", "touch", "tr", "wc", "xargs",

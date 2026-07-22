@@ -8,6 +8,37 @@ import re
 import shlex
 import sys
 
+STDLIB_MODULES = frozenset({
+    "abc", "aifc", "argparse", "array", "ast", "asynchat", "asyncio", "asyncore",
+    "atexit", "audioop", "base64", "bdb", "binascii", "binhex", "bisect", "builtins",
+    "bz2", "calendar", "cgi", "cgitb", "chunk", "cmath", "cmd", "code", "codecs",
+    "codeop", "collections", "colorsys", "compileall", "concurrent", "configparser",
+    "contextlib", "contextvars", "copy", "copyreg", "cProfile", "crypt", "csv",
+    "ctypes", "curses", "dataclasses", "datetime", "dbm", "decimal", "difflib",
+    "dis", "distutils", "doctest", "email", "encodings", "enum", "errno", "faulthandler",
+    "fcntl", "filecmp", "fileinput", "fnmatch", "formatter", "fractions", "ftplib",
+    "functools", "gc", "getopt", "getpass", "gettext", "glob", "graphlib", "grp",
+    "gzip", "hashlib", "heapq", "hmac", "html", "http", "idlelib", "imaplib", "imghdr",
+    "imp", "importlib", "inspect", "io", "ipaddress", "itertools", "json", "keyword",
+    "lib2to3", "linecache", "locale", "logging", "lzma", "mailbox", "mailcap", "marshal",
+    "math", "mimetypes", "mmap", "modulefinder", "multiprocessing", "netrc", "nis",
+    "nntplib", "numbers", "operator", "optparse", "os", "ossaudiodev", "parser", "pathlib",
+    "pdb", "pickle", "pickletools", "pipes", "pkgutil", "platform", "plistlib",
+    "poplib", "posix", "posixpath", "pprint", "profile", "pstats", "pty", "pwd",
+    "py_compile", "pyclbr", "pydoc", "queue", "quopri", "random", "re", "readline",
+    "reprlib", "resource", "rlcompleter", "runpy", "sched", "secrets", "select",
+    "selectors", "shelve", "shlex", "shutil", "signal", "site", "smtpd", "smtplib",
+    "sndhdr", "socket", "socketserver", "sqlite3", "ssl", "stat", "statistics",
+    "string", "stringprep", "struct", "subprocess", "sunau", "symtable", "sys",
+    "sysconfig", "syslog", "tabnanny", "tarfile", "telnetlib", "tempfile", "termios",
+    "test", "textwrap", "threading", "time", "timeit", "tkinter", "token", "tokenize",
+    "trace", "traceback", "tracemalloc", "tty", "turtle", "turtledemo", "types",
+    "typing", "unicodedata", "unittest", "urllib", "uu", "uuid", "venv", "warnings",
+    "wave", "weakref", "webbrowser", "wsgiref", "xdrlib", "xml", "xmlrpc", "zipapp",
+    "zipfile", "zipimport", "zlib",
+    "__future__",
+})
+
 
 CANONICAL_DEPENDENCY_ALIASES = {
     "agent cli": ("agent cli", "selected agent", "selected agent cli", "claude", "codex", "opencode"),
@@ -53,7 +84,7 @@ NON_EXTERNAL_COMMANDS = {
     ".", "[", "alias", "break", "case", "cd", "command", "continue", "do", "done", "echo", "elif",
     "else", "env", "esac", "eval", "exec", "exit", "export", "false", "fi", "for", "function",
     "getopts", "hash", "if", "local", "printf", "pwd", "read", "readonly", "return", "set", "shift",
-    "test", "then", "time", "trap", "true", "type", "typeset", "ulimit", "umask", "unalias", "unset",
+    "source", "test", "then", "time", "trap", "true", "type", "typeset", "ulimit", "umask", "unalias", "unset",
     "until", "wait", "while", "basename", "cat", "chmod", "cmp", "cp", "cut", "date", "dirname",
     "find", "head", "ln", "ls", "mkdir", "mktemp", "mv", "readlink", "rm", "sort", "tail", "tee",
     "touch", "tr", "wc", "xargs",
@@ -114,7 +145,7 @@ def python_source_evidence(path: Path, repo_root: Path, local_modules: set[str])
         elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
             modules = [node.module.split(".", 1)[0]]
         for module in modules:
-            if module not in sys.stdlib_module_names and module not in local_modules:
+            if module not in getattr(sys, 'stdlib_module_names', STDLIB_MODULES) and module not in local_modules:
                 result.append((getattr(node, "lineno", 1), "python-import", PYTHON_IMPORT_CANONICAL.get(module, module)))
         if not isinstance(node, ast.Call) or not _is_process_call(node.func, aliases):
             continue

@@ -197,7 +197,7 @@ def extract_responsibility(skill_name: str, frontmatter: dict) -> str:
     desc = frontmatter.get("description", "")
     if desc:
         desc = desc.strip()
-        first_sentence = re.split(r"[.。]", desc.replace("\n", " "))[0].strip()
+        first_sentence = re.split(r"。|(?<!\d)\.(?=\s|$)", desc.replace("\n", " "))[0].strip()
         if first_sentence:
             return first_sentence
     return f"unknown: {skill_name}"

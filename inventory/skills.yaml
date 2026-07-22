@@ -599,7 +599,7 @@ skills:
 - name: herdr-agent-delegate
   current_path: herdr-agent-delegate
   classification: distributable
-  responsibility: Herdr 0
+  responsibility: Herdr 0.7.5公式APIでCLI Agentを配置し、任意の委譲メタ情報付きで送信・待機・出力回収を行う
   description: Herdr 0.7.5公式APIでCLI Agentを配置し、任意の委譲メタ情報付きで送信・待機・出力回収を行う。「別Agentに任せて」「複数Agentへ並列委譲」「子Agentの結果を回収」などで使う。
   line_count: 114
   has_references: true
