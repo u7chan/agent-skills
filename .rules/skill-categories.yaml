@@ -360,7 +360,7 @@ skills:
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F007
-        note: "grilling との重複候補。design-plan-grill は grilling の特殊化。"
+        note: "Phase 4 で境界確認済み。grilling の特殊化として責務分離は適切。routes_to で条件付き委譲。"
 
   - name: grilling
     path: grilling
@@ -375,7 +375,7 @@ skills:
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F007
-        note: "design-plan-grill との重複候補。統合または明確な使い分けを検討。"
+        note: "Phase 4 で境界確認済み。design-plan-grill は設計特化、grilling は領域非依存。責務分離は適切。"
 
   # --- skill (3) ---
   - name: agent-skill-design
@@ -390,7 +390,7 @@ skills:
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F009
-        note: "agent-skill-refine と密接に関連。責務境界は明確で適切に分離されている。"
+        note: "Phase 4 で境界確認済み。design は挙動変更（新規作成・要件追加・再設計）、refine は意味保存改善。責務分離は適切。"
 
   - name: agent-skill-refine
     path: agent-skill-refine
@@ -404,7 +404,7 @@ skills:
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F009
-        note: "agent-skill-design と密接に関連。責務境界は明確。"
+        note: "Phase 4 で境界確認済み。design は挙動変更、refine は意味保存改善。責務分離は適切。"
 
   - name: skills-readme-sync
     path: .claude/skills/skills-readme-sync
