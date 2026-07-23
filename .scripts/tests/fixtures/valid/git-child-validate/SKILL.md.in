@@ -1,0 +1,8 @@
+---
+name: git-child-validate
+description: fixture child
+---
+
+# Child
+
+Use `tool-leaf-validate`.

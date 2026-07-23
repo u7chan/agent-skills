@@ -1,0 +1,52 @@
+schema_version: 2
+generated_by: .scripts/inventory.py
+total_findings: 6
+auto_detected: 0
+manual: 6
+findings:
+- id: F006
+  type: duplication_candidate
+  skills:
+  - git-worktree-create
+  - herdr-worktree-create
+  reason: 両者とも独立したworktree作成が責務。git-worktree-create は純粋なgit操作、herdr-worktree-create はHerdrコマンドによる作成。責務が重複しているが、利用コンテキストが異なるため統合には慎重な判断が必要。
+  auto_detected: false
+  recommendation: Phase 4 で境界確認済み。git-worktree-create は純粋な git 操作、herdr-worktree-create は Herdr ラッパー。利用コンテキストが異なるため統合不要。
+- id: F007
+  type: duplication_candidate
+  skills:
+  - grilling
+  - design-plan-grill
+  reason: grilling は領域非依存の壁打ち、design-plan-grill は設計に特化した壁打ち。design-plan-grill は grilling の特殊化であり、grilling の SKILL.md で routes_to による条件付き委譲を指示。
+  auto_detected: false
+  recommendation: Phase 4 で境界確認済み。grilling（領域非依存）と design-plan-grill（設計特化・docs-backed モード）の責務分離は適切。統合不要。
+- id: F008
+  type: duplication_candidate
+  skills:
+  - github-pr-orchestrate
+  - herdr-github-pr-orchestrate
+  reason: 両者ともPR作成の統括フロー。github-pr-orchestrate は非Herdr環境、herdr-github-pr-orchestrate はHerdr環境向け。herdr版はgithub版の共通スキルを参照している。
+  auto_detected: false
+  recommendation: Phase 4 で境界確認済み。github-pr-orchestrate は非Herdr環境の直接統括、herdr-github-pr-orchestrate は Herdr Agent 委譲による統括。利用コンテキストが異なるため統合不要。共通スキル（github-pr-create
+    等）の参照は適切に共有。
+- id: F009
+  type: duplication_candidate
+  skills:
+  - agent-skill-design
+  - agent-skill-refine
+  reason: agent-skill-design は新規作成・要件追加・全面再設計（挙動を変える）、agent-skill-refine は挙動を変えずに短文化・高密度化（表現を変える）。責務は明確に分離されている。
+  auto_detected: false
+  recommendation: Phase 4 で境界確認済み。design は挙動変更、refine は意味保存改善で責務分離は適切。分割統合不要。
+- id: F012
+  type: complexity
+  skill: cagent-agent-command-resolve
+  reason: cagent の解決ロジックと Agent Command の生成を1スキルで扱っている。scripts/ に実装があり、SKILL.md はそれらの使い方を説明する構成。責務は明確だが、cagent 自体のバージョンアップに追従が必要。
+  recommendation: 現状維持。scripts/ への分離は適切に行われている。
+  auto_detected: false
+- id: F-COMMON-POSIX-SHELL
+  type: common_dependency
+  dependency: posix shell
+  type_class: required
+  usage_count: 24
+  reason: 全スキルの 24/34 が依存。共通依存として暗黙的に扱うことを検討。
+  auto_detected: false

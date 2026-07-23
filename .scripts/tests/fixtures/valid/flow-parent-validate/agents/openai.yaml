@@ -1,0 +1,4 @@
+interface:
+  display_name: Parent validator
+  short_description: xxxxxxxxxxxxxxxxxxxxxxxxx
+  default_prompt: Use $flow-parent-validate.

@@ -1,0 +1,50 @@
+schema_version: 2
+nodes:
+- name: flow-parent-validate
+  current_path: flow-parent-validate
+  classification: distributable
+  line_count: 8
+- name: git-child-validate
+  current_path: git-child-validate
+  classification: distributable
+  line_count: 8
+- name: tool-leaf-validate
+  current_path: tool-leaf-validate
+  classification: distributable
+  line_count: 8
+edges:
+- from: flow-parent-validate
+  to: git-child-validate
+  relation: depends_on
+  edge_condition: conditional
+  source_file: .rules/skill-categories.yaml
+  source_line: 23
+- from: git-child-validate
+  to: tool-leaf-validate
+  relation: depends_on
+  edge_condition: unconditional
+  source_file: .rules/skill-categories.yaml
+  source_line: 15
+other_references: []
+cycles: []
+reverse_dependency_candidates: []
+physical_path_refs:
+- skill: tool-leaf-validate
+  path: ../SKILL.md
+  type: general
+  source_file: references/local.md
+  source_line: 1
+canonical_source: .rules/skill-categories.yaml
+layer_definition:
+- layer: orchestration
+  index: 1
+  skills:
+  - flow-parent-validate
+- layer: git
+  index: 2
+  skills:
+  - git-child-validate
+- layer: tool
+  index: 3
+  skills:
+  - tool-leaf-validate

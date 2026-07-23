@@ -1,0 +1,793 @@
+# Skill Rules — 全スキルの設計・ガバナンス正本
+#
+# このファイルの変更は意図的なルール改定を意味し、レビューを要する。
+#
+# 関連ファイル:
+#   .rules/skill-categories.yaml — 全スキルのカテゴリ分類と依存関係
+#   inventory/skills.yaml       — 全スキルのメタデータ
+#   AGENTS.md                   — エージェント向け保守手順
+
+meta:
+  version: "1.0.0"
+  generated: "2026-07-24"
+  repository: "agent-skills"
+
+# ============================================================
+# 1. カテゴリ定義
+# ============================================================
+categories:
+  - id: orchestration
+    label: "オーケストレーション"
+    order: 1   # 小さいほど上位（上位→下位 への依存のみ許可）
+    description: >
+      複数スキル・サービスを統括する高次ワークフロー。
+      Herdr CLI Agent 委譲、Issue 作成委譲、PR 一貫フロー、prompt 評価を含む。
+      pane 管理・Agent 送信・完了待機などの低レベル詳細は herdr-agent-delegate へ委ね、
+      自身はワークフローの分岐判断・順序制御・エラーハンドリングに責務を絞る。
+    allowed_depends_on: [github, git, design, skill, tool, dependency]
+    may_be_depended_on_by: []   # 最上位。他カテゴリから依存不可
+
+  - id: github
+    label: "GitHub プラットフォーム"
+    order: 2
+    description: >
+      GitHub プラットフォーム上の gh CLI / API を直接操作する。
+      Issue 作成・分解、PR 作成・レビュー・FB 対応・片付け。
+      ローカル Git 操作が必要な場合は git カテゴリへ委譲する。
+    allowed_depends_on: [git, design, tool]
+    may_be_depended_on_by: [orchestration]
+
+  - id: git
+    label: "Git ローカル操作"
+    order: 3
+    description: >
+      Git CLI を直接操作するプリミティブ。
+      ブランチ作成、commit、コミットメッセージ提案、worktree 作成。
+      変更内容の生成や判断は行わず、安全な操作実行に責務を絞る。
+    allowed_depends_on: [tool]
+    may_be_depended_on_by: [github, orchestration]
+
+  - id: design
+    label: "設計・計画支援"
+    order: 4   # leaf カテゴリ（スキル非依存）
+    description: >
+      設計・計画・意思決定の対話支援。
+      壁打ち（grilling）、設計特化壁打ち（design-plan-grill）。
+      他カテゴリのスキルに依存しない。
+    allowed_depends_on: []
+    may_be_depended_on_by: [github, orchestration]
+
+  - id: skill
+    label: "スキル管理"
+    order: 4   # leaf カテゴリ
+    description: >
+      Agent Skill 自体の設計・保守・同期。
+      新規作成（agent-skill-design）、リファイン（agent-skill-refine）、
+      README 同期（skills-readme-sync）。
+      他カテゴリのスキルに依存しない。
+    allowed_depends_on: []
+    may_be_depended_on_by: [orchestration]
+
+  - id: tool
+    label: "独立ツール"
+    order: 4   # leaf カテゴリ
+    description: >
+      独立した汎用ツール。UI 設計（apple-interface-design, tailwind-ui-compose）、
+      画像変換（image-to-svg）、テキスト校正（japanese-text-refine）、
+      HTML 生成（html-artifact-format）、QA 設計（qa-test-design）、
+      ブラウザ操作（playwright-cli）、symlink 作成（codex-skills-link）。
+      他スキルに依存しない。
+    allowed_depends_on: []
+    may_be_depended_on_by: [git, github, orchestration]
+
+  - id: dependency
+    label: "依存パッケージ管理"
+    order: 4   # leaf カテゴリ
+    description: >
+      パッケージ依存関係の管理・更新。
+      bun / npm / uv の各エコシステムに対応。
+      他スキルに依存しない。
+    allowed_depends_on: []
+    may_be_depended_on_by: [orchestration]
+
+# ============================================================
+# 2. 命名規則
+# ============================================================
+naming:
+  principle: "service-target-action"
+  description: >
+    スキル名は `service-target-action` の 3 要素で構成する。
+
+    - service: 対象領域または基盤（例: git, github, herdr, bun, tailwind）
+    - target:  操作対象（例: branch, pr, issue, dependency, ui）
+    - action:  操作内容（例: create, review, update, compose, format）
+
+    一覧を見た時に「どこで」「何に対して」「何をする」かを判断できる名前にする。
+    README のグルーピングはスキル名の prefix ではなく、利用目的を優先する。
+
+  exceptions:
+    - skill: grilling
+      reason: >
+        gerund 形の単一単語名。領域非依存の壁打ち活動を表し、
+        service-target-action への分解が不自然。
+    - skill: image-to-svg
+      reason: >
+        変換操作を `to` で表現する慣用的な名前。
+        暗黙の convert アクションを含み、明確な service 要素がない。
+    - skill: playwright-cli
+      reason: >
+        ツール名 + 対象種別の 2 要素構成。
+        action 要素を含まないが、Playwright CLI 操作としては一意。
+
+  borderline:
+    - skill: github-issue-create-from-plan
+      note: "action が `create-from-plan` と複合しているが、責務の固有性から許容"
+    - skill: github-pr-post-merge-cleanup
+      note: "action が `post-merge-cleanup` と長いが、操作の一意性から許容"
+    - skill: herdr-github-create-issue
+      note: "service が `herdr-github` の 2 要素。上位委譲の性質から許容"
+    - skill: herdr-github-pr-orchestrate
+      note: "同上。herdr 上の github 統括であることを明示"
+    - skill: cagent-agent-command-resolve
+      note: "target が `agent-command` の 2 要素。対象の一意性から許容"
+    - skill: skills-readme-sync
+      note: "service 相当が `skills`。スキル管理の文脈で許容"
+    - skill: design-plan-grill
+      note: "action が `grill`。壁打ちを表す慣用語として許容"
+
+# ============================================================
+# 3. 責務境界ルール
+# ============================================================
+responsibility:
+  rules:
+    - id: R1
+      label: "1スキル1責務"
+      description: >
+        各スキルは 1 つの明確な責務を持つ。
+        複数責務が必要な場合はスキル分割を検討する。
+        責務の境界は「誰がそのスキルを呼び出すか」ではなく
+        「そのスキルが何を達成するか」で定義する。
+
+    - id: R2
+      label: "オーケストレーションと実処理の分離"
+      description: >
+        複数スキルを組み合わせるオーケストレーションスキルは、
+        個別の実処理を自ら実行せず、下位スキルへ委譲する。
+        同一スキル内でワークフロー制御と実処理を併せ持たない。
+
+    - id: R3
+      label: "短い安全規則の重複許容"
+      description: >
+        同一の安全規則（操作確認、dry-run、破壊的操作の注意喚起など）が
+        複数スキルに現れることは許容する。
+        安全性は局所的に完結させることを優先し、
+        共通化による暗黙の結合を避ける。
+
+  category_constraints:
+    - category: orchestration
+      constraint: >
+        実処理（git commit, gh pr create, gh pr review など）を
+        直接実行せず、git/github カテゴリのスキルへ委譲すること。
+    - category: github
+      constraint: >
+        gh CLI / GitHub API の直接操作を担当する。
+        ローカル Git 操作（commit, branch 等）は git カテゴリへ委譲すること。
+    - category: git
+      constraint: >
+        Git CLI の直接操作を担当する。
+        変更内容の生成、判断、GitHub API 操作は行わないこと。
+
+# ============================================================
+# 4. 依存関係ルール
+# ============================================================
+dependencies:
+
+  # --- 4.1 カテゴリ間依存方向 ---
+  category_direction:
+    description: >
+      カテゴリ間の依存方向は上位→下位の一方向を基本とする。
+      order 値の小さいカテゴリから大きいカテゴリへの依存のみ許可する。
+      order 値が等しいカテゴリ間の依存は許可しない（同一カテゴリ内は後述の条件で許可）。
+
+    prohibited:
+      - direction: "github → orchestration"
+        reason: "下位カテゴリ（order=2）から上位カテゴリ（order=1）への逆方向依存"
+      - direction: "git → github"
+        reason: "下位カテゴリ（order=3）から上位カテゴリ（order=2）への逆方向依存"
+      - direction: "git → orchestration"
+        reason: "下位カテゴリ（order=3）から上位カテゴリ（order=1）への逆方向依存"
+      - direction: "leaf → non-leaf"
+        reason: "order=4 の leaf カテゴリから order≦3 カテゴリへの依存は禁止"
+      - direction: "cross-leaf"
+        reason: "order=4 同士の異なるカテゴリ間依存は禁止（例: tool → skill）"
+
+    allowed:
+      - direction: "orchestration → any"
+        reason: "最上位カテゴリ（order=1）。全下位カテゴリに依存可能"
+      - direction: "github → git, design, tool"
+        reason: "中位カテゴリ（order=2）。同列以下の git および leaf への依存を許可"
+      - direction: "git → tool"
+        reason: "低位カテゴリ（order=3）。leaf ツールへの依存を許可"
+
+  # --- 4.2 カテゴリ内依存 ---
+  within_category:
+    description: >
+      同一カテゴリ内のスキル間依存は、以下の条件をすべて満たす場合に許可する。
+      1. 循環参照がない
+      2. 汎用→特殊、または親→子の方向である
+      3. depends_on が正本（.rules/skill-categories.yaml）に明記されている
+
+    allowed_examples:
+      - example: "git-changes-commit → git-commit-message-suggest"
+        reason: "git カテゴリ内。commit が message 提案へ委譲"
+      - example: "github-pr-feedback-address → github-pr-comment-reply"
+        reason: "github カテゴリ内。FB 対応が返信へ委譲"
+      - example: "git-worktree-create → git-branch-create"
+        reason: "git カテゴリ内。worktree が branch へ委譲"
+
+  # --- 4.3 参照方式 ---
+  reference_format:
+    description: >
+      スキル間参照は論理スキル名で行い、物理パス（../）は使用しない。
+      エージェントはスキル名で対象スキルをロードするため、
+      物理パス参照は Agent 非依存のポータビリティを損なう。
+
+    prohibited_patterns:
+      - pattern: "../<skill>/SKILL.md"
+        scope: "他スキルの SKILL.md への相対パス参照"
+      - pattern: "../<skill>/references/**"
+        scope: "他スキルの references/ 内ファイルへの相対パス参照"
+      - pattern: "../<skill>/scripts/**"
+        scope: "他スキルの scripts/ 内ファイルへの相対パス参照"
+      - pattern: "../../<skill>/**"
+        scope: "references/ 内から他スキルへの上位相対パス参照"
+
+    allowed_patterns:
+      - pattern: "../.claude/skills"
+        scope: "ファイルシステム上の非スキルパス（symlink ターゲットなど）"
+      - pattern: "../<repo>-worktrees/**"
+        scope: "スキルが操作する出力先パス"
+      - pattern: "../scripts/**"
+        scope: "自スキル内参照（references/ → own scripts/）"
+      - pattern: "../SKILL.md"
+        scope: "自スキル内参照（references/ → own SKILL.md）"
+
+    detection_logic:
+      description: >
+        物理パス参照の検出は、表記形式（../, repo-root相対, 絶対パス）の
+        文字列マッチに依存せず、以下の手順で行う。
+      procedure:
+        step_1:
+          label: "スキルroot一覧の収集"
+          description: >
+            全配布対象スキルおよび保守専用スキルのトップレベルディレクトリパス
+            （例: `herdr-agent-delegate/`, `.claude/skills/skills-readme-sync/`）
+            をスキルroot一覧として収集する。
+            除外対象（.system/, .archive/）は含めない。
+        step_2:
+          label: "参照パスの解決"
+          description: >
+            SKILL.md および references/ 内の全ファイルを走査し、
+            Markdownリンク（`[text](path)`）、コードブロック内のパス文字列、
+            インラインの相対パス表記を抽出する。
+            各参照パスを、そのファイルの存在位置を基点に実ファイルシステムパスへ解決する。
+        step_3:
+          label: "スキルroot照合"
+          description: >
+            解決された絶対パスまたはリポジトリルート相対パスが、
+            スキルroot一覧のいずれかの配下を示すか判定する。
+            参照元スキル自身のroot配下である場合は除外する。
+            参照先がスキルroot一覧に含まれないパス（.claude/ 配下の非スキルパス、
+            worktree出力先など）は許可対象として除外する。
+        step_4:
+          label: "違反判定"
+          description: >
+            自スキル以外のスキルroot配下を指す参照を検出した場合、
+            参照元ファイル・行番号・参照先スキル名を ERROR として報告する。
+
+  # --- 4.4 依存メタデータ正本 ---
+  metadata:
+    canonical_source: ".rules/skill-categories.yaml"
+    description: >
+      スキル間依存の正本は .rules/skill-categories.yaml の depends_on フィールドとする。
+      SKILL.md 内の自然言語による言及は補助的であり、自動抽出可能だが検証の正本とはしない。
+      正本の更新は skill-categories.yaml の編集を伴い、自動抽出結果との diff で正当性を確認する。
+
+    depends_on_spec:
+      type: "list of skill name strings"
+      empty_meaning: "他スキルに依存しない（完全に自己完結）"
+      relation: "このスキルが主要機能を実行するために無条件でロードを前提とするスキル。depends_on されたスキルの指示・定義なしでは当該スキルは動作しない。"
+      criteria:
+        - "当該スキルが起動時に常に load/参照する場合 → depends_on"
+        - "特定条件下でのみ処理を委譲・分岐する場合 → routes_to（depends_on には含めない）"
+        - "定義・概念を引用するが実行時ロード不要の場合 → mention"
+        - "判定が曖昧な場合は、ロードが無条件かつ主要機能に必須かを基準とする"
+
+    other_relations:
+      routes_to:
+        definition: "特定条件下で別スキルへ処理を委譲する指示。依存ではない（呼び出し元が条件判断し、委譲しないフローでは対象スキルなしでも動作する）。"
+      mention:
+        definition: "ドキュメント上の言及。依存関係ではない。"
+      used_by:
+        definition: "他スキルから参照される側の関係。被依存の事実記述であり、宣言ではない。"
+
+# ============================================================
+# 5. 外部依存ルール
+# ============================================================
+external_dependencies:
+
+  # --- 5.1 種別定義 ---
+  types:
+    - id: required
+      symbol: "R"
+      definition: >
+        スキルの主要機能が動作するために必須。
+        利用可能でない場合、スキルは機能しない。
+      example: "gh CLI（github-* スキル）"
+
+    - id: conditional
+      symbol: "C"
+      definition: >
+        特定のフロー・条件下でのみ必要。
+        該当フロー以外ではスキルは動作する。
+      example: "web access（bun-dependency-update の major update 調査時）"
+
+    - id: optional
+      symbol: "O"
+      definition: >
+        推奨だが必須ではない。代替手段が存在するか、
+        または複数候補のうち 1 つで十分。
+        この依存なしでもスキルは動作する（機能制限はありうる）。
+      example: "librsvg / inkscape / browser（image-to-svg、いずれか 1 つ）"
+
+    - id: fallback
+      symbol: "F"
+      definition: >
+        主たる手段が利用できない場合の最終代替。
+        通常フローでは使用されない。
+      example: "npx（playwright-cli、Playwright CLI 非存在時のフォールバック）"
+
+  # --- 5.2 入力形式（README セルからの機械抽出規則） ---
+  input_format:
+    description: >
+      各スキルの README.md の External Dependencies 列から機械的に type を抽出する規則。
+
+    grammar:
+      cell_format: "依存名1, 依存名2 (type), 依存名3"
+      type_annotation: >
+        依存名の直後に半角丸括弧で type 記号 1 文字を記述する。
+        記号は R / C / O / F のいずれか 1 文字。
+        例: `gh CLI (R)`, `web access (C)`, `librsvg (O)`, `npx (F)`
+      default:
+        when_absent: "type 注記がない依存は required (R) とみなす。既定値で問題ない場合も明示的な R 注記を推奨する。"
+      normalization:
+        rule: "依存名先頭・末尾の空白を除去し、連続する空白を 1 つに正規化する。type 注記内の空白も除去する。"
+      error_rules:
+        unknown_type: >
+          定義された 4 種別（R/C/O/F）以外の注記（typo 含む）は ERROR として報告する。
+          例: `(conditonal)` → ERROR（正しくは `(C)`）
+        unclosed_paren: "閉じ括弧のない注記 `(R` など）は ERROR とする。"
+        multiple_annotations: "1 依存名に複数の type 注記がある場合は ERROR とする。"
+
+    canonical_source: "README.md 各スキルの External Dependencies 列"
+    parser_spec: "検証スクリプトはこの grammar に従って README をパースし、V-EXT-001 で未知 type を検出する。"
+
+  # --- 5.3 Effective External Dependencies の算出 ---
+  effective_calculation:
+    description: >
+      各スキルの effective external dependencies（実効外部依存）は以下で算出する。
+
+    edge_condition:
+      description: >
+        depends_on エッジには利用条件（edge usage condition）を付与できる。
+        既定は unconditional（無条件）。conditional 指定されたエッジは、
+        親スキルが特定条件下でのみ子スキルを利用することを示す。
+      values:
+        - unconditional: "親スキルの起動時に常に子スキルをロードする"
+        - conditional: "親スキルが特定フローでのみ子スキルを利用する"
+      canonical_location: ".rules/skill-categories.yaml の depends_on_edge_condition"
+
+    algorithm:
+      step_1:
+        label: "直接依存の収集"
+        description: "当該スキルの README が宣言する外部依存を Direct とする。"
+      step_2:
+        label: "推移依存の収集（エッジ条件付き）"
+        description: >
+          depends_on する全スキルの effective deps を再帰的に収集し Transitive とする。
+          収集時にエッジの usage condition を記録する。
+          unconditional エッジを経由した依存はそのまま伝搬する。
+          conditional エッジを経由した依存には conditional フラグを付与する。
+          depends_on エッジが存在しないスキルについてはこのステップをスキップする。
+      step_3:
+        label: "結合"
+        description: "Effective = Direct ∪ Transitive（依存名で dedup）"
+      step_4:
+        label: "type 解決（条件付き伝搬考慮）"
+        description: >
+          同一の依存名が異なる type で出現した場合、以下を優先順に適用して解決する。
+          1. conditional エッジのみを経由する推移依存は、元の type に関わらず自スキルの conditional として扱う
+          2. それ以外の重複は厳しさ順 required > conditional > optional > fallback で解決する
+      step_5:
+        label: "optional/fallback の伝搬抑制"
+        description: >
+          optional および fallback 依存は、conditional エッジの有無に関わらず推移伝搬しない。
+          依存先スキルが optional/fallback で動作するなら、
+          呼び出し元にとって必須ではないとみなす。
+
+    source_of_truth: >
+      直接依存の宣言元は各スキルの README.md（External Dependencies 列）とする。
+      inventory/skills.yaml は検証により最新化される。
+
+# ============================================================
+# 6. 管理構造・公開構造・アーカイブ
+# ============================================================
+structure:
+
+  # --- 6.1 管理構造（スキル内部構成） ---
+  management:
+    description: >
+      各スキルの内部管理構造。必須ファイルとオプショナルな補助ディレクトリからなる。
+
+    layout:
+      - path: "SKILL.md"
+        required: true
+        description: >
+          スキルの必須定義ファイル。180 行以内。
+          必須ルール・禁止事項・主要ワークフローは先頭 150 行以内に置く。
+          長い例、詳細手順、CLI/API サンプル、トラブルシュートは references/ へ分割する。
+      - path: "references/"
+        required: false
+        description: >
+          補足資料ディレクトリ。長大な例、詳細手順、外部 API 仕様などを格納する。
+          SKILL.md から `references/<file>` の形式で参照される。
+          ファイルは Markdown を基本とする。
+      - path: "scripts/"
+        required: false
+        description: >
+          実行時スクリプトディレクトリ。Python などの実装を格納する。
+          SKILL.md または references/ からのみ参照される。
+      - path: "agents/"
+        required: false
+        description: >
+          エージェント固有のメタデータ（例: agents/openai.yaml）。
+          スキルの display_name、short_description、default_prompt を定義する。
+
+    rules:
+      - "SKILL.md は 180 行以内（validate-skills.sh で検証）"
+      - "必須ルール・禁止事項・主要ワークフローは先頭 150 行以内に配置"
+      - "references/ 内のファイルは SKILL.md からのみ参照される（外部直接参照不可）"
+      - "scripts/ は SKILL.md または references/ からのみ参照される"
+      - "他スキルの references/ や scripts/ への直接パス参照は禁止（§4.3 参照）"
+
+  # --- 6.2 公開構造 ---
+  public:
+    description: >
+      エージェントおよび利用者から見える公開構造。
+
+    included:
+      - scope: "トップレベルの <name>/SKILL.md を持つ全スキル（これより深いnested Skillは禁止）"
+        label: "配布対象スキル"
+        catalog: "README.md Available Skills 表"
+      - scope: ".claude/skills/<name>/SKILL.md を持つスキル（これより深いnested Skillは禁止）"
+        label: "保守専用スキル"
+        catalog: "README には掲載しない。スキル数バッジにも計上しない。"
+        note: "品質検証（validate-skills.sh）の対象には含める"
+
+    excluded:
+      - path: ".system/"
+        reason: >
+          システムバンドルスキル（imagegen, openai-docs, plugin-creator,
+          skill-creator, skill-installer）。
+          当リポジトリの配布対象外。README に掲載せず、検証対象からも除外する。
+      - path: ".archive/"
+        reason: "廃止・凍結済みスキル。公開・検証の全対象から除外。"
+      - path: ".codex/"
+        reason: "エージェント固有の設定ディレクトリ。スキルではない。"
+
+  # --- 6.3 アーカイブ ---
+  archive:
+    path: ".archive/"
+    description: >
+      廃止・凍結されたスキルを格納する。
+      スキルを廃止する際は .archive/ への移動と併せて以下の更新を行う。
+
+    rules:
+      - ".archive/ 内のスキルは README Available Skills に掲載しない"
+      - ".archive/ 内のスキルは validate-skills.sh の検証対象から除外する（find -path './.archive' -prune）"
+      - "アクティブなスキルは .archive/ 内のスキルを depends_on / routes_to してはならない"
+      - ".archive/ にスキルを移動する際は README のスキル数バッジを更新する"
+
+# ============================================================
+# 7. 検証基準
+# ============================================================
+validation:
+  description: >
+    検証スクリプトの判定基準。
+    validate-skills.sh の既存チェックに加えて実施する。
+    各項目は ERROR（CI を fail させる必須修正）か WARNING（通知のみ）かを指定する。
+
+  exception_policy:
+    description: >
+      例外は検証結果を恒久的に隠蔽するための仕組みではない。
+      WARNING と明示的に許可された V-STR-002 のみ、個別の記録を伴う場合に限り認める。
+  exception_schema:
+    required_fields: [check_id, target, reason]
+    suppressible_levels: [WARNING]
+    suppressible_error_check_ids: [V-STR-002]
+  exceptions: []
+
+  checks:
+    # --- 設定・正本形式 ---
+    - id: V-CFG-001
+      level: ERROR
+      subject: "設定・正本の形式"
+      description: "skill-rules.yaml、skill-categories.yaml、および各Skillのfront matterが一意なキーを持つ有効なYAMLである"
+      mechanical_check: "PyYAMLの重複キー検出付きローダーで読み込み、必須トップレベルキーとマッピング形式を確認"
+
+    - id: V-CFG-002
+      level: ERROR
+      subject: "検証例外設定"
+      description: "例外設定がschemaに従い、WARNINGまたはV-STR-002だけを対象とする"
+      mechanical_check: >
+        validation.exceptions の check_id・target・非空reason、重複、未知ID、
+        対象外ERROR、存在しないtargetを検証する。有効な抑制も理由付きWARNINGとして出力する。
+
+    # --- カテゴリ ---
+    - id: V-CAT-001
+      level: ERROR
+      subject: "分類網羅性"
+      description: >
+        全アクティブスキル（配布対象 33 件 + 保守専用 1 件 = 34 件）が
+        .rules/skill-categories.yaml でカテゴリ分類され、
+        かつ正本に存在しないスキル名の余剰エントリがない。
+      mechanical_check: >
+        validate-skills.sh と同一のアクティブスキル探索範囲（.system/ と .archive/ を除外）で
+        SKILL.md を収集し、全スキル名が skill-categories.yaml の skills にちょうど1回出現し、
+        逆に skills にのみ存在するスキル名がないことを確認。
+
+    - id: V-CAT-002
+      level: ERROR
+      subject: "カテゴリ有効性"
+      description: "割り当てられたカテゴリが skill-rules.yaml の定義済みカテゴリである"
+      mechanical_check: "各スキルの category 値が categories[*].id に含まれることを確認"
+
+    # --- 依存方向 ---
+    - id: V-DEP-001
+      level: ERROR
+      subject: "循環参照"
+      description: "depends_on グラフに循環参照がない"
+      mechanical_check: "depends_on エッジのみを対象とした SCC（Tarjan）検出。循環があれば ERROR。"
+
+    - id: V-DEP-002
+      level: ERROR
+      subject: "カテゴリ間依存方向"
+      description: >
+        異なるカテゴリ間の depends_on エッジが from カテゴリの allowed_depends_on
+        に含まれ、かつ to カテゴリの may_be_depended_on_by が空でなければ
+        from カテゴリを含むことを確認する。
+        order 比較のみでは許可リスト外の依存を検出できないため、
+        カテゴリ定義の許可リストを正本として判定する。
+      mechanical_check: >
+        各 depends_on エッジの from と to のカテゴリが異なる場合:
+        1. to.category.id が from.category.allowed_depends_on に含まれることを確認
+        2. to.category.may_be_depended_on_by が空でなければ、from.category.id が含まれることを確認
+        1 または 2 を満たさないエッジを ERROR とする。
+        order 比較および prohibited 列挙は補助情報として併用する。
+
+    - id: V-DEP-003
+      level: ERROR
+      subject: "物理パス参照"
+      description: "他スキル配下への物理パス参照がない（§4.3）。表記形式（../, repo-root相対, 絶対パス）に依存せず、実ファイルシステム上のパス解決で判定する。"
+      mechanical_check: >
+        §4.3 detection_logic に従い、以下の手順で機械判定する。
+        1. 全配布対象・保守専用スキルのトップレベルディレクトリパスをスキルroot一覧として収集
+        2. 全 SKILL.md および references/ 内ファイルから Markdown リンク・コードブロック内パス・
+           インライン相対パスを抽出し、ファイル位置を基点に実パスへ解決
+        3. 解決パスが自スキル以外のスキルroot配下を示す場合を ERROR として報告
+        4. 他Skillを指す可能性があるが真に解決不能な動的パスだけを WARNING として報告
+        allowed_patterns に該当するパス（.claude/skills, worktree 出力先, 自スキル内参照）は除外する。
+
+    - id: V-DEP-004
+      level: WARNING
+      subject: "異カテゴリ同 order 依存"
+      description: "order が等しい異なるカテゴリ間の依存がない"
+      mechanical_check: >
+        from.category.order == to.category.order かつ
+        from.category.id != to.category.id のエッジを検出。
+
+    - id: V-DEP-005
+      level: WARNING
+      subject: "正本と自動抽出の一致"
+      description: "skill-categories.yaml の depends_on と SKILL.md からの自動抽出結果の差分を通知する（正本は変更しない）"
+      mechanical_check: >
+        SKILL.md から抽出したスキル名参照と
+        skill-categories.yaml の depends_on の diff をとり、不一致を報告。
+        routes_to_not_depends に routes_to / mention / used_by として記録された組は候補から除外する。
+        自動抽出は確認材料に限り、depends_on グラフや循環判定には使用しない。
+
+    - id: V-DEP-006
+      level: ERROR
+      subject: "依存・経路参照の正当性"
+      description: "depends_on と routes_to の配列が有効なSkill名だけを一意に参照する"
+      mechanical_check: >
+        各配列の型、空要素、重複、存在しないSkill、archive内Skillへの参照を確認する。
+        dependency_notes.routes_to_not_depends の from/to も同じ規則で確認する。
+
+    - id: V-DEP-007
+      level: ERROR
+      subject: "依存エッジ条件"
+      description: "depends_on_edge_condition が depends_on の対象だけを unconditional または conditional として記録する"
+      mechanical_check: >
+        マッピング形式、対象のdepends_on包含、および値が unconditional / conditional のいずれかであることを確認する。
+
+    # --- 外部依存 ---
+    - id: V-EXT-001
+      level: ERROR
+      subject: "外部依存 type の有効性"
+      description: >
+        全スキルの外部依存 type が §5.1 の 4 種別（R/C/O/F）のいずれかであり、
+        §5.2 の入力形式 grammar に従ってパース可能であること。
+        未知の type 注記、不完全な注記、複数注記は ERROR とする。
+      mechanical_check: >
+        README の External Dependencies 列を §5.2 grammar でパースし、
+        各依存の type が required/conditional/optional/fallback に解決されることを確認。
+        未注記は required へ解決し、定義外の注記は ERROR として報告する。
+
+    - id: V-EXT-002
+      level: WARNING
+      subject: "Effective deps 算出可能性"
+      description: "各スキルの effective external dependencies が算出可能である"
+      mechanical_check: >
+        depends_on を辿って推移依存を収集し、
+        type 解決が完了することを確認。
+        循環参照があると算出不能になるため、V-DEP-001 の前提で実施。
+
+    - id: V-EXT-003
+      level: WARNING
+      subject: "README 外部依存表の一貫性"
+      description: "README の External Dependencies 列と inventory の記録に齟齬がない"
+      mechanical_check: "README から抽出した依存情報と inventory/skills.yaml の diff"
+
+    - id: V-EXT-004
+      level: ERROR
+      subject: "外部依存の実装証拠"
+      description: "Python/JS/TS importおよび外部コマンドの証拠が分類ごとの直接依存元に宣言されている"
+      mechanical_check: >
+        Python ASTのimport・subprocess/os exec、JS/TSのimport/require、文書・shellの外部コマンドを確認する。
+        配布SkillはREADME、保守Skillはskill-categories.yamlのexternal_dependenciesを宣言元とし、
+        宣言元欠落または別名正規化後の未宣言をERRORとする。標準ライブラリ・builtin・repo内scriptは除外する。
+
+    - id: V-EXT-005
+      level: ERROR
+      subject: "公開Skillの外部依存セル"
+      description: "全配布SkillがREADMEのAvailable Skills表に重複のないExternal Dependenciesセルを持つ"
+      mechanical_check: "配布対象のSKILL.mdパスごとにセルの存在、重複、空欄を確認し、R/C/O/F grammarで解析する"
+
+    # --- 命名 ---
+    - id: V-NAM-001
+      level: WARNING
+      subject: "命名規則適合"
+      description: "命名例外に該当しないスキルが service-target-action パターンに従っている"
+      mechanical_check: >
+        正規表現 `^[a-z0-9]+(?:-[a-z0-9]+){2,}$` にマッチしないスキル名を報告。
+        naming.exceptions または naming.borderline に記載があれば除外。
+
+    - id: V-NAM-002
+      level: ERROR
+      subject: "Skill名の存在・一意性"
+      description: "各Skillのfront matterにnameがあり、リポジトリ内で重複しない"
+      mechanical_check: "front matterのname欠落と同名Skillの重複を検出"
+
+    - id: V-NAM-003
+      level: ERROR
+      subject: "Skill名とディレクトリ名"
+      description: "front matterのnameがSkillディレクトリ名と一致する"
+      mechanical_check: "各SKILL.mdの親ディレクトリ名とfront matter nameを比較"
+
+    # --- 構造 ---
+    - id: V-STR-001
+      level: ERROR
+      subject: "SKILL.md 存在"
+      description: "各スキルディレクトリに SKILL.md が存在する"
+      mechanical_check: "ファイル存在確認（validate-skills.sh 既存）"
+
+    - id: V-STR-002
+      level: ERROR
+      subject: "SKILL.md 行数"
+      description: "SKILL.md の行数が 180 以下である"
+      mechanical_check: >
+        SKILL.md を行単位で数え、181行以上をERRORとして報告する。
+        validation.exceptions に有効な個別記録がある場合だけ理由付きWARNINGへ抑制する。
+
+    - id: V-STR-003
+      level: ERROR
+      subject: "references/ 参照整合性"
+      description: "SKILL.md 内の references/ 参照が実ファイルと一致する"
+      mechanical_check: "references/... 記法を抽出し、実ファイル存在を確認（validate-skills.sh 既存）"
+
+    - id: V-STR-004
+      level: ERROR
+      subject: "ローカルMarkdownリンク整合性"
+      description: "Skill配下のローカルMarkdownリンクが存在するファイルを指す"
+      mechanical_check: "SKILL.md と references/ のMarkdownリンクを解決し、外部URL・アンカー・動的パスを除いて存在確認"
+
+    - id: V-STR-005
+      level: ERROR
+      subject: "補助ファイルの所有境界"
+      description: "referencesはSKILL.md、scriptsはSKILL.mdまたはreferencesから参照され、未参照ファイルがない"
+      mechanical_check: >
+        各Skill内のreferencesファイルをSKILL.mdの直接参照と照合し、scriptsファイルを
+        SKILL.mdおよびreferencesの参照と照合する。他Skillからの物理参照はV-DEP-003で拒否する。
+
+    - id: V-STR-006
+      level: ERROR
+      subject: "Agent metadata整合性"
+      description: "各Skillの agents/openai.yaml が有効で、interface必須項目とSkill名参照を満たす"
+      mechanical_check: "重複キー検出付きYAML解析、display_name、25〜64文字のshort_description、default_promptのSkill名参照を確認"
+
+    # --- アーカイブ境界 ---
+    - id: V-ARC-001
+      level: ERROR
+      subject: "archive 非参照"
+      description: ".archive/ 内のスキルがアクティブスキルから depends_on / routes_to されていない"
+      mechanical_check: "depends_on および routes_to の参照先が .archive/ 内にないことを確認"
+
+    - id: V-ARC-002
+      level: ERROR
+      subject: "公開境界"
+      description: ".archive/ と .system/ のスキルが README Available Skills に掲載されていない"
+      mechanical_check: "README から抽出したスキルパスと除外対象パスの照合"
+
+    - id: V-ARC-003
+      level: ERROR
+      subject: "スキル数バッジ"
+      description: "README の Shields.io バッジ数値が配布対象スキル数と一致する"
+      mechanical_check: "badgen.net バッジの数値抽出と distributable カウントの比較（validate-skills.sh 既存）"
+
+    - id: V-PUB-001
+      level: ERROR
+      subject: "公開カタログ整合性"
+      description: "README Available Skills が配布対象Skillを漏れなく一度ずつ掲載し、表形式と依存セルを満たす"
+      mechanical_check: "READMEのSkillリンクを実体・除外範囲・重複・表ヘッダー・External Dependenciesセルと照合"
+
+    - id: V-PUB-002
+      level: ERROR
+      subject: "公開Skill配置・symlink整合性"
+      description: "配布Skillと保守Skillが許可深度にあり、公開symlinkが破損・重複・衝突していない"
+      mechanical_check: >
+        配布Skillは<name>/SKILL.md、保守Skillは.claude/skills/<name>/SKILL.mdだけを許可し、
+        lstatとresolveで公開rootのsymlink破損および同一実体への重複を検出する。
+
+    - id: V-INV-001
+      level: ERROR
+      subject: "inventory鮮度"
+      description: "checked-inされた4つのinventory YAMLが現在の入力から得る期待値と一致する"
+      mechanical_check: >
+        inventory.pyを一時出力先へ実行し、skills.yaml、dependency-graph.yaml、
+        findings.yaml、summary.yamlをbyte単位で比較して差分ファイルを報告する。
+
+    # --- 複雑性 ---
+    - id: V-CMP-001
+      level: WARNING
+      subject: "依存深度"
+      description: "depends_on の最長深度が3を超えない"
+      mechanical_check: "正本のdepends_on DAGで最長深度を算出し、depth > 3 を通知"
+
+    - id: V-CMP-002
+      level: WARNING
+      subject: "直接依存数"
+      description: "1 Skillあたりの直接depends_onが7を超えない"
+      mechanical_check: "正本のdepends_on配列を数え、direct > 7 を通知"
+
+    - id: V-CMP-003
+      level: WARNING
+      subject: "被依存数"
+      description: "1 Skillが直接参照される数が5を超えない"
+      mechanical_check: "正本のdepends_onの入次数を数え、referenced-by > 5 を通知"
+
+    - id: V-CMP-004
+      level: WARNING
+      subject: "本文量"
+      description: "SKILL.md本文が150行を超えない"
+      mechanical_check: "各SKILL.mdを数え、本文150行超をWARNINGとして通知する"

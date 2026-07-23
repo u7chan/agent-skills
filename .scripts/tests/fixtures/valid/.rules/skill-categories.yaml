@@ -1,0 +1,35 @@
+meta: {version: '1', total_skills: 3, distributable: 3, maintenance: 0}
+category_summary:
+  - {id: orchestration, count: 1, skills: [flow-parent-validate]}
+  - {id: git, count: 1, skills: [git-child-validate]}
+  - {id: tool, count: 1, skills: [tool-leaf-validate]}
+skills:
+  - name: tool-leaf-validate
+    path: tool-leaf-validate
+    category: tool
+    classification: distributable
+    naming: conforms
+    depends_on: []
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+  - name: git-child-validate
+    path: git-child-validate
+    category: git
+    classification: distributable
+    naming: conforms
+    depends_on: [tool-leaf-validate]
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+  - name: flow-parent-validate
+    path: flow-parent-validate
+    category: orchestration
+    classification: distributable
+    naming: conforms
+    depends_on: [git-child-validate]
+    depends_on_edge_condition:
+      git-child-validate: conditional
+    external_dependencies_ref: inventory/skills.yaml
+    known_issues: []
+dependency_notes:
+  routes_to_not_depends:
+    items: []

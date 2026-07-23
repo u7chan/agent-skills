@@ -9,5 +9,9 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v4
+      - name: Install validation dependencies
+        run: python3 -m pip install -r .scripts/requirements-validation.txt
+      - name: Run validation tests
+        run: bash .scripts/run-tests.sh
       - name: Validate skills
         run: bash .scripts/validate-skills.sh
