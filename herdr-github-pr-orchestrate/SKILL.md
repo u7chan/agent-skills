@@ -33,7 +33,6 @@ Issue または実装指示を受け、実装担当 Agent への委譲から PR 
 - 限定stage / commit: `git-changes-commit`
 - push / PR 作成: `github-pr-create`
 - Herdr 委譲: `herdr-agent-delegate`
-- cagent解決: `cagent-agent-command-resolve`
 - レビュー / 再チェック: `github-pr-review`
 - FB 対応: `github-pr-feedback-address`
 
@@ -93,35 +92,7 @@ worktree が明示された場合:
 
 - `github-pr-create`を適用し、PR作成後に`gh pr view --json title,body,url`で確認する。メタ情報がある場合は最終セクションと各行が固定済みsnapshotに一致し、ない場合はセクション自体がないことを確認する。
 - Issue を閉じるなら `Close #123`、関連付けだけなら `Refs #123` を使う。
-- PR本文は次の構造を基本とし、有効な役割行がある場合だけ最後にAI作業メタ情報を追加してファイルから渡す。
-
-```markdown
-## Issues
-
-- Close #123
-
-## Why
-
-変更が必要な背景。
-
-## Summary
-
-変更の要約。
-
-## Changes
-
-- 変更点
-
-## Verification
-
-- `command` - passed
-
-## AI Work Metadata
-
-| Role | Agent | Model | Effort |
-| --- | --- | --- | --- |
-| `<metadata-backed role>` | `<agent>` | `<model>` | `<effort>` |
-```
+- PR本文は`references/pr-template.md`を参照。有効な役割行がある場合だけ最後にAI作業メタ情報を追加してファイルから渡す。
 
 - 固定済みPR Work Metadata snapshotから、3値が揃う役割だけを追加する。部分行、`—`、pane/process info調査、Codex Config fallback、他役割からの補完は禁止する。
 - オーケストレーター行は、現在の親タスク自体が有効な標準suffixを受け取っている場合だけ追加する。単体実行やHerdr直接起動のrootには追加しない。

@@ -79,7 +79,7 @@ skills:
   classification: distributable
   responsibility: Bunアプリの依存関係を一括で非メジャー更新するとき、または特定パッケージをメジャー更新するときに使う
   description: Bunアプリの依存関係を一括で非メジャー更新するとき、または特定パッケージをメジャー更新するときに使う。 upstream調査、ユーザー確認、1パッケージずつの更新、プロジェクト検証まで扱う。
-  line_count: 151
+  line_count: 150
   has_references: false
   has_scripts: false
   has_tests: false
@@ -101,8 +101,7 @@ skills:
     source: README
   external_dependency_evidence: []
   disposition: keep
-  findings:
-  - F001
+  findings: []
 - name: cagent-agent-command-resolve
   current_path: cagent-agent-command-resolve
   classification: distributable
@@ -688,16 +687,16 @@ skills:
   classification: distributable
   responsibility: GitHub Issueや実装タスクについて、Issue確認、作業領域準備、Herdr Agentへの実装委譲、成果確認、 共通Skillによる限定commit・PR作成、レビュー、FB対応、再チェックを統括するときに使う
   description: GitHub Issueや実装タスクについて、Issue確認、作業領域準備、Herdr Agentへの実装委譲、成果確認、 共通Skillによる限定commit・PR作成、レビュー、FB対応、再チェックを統括するときに使う。 pane配置、送信、待機、出力回収の詳細はherdr-agent-delegateへ委ねる。
-  line_count: 157
+  line_count: 128
   has_references: true
   has_scripts: false
   has_tests: true
   has_evaluation_samples: false
   skill_references:
   - name: cagent-agent-command-resolve
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
-    source_line: 36
+    source_line: 79
   - name: git-branch-create
     relation: mention
     source_file: SKILL.md
@@ -713,11 +712,11 @@ skills:
   - name: github-pr-feedback-address
     relation: mention
     source_file: SKILL.md
-    source_line: 38
+    source_line: 37
   - name: github-pr-review
     relation: mention
     source_file: SKILL.md
-    source_line: 37
+    source_line: 36
   - name: herdr-agent-delegate
     relation: mention
     source_file: SKILL.md
@@ -755,9 +754,7 @@ skills:
   external_dependency_evidence: []
   disposition: keep
   findings:
-  - F003
   - F008
-  - F011
 - name: herdr-prompt-evaluate
   current_path: herdr-prompt-evaluate
   classification: distributable
@@ -907,7 +904,7 @@ skills:
   classification: distributable
   responsibility: npmアプリの依存関係を一括で非メジャー更新するとき、または特定パッケージをメジャー更新するときに使う
   description: npmアプリの依存関係を一括で非メジャー更新するとき、または特定パッケージをメジャー更新するときに使う。 upstream調査、ユーザー確認、1パッケージずつの更新、プロジェクト検証まで扱う。
-  line_count: 153
+  line_count: 150
   has_references: false
   has_scripts: false
   has_tests: false
@@ -932,8 +929,7 @@ skills:
     source: README
   external_dependency_evidence: []
   disposition: keep
-  findings:
-  - F004
+  findings: []
 - name: playwright-cli
   current_path: playwright-cli
   classification: distributable
@@ -1005,8 +1001,8 @@ skills:
   classification: distributable
   responsibility: uv管理のPythonプロジェクトで依存関係を一括で非メジャー更新するとき、または特定パッケージをメジャー更新するときに使う
   description: uv管理のPythonプロジェクトで依存関係を一括で非メジャー更新するとき、または特定パッケージをメジャー更新するときに使う。 upstream調査、ユーザー確認、1パッケージずつの更新、プロジェクト検証まで扱う。
-  line_count: 161
-  has_references: false
+  line_count: 150
+  has_references: true
   has_scripts: false
   has_tests: false
   has_evaluation_samples: false
@@ -1030,5 +1026,4 @@ skills:
     source: README
   external_dependency_evidence: []
   disposition: keep
-  findings:
-  - F005
+  findings: []

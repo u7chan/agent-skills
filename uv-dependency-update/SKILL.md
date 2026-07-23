@@ -51,13 +51,7 @@ For major work, research first, confirm the plan with the user, then upgrade one
 ### Step 1: Inspect the Local Project Rules
 
 Open `AGENTS.md` if it exists.
-Read `pyproject.toml` and identify:
-
-- the dependency location: `project.dependencies`, optional dependencies, or `[dependency-groups]`
-- whether the package is runtime or development-only
-- the available validation commands
-
-Inspect package usage with `rg` before changing a dependency that may affect code behavior.
+See `references/dependency-workflow.md` for pyproject.toml inspection.
 
 ### Step 2: Determine Whether This Is a Major Upgrade
 
@@ -69,8 +63,7 @@ Classify the request before editing files:
 - `specifier-change`: update the declared requirement in `pyproject.toml` because the user asked for a newer allowed series
 - `major`: move a package to a new major series
 
-Do not assume that the current declared requirement prevents a major bump.
-In uv projects, many dependencies are recorded with only a lower bound such as `pkg>=1.2.3`, which can still allow a new major release.
+Do not assume the current declared requirement prevents a major bump; uv projects often use lower bounds like `pkg>=1.2.3` that can allow a new major release.
 If the user did not ask for a narrow scope, prefer `broad-refresh` for non-major updates so compatible changes can land together.
 
 If the request is `major`, do not edit yet. Move to the major-upgrade branch of this workflow.
@@ -109,7 +102,6 @@ Before editing `pyproject.toml` or `uv.lock`:
 
 - inspect where the package is used with `rg`
 - confirm the current version and the target major version
-- determine which declaration in `pyproject.toml` or `[dependency-groups]` must change
 - use web search and prioritize official migration guides, changelogs, release notes, and API docs
 - collect only the breaking changes that are relevant to this repository
 
@@ -126,8 +118,7 @@ Stop here until the user confirms.
 After confirmation:
 
 - upgrade only one package at a time
-- prefer `uv add` with an explicit specifier for the confirmed target series
-- update the lockfile with uv after the declaration change
+- prefer `uv add` with an explicit specifier; update the lockfile after the declaration change
 - apply only the compatibility fixes supported by local usage and the researched sources
 - avoid bundling unrelated dependency churn into the same change
 
@@ -156,6 +147,4 @@ If a command cannot run, state why and what remains unverified.
 
 ## References
 
-- `AGENTS.md`
-- `pyproject.toml`
-- `uv.lock`
+See `AGENTS.md`, `pyproject.toml`, and `uv.lock`.

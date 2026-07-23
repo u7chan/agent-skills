@@ -51,8 +51,7 @@ For major work, research first, confirm the plan with the user, then upgrade one
 ### Step 1: Inspect the Local Project Rules
 
 Open `AGENTS.md` if it exists.
-Read `package.json` scripts and note the required verification commands.
-Check whether the repo uses `package-lock.json`, `npm-shrinkwrap.json`, or workspaces.
+Read `package.json` scripts, note verification commands, and check lockfile type or workspaces.
 
 ### Step 2: Determine Whether This Is a Major Upgrade
 
@@ -148,6 +147,4 @@ If a command cannot run, state why and what remains unverified.
 
 ## References
 
-- `AGENTS.md`
-- `package.json`
-- `package-lock.json`
+See `AGENTS.md`, `package.json`, and `package-lock.json`.

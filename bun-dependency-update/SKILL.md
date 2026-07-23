@@ -147,5 +147,4 @@ If a command cannot run, state why and what remains unverified.
 
 ## References
 
-- `AGENTS.md`
-- `package.json`
+See `AGENTS.md` and `package.json`.

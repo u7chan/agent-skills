@@ -143,7 +143,6 @@ skills:
       レビュー・FB 対応・再チェックまでを統括する。
       pane 配置・送信・待機の詳細は herdr-agent-delegate へ委ねる。
     depends_on:
-      - cagent-agent-command-resolve
       - git-branch-create
       - git-changes-commit
       - github-pr-create
@@ -153,12 +152,8 @@ skills:
       - herdr-worktree-create
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
-      - ref: F003
-        note: "157 行。180 行制限に近接。工程分岐の一部を references/ に移すことを検討。"
       - ref: F008
         note: "github-pr-orchestrate との重複候補。共通フロー抽出を検討。"
-      - ref: F011
-        note: "実装委譲から PR 作成、レビュー、FB 対応まで全工程をカバー。"
 
   - name: herdr-prompt-evaluate
     path: herdr-prompt-evaluate
@@ -535,9 +530,7 @@ skills:
       upstream 調査、ユーザー確認、1 パッケージずつの更新、プロジェクト検証まで。
     depends_on: []
     external_dependencies_ref: inventory/skills.yaml
-    known_issues:
-      - ref: F001
-        note: "151 行。180 行制限に近接。監視対象。"
+    known_issues: []
 
   - name: npm-dependency-update
     path: npm-dependency-update
@@ -549,9 +542,7 @@ skills:
       特定パッケージをメジャー更新する。
     depends_on: []
     external_dependencies_ref: inventory/skills.yaml
-    known_issues:
-      - ref: F004
-        note: "153 行。180 行制限に近接。監視対象。"
+    known_issues: []
 
   - name: uv-dependency-update
     path: uv-dependency-update
@@ -563,9 +554,7 @@ skills:
       または特定パッケージをメジャー更新する。
     depends_on: []
     external_dependencies_ref: inventory/skills.yaml
-    known_issues:
-      - ref: F005
-        note: "161 行。180 行制限に近接。監視対象。"
+    known_issues: []
 
 # ============================================================
 # 依存関係の特記事項
@@ -630,3 +619,7 @@ dependency_notes:
       - from: herdr-worktree-create
         to: herdr-github-pr-orchestrate
         relation: used_by
+      - from: herdr-github-pr-orchestrate
+        to: cagent-agent-command-resolve
+        relation: routes_to
+        note: "委譲時のcagent実効値固定（SKILL.md本文で参照を維持）"

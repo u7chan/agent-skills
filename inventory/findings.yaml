@@ -1,37 +1,9 @@
 schema_version: 2
 generated_by: .scripts/inventory.py
-total_findings: 11
-auto_detected: 4
-manual: 7
+total_findings: 6
+auto_detected: 0
+manual: 6
 findings:
-- id: F001
-  type: near_limit
-  skill: bun-dependency-update
-  line_count: 151
-  reason: approaches 180-line limit (151)
-  recommendation: monitor, consider reducing
-  auto_detected: true
-- id: F003
-  type: near_limit
-  skill: herdr-github-pr-orchestrate
-  line_count: 157
-  reason: approaches 180-line limit (157)
-  recommendation: monitor, consider reducing
-  auto_detected: true
-- id: F004
-  type: near_limit
-  skill: npm-dependency-update
-  line_count: 153
-  reason: approaches 180-line limit (153)
-  recommendation: monitor, consider reducing
-  auto_detected: true
-- id: F005
-  type: near_limit
-  skill: uv-dependency-update
-  line_count: 161
-  reason: approaches 180-line limit (161)
-  recommendation: monitor, consider reducing
-  auto_detected: true
 - id: F006
   type: duplication_candidate
   skills:
@@ -64,13 +36,6 @@ findings:
   reason: agent-skill-design は新規作成・要件追加・全面再設計、agent-skill-refine は挙動を変えずに短文化・高密度化。責務は明確に分離されているが、密接に関連しており、参照関係も強い。
   auto_detected: false
   recommendation: 分割統合は不要。責務境界が明確で適切に分離されている。
-- id: F011
-  type: near_limit_detail
-  skill: herdr-github-pr-orchestrate
-  line_count: 157
-  reason: 157行。実装委譲からPR作成、レビュー、FB対応までの全工程をカバーしており、工程ごとの分岐条件も多い。references/ に実装委譲とレビューループの詳細は分離済み。
-  recommendation: モニタリング。180行を超える前に工程分岐の一部を references/ に移すことを検討。
-  auto_detected: false
 - id: F012
   type: complexity
   skill: cagent-agent-command-resolve
