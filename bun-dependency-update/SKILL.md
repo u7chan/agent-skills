@@ -147,4 +147,4 @@ If a command cannot run, state why and what remains unverified.
 
 ## References
 
-See `AGENTS.md` and `package.json`.
+See `AGENTS.md`, `package.json`, and `bun.lock`.
