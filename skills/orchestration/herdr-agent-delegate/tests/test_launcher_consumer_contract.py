@@ -7,16 +7,16 @@ import unittest
 from pathlib import Path
 
 
-REPO_ROOT = Path(__file__).parents[2]
-LAUNCHER = REPO_ROOT / "herdr-agent-delegate" / "scripts" / "launch_agent.py"
+REPO_ROOT = Path(__file__).parents[4]
+LAUNCHER = REPO_ROOT / "skills" / "orchestration" / "herdr-agent-delegate" / "scripts" / "launch_agent.py"
 CONSUMERS = (
     (
-        REPO_ROOT / "herdr-agent-delegate",
+        REPO_ROOT / "skills" / "orchestration" / "herdr-agent-delegate",
         Path("SKILL.md"),
         "<skill-dir>/scripts/launch_agent.py",
     ),
     (
-        REPO_ROOT / "herdr-agent-delegate",
+        REPO_ROOT / "skills" / "orchestration" / "herdr-agent-delegate",
         Path("references/agent-cli.md"),
         "<skill-dir>/scripts/launch_agent.py",
     ),
@@ -84,8 +84,8 @@ class LauncherConsumerContractTest(unittest.TestCase):
 
     def test_logical_skill_references_replace_cross_skill_launcher_paths(self):
         for path in (
-            REPO_ROOT / "cagent-agent-command-resolve" / "SKILL.md",
-            REPO_ROOT / "herdr-prompt-evaluate" / "references" / "herdr-execution.md",
+            REPO_ROOT / "skills" / "orchestration" / "cagent-agent-command-resolve" / "SKILL.md",
+            REPO_ROOT / "skills" / "orchestration" / "herdr-prompt-evaluate" / "references" / "herdr-execution.md",
         ):
             text = path.read_text(encoding="utf-8")
             self.assertIn("`herdr-agent-delegate`", text)

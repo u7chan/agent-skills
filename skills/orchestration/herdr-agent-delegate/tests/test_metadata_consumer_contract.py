@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-REPO_ROOT = ROOT.parent
+REPO_ROOT = Path(__file__).parents[4]
 
 
 class MetadataConsumerContractTest(unittest.TestCase):
@@ -13,16 +13,13 @@ class MetadataConsumerContractTest(unittest.TestCase):
             ROOT / "references" / "delegation-metadata.md"
         ).read_text(encoding="utf-8")
         cls.review_rules = (
-            REPO_ROOT / "github-pr-review" / "references" / "posting-rules.md"
+            REPO_ROOT / "skills" / "github" / "github-pr-review" / "references" / "posting-rules.md"
         ).read_text(encoding="utf-8")
         cls.reply_rules = (
-            REPO_ROOT
-            / "github-pr-comment-reply"
-            / "references"
-            / "posting-rules.md"
+            REPO_ROOT / "skills" / "github" / "github-pr-comment-reply" / "references" / "posting-rules.md"
         ).read_text(encoding="utf-8")
         cls.feedback = (
-            REPO_ROOT / "github-pr-feedback-address" / "SKILL.md"
+            REPO_ROOT / "skills" / "github" / "github-pr-feedback-address" / "SKILL.md"
         ).read_text(encoding="utf-8")
 
     def test_consumers_branch_on_current_prompt_suffix(self):
