@@ -9,11 +9,10 @@
 ```sh
 git clone git@github.com:u7chan/agent-skills.git
 cd agent-skills
-mkdir -p "$HOME/.claude/skills"
-ln -sf "$(pwd)" "$HOME/.claude/skills"
+python3 .scripts/setup-skills.py --agent claude --home "$HOME"
 ```
 
-これにより、`$HOME/.claude/skills/agent-skills` からこのリポジトリを参照できるようになります。`$HOME/.claude/skills` がすでに存在していても、そのまま実行できます。
+`$HOME/.claude/skills/` に各スキルへのシンボリックリンクが作成されます。
 
 ## Codex
 
@@ -22,23 +21,18 @@ ln -sf "$(pwd)" "$HOME/.claude/skills"
 ```sh
 git clone git@github.com:u7chan/agent-skills.git
 cd agent-skills
-mkdir -p "$HOME/.codex"
-ln -sfn "$(pwd)" "$HOME/.codex/skills"
+python3 .scripts/setup-skills.py --agent codex --home "$HOME"
 ```
-
-これにより、`$HOME/.codex/skills` からこのリポジトリを参照できるようになります。既存のシンボリックリンクがある場合は、新しいリンク先に更新されます。
 
 ## その他のエージェント
 
-`.claude/skills` と互換性があるエージェントでは、Claude Code と同じ手順でセットアップできます。対応状況は、使用するエージェントのドキュメントを確認してください。
+`.claude/skills` と互換性があるエージェントでは、`--agent` オプションに `claude` を指定して Claude Code と同じ手順でセットアップできます。
 
-## シンボリックリンクを解除する
-
-使用しているエージェントに合わせて、対象のシンボリックリンクを削除します。
+## リンクを解除する
 
 ```sh
-rm "$HOME/.claude/skills/agent-skills"
-rm "$HOME/.codex/skills"
+python3 .scripts/setup-skills.py --agent claude --home "$HOME" --uninstall
+python3 .scripts/setup-skills.py --agent codex --home "$HOME" --uninstall
 ```
 
 リポジトリ本体も不要な場合は、シンボリックリンクを解除したあとに、クローンしたディレクトリを別途削除してください。
