@@ -1,0 +1,88 @@
+schema_version: 2
+generated_by: .scripts/inventory.py
+scope: distributable + .claude/skills/ (maintenance-only)
+total_count: 3
+distributable_count: 3
+maintenance_count: 0
+skills:
+- name: flow-parent-validate
+  current_path: flow-parent-validate
+  classification: distributable
+  responsibility: fixture parent
+  description: fixture parent
+  line_count: 8
+  has_references: false
+  has_scripts: false
+  has_tests: false
+  has_evaluation_samples: false
+  skill_references:
+  - name: git-child-validate
+    relation: mention
+    source_file: SKILL.md
+    source_line: 8
+  path_references: []
+  external_dependencies:
+  - name: parent
+    type: optional
+    source: README
+  external_dependency_evidence: []
+  disposition: keep
+  findings: []
+- name: git-child-validate
+  current_path: git-child-validate
+  classification: distributable
+  responsibility: fixture child
+  description: fixture child
+  line_count: 8
+  has_references: false
+  has_scripts: false
+  has_tests: false
+  has_evaluation_samples: false
+  skill_references:
+  - name: tool-leaf-validate
+    relation: mention
+    source_file: SKILL.md
+    source_line: 8
+  path_references: []
+  external_dependencies:
+  - name: git
+    type: conditional
+    source: README
+  - name: shared
+    type: optional
+    source: README
+  - name: optional
+    type: optional
+    source: README
+  external_dependency_evidence: []
+  disposition: keep
+  findings: []
+- name: tool-leaf-validate
+  current_path: tool-leaf-validate
+  classification: distributable
+  responsibility: fixture leaf
+  description: fixture leaf
+  line_count: 8
+  has_references: true
+  has_scripts: false
+  has_tests: false
+  has_evaluation_samples: false
+  skill_references: []
+  path_references:
+  - path: ../SKILL.md
+    type: general
+    source_file: references/local.md
+    source_line: 1
+  external_dependencies:
+  - name: leaf
+    type: required
+    source: README
+  - name: shared
+    type: required
+    source: README
+  - name: fallback
+    type: fallback
+    source: README
+  external_dependency_evidence: []
+  disposition: keep
+  findings: []

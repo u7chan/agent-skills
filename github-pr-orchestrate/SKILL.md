@@ -57,7 +57,7 @@ description: >
 ### 3. 今回の変更だけをcommitする
 
 - PR対象に未コミット変更がある場合だけ、この工程を行う。
-- `../git-changes-commit/SKILL.md`を適用し、対象path、除外path、実施済み検証を渡す。
+- `git-changes-commit`を適用し、対象path、除外path、実施済み検証を渡す。
 - 下位Skillが返したcommit hash、commit対象、残存変更を確認する。
 - 対象外の変更がcommitまたはstageされた場合は、pushせず停止する。
 
@@ -65,13 +65,13 @@ description: >
 
 - 既存PRがあり、PR headとlocal `HEAD`が一致する場合だけ、そのPRを確認済みの後続対象として使う。
 - 新しいcommit後に既存PRのPR headとlocal `HEAD`が一致しない場合は、`github-pr-create`が既存PRで停止する現行契約に従い、push未完了として後続レビューへ進まず停止する。
-- 既存PRがない場合は`../github-pr-create/SKILL.md`を適用し、Issue、title/base、変更概要、検証結果、完成済み本文があればそれを渡す。
+- 既存PRがない場合は`github-pr-create`を適用し、Issue、title/base、変更概要、検証結果、完成済み本文があればそれを渡す。
 - PR URL、title、base/head、本文、品質チェック結果を確認する。
 
 ### 5. 指定されたレビュー工程を行う
 
 - レビューが明示されていなければPR作成成功で完了する。
-- 「レビューして」「レビュー依頼出して」などPRレビューの実行が明示されていれば、作成済みPRへ`../github-pr-review/SKILL.md`を適用し、投稿結果を確認する。
+- 「レビューして」「レビュー依頼出して」などPRレビューの実行が明示されていれば、作成済みPRへ`github-pr-review`を適用し、投稿結果を確認する。
 - reviewerの割り当てが明示された場合は対象accountを特定し、`gh pr edit --add-reviewer`で依頼して結果を確認する。対象を推測できなければ確認する。
 - FB対応や再チェックも明示された場合だけ、それぞれ`github-pr-feedback-address`と`github-pr-review`の再チェック契約を適用する。
 - レビュー工程が失敗してもPR作成成功と混同せず、PR URLと失敗工程を保持する。

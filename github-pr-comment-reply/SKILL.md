@@ -30,8 +30,8 @@ GitHub コネクタは使わず、`gh` / `gh api` の認証で投稿する。コ
 - Step 1, 3: `references/target-resolution.md`
 - Step 2, 8: `references/error-handling.md`
 - Step 4, 5, 6, 7: `references/posting-rules.md`
-- 委譲メタ情報: `../herdr-agent-delegate/references/delegation-metadata.md`
+- 委譲メタ情報のconsumer規則: `references/posting-rules.md`
 
 # 参考資料
 
-- `github-pr-review/SKILL.md`
+- `github-pr-review`

@@ -39,7 +39,7 @@ description: >
 
 ### 2. commit messageを決める
 
-- `../git-commit-message-suggest/SKILL.md`を適用し、変更目的に合う1案を得る。
+- `git-commit-message-suggest`を適用し、変更目的に合う1案を得る。
 - 通常変更はConventional Commits、レビュー指摘対応だけは`fb:`を使う。
 - ユーザーがmessageを指定した場合は、明らかな誤りがない限り優先する。
 

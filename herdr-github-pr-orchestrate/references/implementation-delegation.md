@@ -1,6 +1,6 @@
 # Herdr 実装委譲契約
 
-作業領域の準備後に読む。pane配置、ID検証、Agent起動、readiness、送信、working確認、完了待機、出力回収は`../../herdr-agent-delegate/SKILL.md`へ一元化し、この文書では手順を再定義しない。本ワークフロー固有の責務境界、Agent選択、成果確認、停止・cleanup契約だけを追加する。
+作業領域の準備後に読む。pane配置、ID検証、Agent起動、送信、完了待機、出力回収は`herdr-agent-delegate`へ一元化し、この文書では手順を再定義しない。本ワークフロー固有の責務境界、Agent選択、成果確認、停止・cleanup契約だけを追加する。
 
 ## 1. 責務を分離する
 
@@ -24,13 +24,13 @@
 
 ## 3. 実装担当を解決する
 
-ユーザー指定を優先する。Agent種別指定なら`cagent-agent-command-resolve`へ明示し、指定なしなら現在の親Agentと同じ種別を明示して、実効Agent / Model / Effortと固定済み`agent-command`を解決して新規起動する。既存Agent名・ID指定なら`herdr agent get <target>`で解決してidleの場合だけ再利用する。
+ユーザー指定を優先する。Agent種別指定なら`cagent-agent-command-resolve`へ明示し、指定なしなら現在の親Agentと同じ種別を明示して、実効Agent / Model / Effortと固定済み`agent-kind`・`native-agent-args`を解決して新規起動する。既存Agent名・ID指定なら`herdr agent get <target>`で解決してidleの場合だけ再利用する。
 
 自分自身、存在しないAgent、非idle Agentは使わない。新規Agentの配置と起動は`herdr-agent-delegate`へ任せ、cagentの解決結果を書き換えない。新規AgentはIssue番号があれば`implement-issue-<number>`、なければ作業対象が分かる名前へrenameする。既存Agent名は変更しない。出自不明の既存paneではメタ情報を省略する。
 
 ## 4. PR Work Metadata snapshotを記録する
 
-PR Work Metadata snapshotは、`../../herdr-agent-delegate/references/delegation-metadata.md`の標準3値を役割別に保持した記録である。値はcagent解決時に同じ`agent-command`へ固定し、`send_request.py`へ渡したJSONだけを使う。
+PR Work Metadata snapshotは、`herdr-agent-delegate`の委譲メタ情報契約にある標準3値を役割別に保持した記録である。値はcagent解決時に同じ`agent-kind`・`native-agent-args`へ固定し、依頼へ付与したJSONだけを使う。
 
 | 役割 | 記録条件 | 固定時点 |
 | --- | --- | --- |
@@ -52,10 +52,10 @@ PR Work Metadata snapshotは、`../../herdr-agent-delegate/references/delegation
 - herdr-github-pr-orchestrateを使わないこと
 - commit、push、PR作成、再委譲を行わないこと
 - 変更概要、変更ファイル、検証コマンドと結果、未解決事項、ユーザー判断事項を返すこと
-- HerdrのCompletion contractに従うこと
+- Herdrの`herdr agent wait`に従うこと
 ```
 
-新規実装paneには、起動時snapshotが完全な場合だけ`send_request.py --metadata-json`で標準suffixを追加する。呼び出し側はブロックを手書きしない。
+新規実装paneには、起動時snapshotが完全な場合だけ`build_prompt.py --metadata-json`で標準suffixを付与する。呼び出し側はブロックを手書きしない。
 
 ユーザー判断事項が返った場合は同じpaneを保持し、親が判断を確認して同じ実装担当へ返す。別Agentや親実装へ切り替えない。
 
@@ -71,4 +71,4 @@ PR Work Metadata snapshotは、`../../herdr-agent-delegate/references/delegation
 
 ## 7. 後続工程へ渡す
 
-親Agentは`../../git-changes-commit/SKILL.md`へ成果確認済みの対象path、除外path、最終検証結果を渡し、返されたcommitを確認する。固定済みスナップショットを完成済み`PR_BODY`の最終`## AI Work Metadata`へ渡して`../../github-pr-create/SKILL.md`を適用し、PR作成後は独立したレビュー担当で`review-loop.md`へ進む。
+親Agentは`git-changes-commit`へ成果確認済みの対象path、除外path、最終検証結果を渡し、返されたcommitを確認する。固定済みスナップショットを完成済み`PR_BODY`の最終`## AI Work Metadata`へ渡して`github-pr-create`を適用し、PR作成後は独立したレビュー担当で`review-loop.md`へ進む。

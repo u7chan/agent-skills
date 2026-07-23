@@ -1,3 +1,4 @@
+schema_version: 2
 generated_by: .scripts/inventory.py
 scope: distributable + .claude/skills/ (maintenance-only)
 total_count: 34
@@ -9,7 +10,7 @@ skills:
   classification: maintenance
   responsibility: このリポジトリでスキルを追加・改名・削除・大幅変更し、READMEの更新が必要なときに使う
   description: このリポジトリでスキルを追加・改名・削除・大幅変更し、READMEの更新が必要なときに使う。 Available Skills表を現在の配布対象スキル構成へ同期する。
-  line_count: 134
+  line_count: 136
   has_references: false
   has_scripts: false
   has_tests: false
@@ -17,6 +18,7 @@ skills:
   skill_references: []
   path_references: []
   external_dependencies: []
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: agent-skill-design
@@ -32,6 +34,7 @@ skills:
   skill_references: []
   path_references: []
   external_dependencies: []
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F009
@@ -48,6 +51,7 @@ skills:
   skill_references: []
   path_references: []
   external_dependencies: []
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F009
@@ -63,10 +67,11 @@ skills:
   has_evaluation_samples: false
   skill_references: []
   path_references: []
-  external_dependencies:
+  external_dependencies: []
+  external_dependency_evidence:
   - name: motion
-    type: required
-    source: references/fluid-motion.md (code-import)
+    evidence_type: module-import
+    source: references/fluid-motion.md
   disposition: keep
   findings: []
 - name: bun-dependency-update
@@ -94,15 +99,16 @@ skills:
   - name: web access
     type: conditional
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F001
 - name: cagent-agent-command-resolve
   current_path: cagent-agent-command-resolve
   classification: distributable
-  responsibility: Herdrなどの上位委譲フローが、cagentでagent、task level、model、effortを解決し、 実行値を固定したagent-commandと任意の委譲メタ情報を必要とするときに使う
-  description: Herdrなどの上位委譲フローが、cagentでagent、task level、model、effortを解決し、 実行値を固定したagent-commandと任意の委譲メタ情報を必要とするときに使う。 pane作成、Agent起動、readiness確認、依頼送信、完了待機は行わない。
-  line_count: 103
+  responsibility: Herdrなどの上位委譲フローが、cagentでagent、task level、model、effortを解決し、 実行値を固定したagent-kind・native-agent-argsと任意の委譲メタ情報を必要とするときに使う
+  description: Herdrなどの上位委譲フローが、cagentでagent、task level、model、effortを解決し、 実行値を固定したagent-kind・native-agent-argsと任意の委譲メタ情報を必要とするときに使う。 pane作成、Agent起動、依頼送信、完了待機は行わない。
+  line_count: 113
   has_references: false
   has_scripts: true
   has_tests: true
@@ -111,7 +117,7 @@ skills:
   - name: herdr-agent-delegate
     relation: mention
     source_file: SKILL.md
-    source_line: 24
+    source_line: 25
   path_references: []
   external_dependencies:
   - name: herdr
@@ -129,9 +135,19 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence:
+  - name: cagent
+    evidence_type: command-v
+    source: SKILL.md
+  - name: herdr
+    evidence_type: command-v
+    source: SKILL.md
+  - name: python
+    evidence_type: command-v
+    source: SKILL.md
   - name: shlex
-    type: required
-    source: scripts/freeze_resolution.py (import)
+    evidence_type: python-import
+    source: scripts/freeze_resolution.py
   disposition: keep
   findings:
   - F012
@@ -158,6 +174,7 @@ skills:
   - name: coreutils
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: design-plan-grill
@@ -173,6 +190,7 @@ skills:
   skill_references: []
   path_references: []
   external_dependencies: []
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F007
@@ -195,6 +213,7 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: git-changes-commit
@@ -212,11 +231,7 @@ skills:
     relation: depends_on
     source_file: SKILL.md
     source_line: 42
-  path_references:
-  - path: ../git-commit-message-suggest/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 42
+  path_references: []
   external_dependencies:
   - name: git
     type: required
@@ -224,6 +239,7 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: git-commit-message-suggest
@@ -245,6 +261,7 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: git-worktree-create
@@ -259,7 +276,7 @@ skills:
   has_evaluation_samples: false
   skill_references:
   - name: git-branch-create
-    relation: depends_on
+    relation: used_by
     source_file: SKILL.md
     source_line: 10
   - name: herdr-github-pr-orchestrate
@@ -279,10 +296,6 @@ skills:
     type: general
     source_file: SKILL.md
     source_line: 67
-  - path: ../git-branch-create/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 10
   external_dependencies:
   - name: git
     type: required
@@ -290,6 +303,7 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F006
@@ -317,12 +331,13 @@ skills:
   - name: gh
     type: required
     source: README
-  - name: github api
+  - name: github
     type: required
     source: README
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: github-issue-decompose
@@ -349,12 +364,13 @@ skills:
   - name: gh
     type: required
     source: README
-  - name: github api
+  - name: github
     type: required
     source: README
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: github-pr-comment-reply
@@ -372,19 +388,7 @@ skills:
     relation: mention
     source_file: SKILL.md
     source_line: 37
-  - name: herdr-agent-delegate
-    relation: depends_on
-    source_file: references/posting-rules.md
-    source_line: 10
-  path_references:
-  - path: ../../herdr-agent-delegate/references/delegation-metadata.md
-    type: skill_internal
-    source_file: references/posting-rules.md
-    source_line: 10
-  - path: ../herdr-agent-delegate/references/delegation-metadata.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 33
+  path_references: []
   external_dependencies:
   - name: gh
     type: required
@@ -395,6 +399,7 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: github-pr-create
@@ -420,12 +425,13 @@ skills:
   - name: git
     type: required
     source: README
-  - name: github api
+  - name: github
     type: required
     source: README
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: github-pr-feedback-address
@@ -461,6 +467,7 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: github-pr-orchestrate
@@ -475,38 +482,26 @@ skills:
   has_evaluation_samples: false
   skill_references:
   - name: git-changes-commit
-    relation: depends_on
+    relation: mention
     source_file: SKILL.md
-    source_line: 60
+    source_line: 16
   - name: github-pr-create
-    relation: depends_on
+    relation: routes_to
     source_file: SKILL.md
-    source_line: 68
+    source_line: 15
   - name: github-pr-feedback-address
     relation: mention
     source_file: SKILL.md
     source_line: 76
   - name: github-pr-review
-    relation: depends_on
+    relation: mention
     source_file: SKILL.md
-    source_line: 74
+    source_line: 16
   - name: herdr-github-pr-orchestrate
     relation: mention
     source_file: SKILL.md
     source_line: 18
-  path_references:
-  - path: ../git-changes-commit/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 60
-  - path: ../github-pr-create/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 68
-  - path: ../github-pr-review/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 74
+  path_references: []
   external_dependencies:
   - name: gh
     type: required
@@ -517,12 +512,13 @@ skills:
   - name: git
     type: required
     source: README
-  - name: github api
+  - name: github
     type: required
     source: README
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F008
@@ -548,6 +544,7 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: github-pr-review
@@ -560,16 +557,8 @@ skills:
   has_scripts: false
   has_tests: false
   has_evaluation_samples: false
-  skill_references:
-  - name: herdr-agent-delegate
-    relation: depends_on
-    source_file: references/posting-rules.md
-    source_line: 27
-  path_references:
-  - path: ../../herdr-agent-delegate/references/delegation-metadata.md
-    type: skill_internal
-    source_file: references/posting-rules.md
-    source_line: 27
+  skill_references: []
+  path_references: []
   external_dependencies:
   - name: gh
     type: required
@@ -583,6 +572,7 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: grilling
@@ -602,29 +592,26 @@ skills:
     source_line: 53
   path_references: []
   external_dependencies: []
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F007
 - name: herdr-agent-delegate
   current_path: herdr-agent-delegate
   classification: distributable
-  responsibility: Herdr上でCLI Agentへタスクを委譲し、公式プリミティブによる1タブあたり最大4paneの配置、送信、完了待機、出力回収を行う
-  description: Herdr上でCLI Agentへタスクを委譲し、公式プリミティブによる1タブあたり最大4paneの配置、送信、完了待機、出力回収を行う。「別Agentに任せて」「複数Agentへ並列委譲」「子Agentの結果を回収」などで使う。
-  line_count: 173
+  responsibility: Herdr 0.7.5公式APIでCLI Agentを配置し、任意の委譲メタ情報付きで送信・待機・出力回収を行う
+  description: Herdr 0.7.5公式APIでCLI Agentを配置し、任意の委譲メタ情報付きで送信・待機・出力回収を行う。「別Agentに任せて」「複数Agentへ並列委譲」「子Agentの結果を回収」などで使う。
+  line_count: 114
   has_references: true
   has_scripts: true
   has_tests: true
   has_evaluation_samples: false
-  skill_references: []
-  path_references:
-  - path: ../SKILL.md
-    type: general
-    source_file: references/agent-cli.md
-    source_line: 55
-  - path: ../scripts/send_request.py
-    type: general
-    source_file: references/agent-cli.md
-    source_line: 26
+  skill_references:
+  - name: cagent-agent-command-resolve
+    relation: depends_on
+    source_file: SKILL.md
+    source_line: 8
+  path_references: []
   external_dependencies:
   - name: herdr
     type: required
@@ -641,10 +628,9 @@ skills:
   - name: agent cli
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
-  findings:
-  - F002
-  - F010
+  findings: []
 - name: herdr-github-create-issue
   current_path: herdr-github-create-issue
   classification: distributable
@@ -691,102 +677,61 @@ skills:
   - name: posix shell
     type: required
     source: README
+  - name: agent cli
+    type: required
+    source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: herdr-github-pr-orchestrate
   current_path: herdr-github-pr-orchestrate
   classification: distributable
   responsibility: GitHub Issueや実装タスクについて、Issue確認、作業領域準備、Herdr Agentへの実装委譲、成果確認、 共通Skillによる限定commit・PR作成、レビュー、FB対応、再チェックを統括するときに使う
-  description: GitHub Issueや実装タスクについて、Issue確認、作業領域準備、Herdr Agentへの実装委譲、成果確認、 共通Skillによる限定commit・PR作成、レビュー、FB対応、再チェックを統括するときに使う。 pane配置、readiness、送信、待機、出力回収の詳細はherdr-agent-delegateへ委ねる。
-  line_count: 156
+  description: GitHub Issueや実装タスクについて、Issue確認、作業領域準備、Herdr Agentへの実装委譲、成果確認、 共通Skillによる限定commit・PR作成、レビュー、FB対応、再チェックを統括するときに使う。 pane配置、送信、待機、出力回収の詳細はherdr-agent-delegateへ委ねる。
+  line_count: 157
   has_references: true
   has_scripts: false
   has_tests: true
   has_evaluation_samples: false
   skill_references:
   - name: cagent-agent-command-resolve
-    relation: depends_on
+    relation: mention
     source_file: SKILL.md
     source_line: 36
   - name: git-branch-create
-    relation: depends_on
+    relation: mention
     source_file: SKILL.md
     source_line: 32
   - name: git-changes-commit
-    relation: depends_on
+    relation: mention
     source_file: SKILL.md
-    source_line: 33
+    source_line: 25
   - name: github-pr-create
-    relation: depends_on
+    relation: mention
     source_file: SKILL.md
-    source_line: 34
+    source_line: 25
   - name: github-pr-feedback-address
-    relation: depends_on
+    relation: mention
     source_file: SKILL.md
     source_line: 38
   - name: github-pr-review
-    relation: depends_on
+    relation: mention
     source_file: SKILL.md
     source_line: 37
   - name: herdr-agent-delegate
-    relation: depends_on
-    source_file: references/implementation-delegation.md
-    source_line: 3
+    relation: mention
+    source_file: SKILL.md
+    source_line: 24
   - name: herdr-worktree-create
-    relation: depends_on
+    relation: mention
     source_file: SKILL.md
     source_line: 31
-  path_references:
-  - path: ../../git-changes-commit/SKILL.md
-    type: skill_internal
-    source_file: references/implementation-delegation.md
-    source_line: 74
-  - path: ../../github-pr-create/SKILL.md
-    type: skill_internal
-    source_file: references/implementation-delegation.md
-    source_line: 74
-  - path: ../../herdr-agent-delegate/SKILL.md
-    type: skill_internal
-    source_file: references/implementation-delegation.md
-    source_line: 3
-  - path: ../../herdr-agent-delegate/references/delegation-metadata.md
-    type: skill_internal
-    source_file: references/implementation-delegation.md
-    source_line: 33
-  - path: ../cagent-agent-command-resolve/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 36
-  - path: ../git-branch-create/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 32
-  - path: ../git-changes-commit/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 33
-  - path: ../github-pr-create/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 34
-  - path: ../github-pr-feedback-address/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 38
-  - path: ../github-pr-review/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 37
-  - path: ../herdr-agent-delegate/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 35
-  - path: ../herdr-worktree-create/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 31
+  path_references: []
   external_dependencies:
   - name: herdr
+    type: required
+    source: README
+  - name: cagent
     type: required
     source: README
   - name: gh
@@ -807,6 +752,7 @@ skills:
   - name: agent cli
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F003
@@ -832,34 +778,14 @@ skills:
     source_file: SKILL.md
     source_line: 16
   - name: herdr-agent-delegate
-    relation: depends_on
+    relation: mention
     source_file: SKILL.md
     source_line: 10
   - name: herdr-worktree-create
-    relation: depends_on
-    source_file: references/herdr-execution.md
-    source_line: 3
-  path_references:
-  - path: ../../herdr-agent-delegate/SKILL.md
-    type: skill_internal
-    source_file: references/herdr-execution.md
-    source_line: 50
-  - path: ../../herdr-worktree-create/SKILL.md
-    type: skill_internal
-    source_file: references/herdr-execution.md
-    source_line: 3
-  - path: ../herdr-agent-delegate/SKILL.md
-    type: skill_internal
+    relation: mention
     source_file: SKILL.md
     source_line: 10
-  - path: ../herdr-agent-delegate/references/agent-cli.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 10
-  - path: ../herdr-worktree-create/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 10
+  path_references: []
   external_dependencies:
   - name: herdr
     type: required
@@ -879,6 +805,7 @@ skills:
   - name: agent cli
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: herdr-worktree-create
@@ -900,11 +827,7 @@ skills:
     relation: used_by
     source_file: SKILL.md
     source_line: 17
-  path_references:
-  - path: ../git-branch-create/SKILL.md
-    type: skill_internal
-    source_file: SKILL.md
-    source_line: 10
+  path_references: []
   external_dependencies:
   - name: herdr
     type: required
@@ -915,6 +838,7 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F006
@@ -934,6 +858,7 @@ skills:
   - name: posix shell
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: image-to-svg
@@ -958,6 +883,7 @@ skills:
   - name: browser
     type: optional
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: japanese-text-refine
@@ -973,6 +899,7 @@ skills:
   skill_references: []
   path_references: []
   external_dependencies: []
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: npm-dependency-update
@@ -1003,6 +930,7 @@ skills:
   - name: web access
     type: conditional
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F004
@@ -1034,6 +962,7 @@ skills:
   - name: npx
     type: fallback
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: qa-test-design
@@ -1049,6 +978,7 @@ skills:
   skill_references: []
   path_references: []
   external_dependencies: []
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: tailwind-ui-compose
@@ -1067,6 +997,7 @@ skills:
   - name: tailwind css project
     type: required
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings: []
 - name: uv-dependency-update
@@ -1097,6 +1028,7 @@ skills:
   - name: web access
     type: conditional
     source: README
+  external_dependency_evidence: []
   disposition: keep
   findings:
   - F005

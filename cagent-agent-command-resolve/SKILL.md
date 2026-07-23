@@ -2,24 +2,25 @@
 name: cagent-agent-command-resolve
 description: >
   Herdrなどの上位委譲フローが、cagentでagent、task level、model、effortを解決し、
-  実行値を固定したagent-commandと任意の委譲メタ情報を必要とするときに使う。
-  pane作成、Agent起動、readiness確認、依頼送信、完了待機は行わない。
+  実行値を固定したagent-kind・native-agent-argsと任意の委譲メタ情報を必要とするときに使う。
+  pane作成、Agent起動、依頼送信、完了待機は行わない。
 ---
 
 # Cagent Agent Command Resolve
 
-`cagent` に選択値の解決を任せ、結果を次の4値に分けて返す。
+`cagent` に選択値の解決を任せ、結果を次の5値に分けて返す。
 
-- `base-agent-type`: 入力可能判定・送信・完了判定に使う実体のAgent種別（`codex` / `claude` / `opencode` など）
+- `agent-kind`: Herdr `agent start --kind` へ渡すAgent種別（`codex` / `claude` / `opencode` など）
 - `resolved`: cagentが選んだagent ID、表示用Agent名、Model、Effort
-- `agent-command`: 解決済みagent ID、Model、Effortを明示した対話起動コマンド
+- `native-agent-args`: 検証済みdry-runから抽出したAgent CLI実引数のJSON配列（`herdr agent start --` の各個別argvとして渡す）
+- `agent-command`: 解決済みagent ID、Model、Effortを明示したcagentラッパー起動コマンド（参照用）
 - `delegation-metadata`: 3表示値を同じ起動値へ固定できた場合だけ返すJSON。できなければ`null`
 
-ラッパー名 `cagent` を `base-agent-type` や表示用Agent名として扱わない。
+ラッパー名 `cagent` を `agent-kind` や表示用Agent名として扱わない。
 
 ## 責務境界
 
-- このSkillはpreflight、task level判断、`cagent doctor` / `--dry-run`による解決、起動値の固定、4値の返却だけを行う。
+- このSkillはpreflight、task level判断、`cagent doctor` / `--dry-run`による解決、起動値の固定、5値の返却だけを行う。
 - paneの作成・分割・操作、Agent CLIの起動、readiness確認、依頼送信、完了待機、出力回収、cleanupは行わない。
 - 上記の実行責務は`herdr-agent-delegate`などの呼び出し側が持つ。
 
@@ -43,7 +44,7 @@ description: >
 
 - agentの実効値はcagentと同じ `ユーザー明示の --agent > CAGENT_AGENT > config.default_agent` の優先順位で確定する。
 - agent未指定: 初回dry-runでは`--agent`を省略する。`CAGENT_AGENT`があればその値、なければ`cagent config path`が示す設定の`default_agent`を実効agent IDとして記録する。
-- `base-agent-type` は、この優先順位で選んだ同じagent IDのprovider / adapterから解決する。
+- `agent-kind` は、この優先順位で選んだ同じagent IDのprovider / adapterから解決する。
 - model未指定: `--model` を省略する。
 - effort未指定: `--effort` を省略する。
 - level未指定: 次節で判断し、判断不能な場合だけlevelを省略して `default_level` に任せる。
@@ -64,11 +65,11 @@ description: >
 
 選択値に依存するpreflightを順に行う。
 
-1. agent明示時は`cagent --agent <agent> doctor`、未指定時は`cagent doctor`を実行する。終了コードが非0、または`ERROR`があれば停止する。
+1. agent明示時は`cagent --agent <agent> doctor`、未指定時は`cagent doctor`を実行する。終了コードが非0または`ERROR`のうち、モデル一覧取得や通信の一過性と判断できる場合だけ1回再実行する。設定・認証・非互換エラーは即停止する。同一commandの実行は最大2回。再失敗は理由を問わず停止。dry-runや直接CLI fallbackは禁止する。
 2. ユーザー明示値と判断したlevelだけを指定した初回`cagent ... --dry-run`を実行し、出力を一時ファイルへ保存する。Agent CLIやpaneは起動しない。
-3. doctorで検証した実効agent IDとprovider / adapterから`base-agent-type`を確定する。コマンド名から推測しない。
-4. `<skill-dir>/scripts/freeze_resolution.py`へ実効agent ID、`base-agent-type`、level、初回dry-run出力を渡し、検証前の`agent-command`を得る。この時点の`delegation-metadata`は必ず`null`である。
-5. `agent-command`と同じ引数へ`--dry-run`を加えて再実行する。初回と検証用の両出力をhelperへ渡し、Agent CLI、Model、Effortが一致した`verified: true`の結果だけを採用する。不一致、非0、解決不能なら停止する。
+3. doctorで検証した実効agent IDとprovider / adapterから`agent-kind`を確定する。コマンド名から推測しない。
+4. `<skill-dir>/scripts/freeze_resolution.py`へ実効agent ID、`agent-kind`、level、初回dry-run出力を渡し、`native-agent-args`（dry-run CLI行のargv[1:]）と検証前の`agent-command`を得る。この時点の`delegation-metadata`は必ず`null`である。
+5. `agent-command`と同じ引数へ`--dry-run`を加えて再実行する。初回と検証用の両出力をhelperへ渡し、Agent CLI、Model、Effort、native-args（argv全要素）が完全一致した`verified: true`の結果だけを採用する。native-args不一致、非0、解決不能なら停止する。
 
 ```bash
 <skill-dir>/scripts/freeze_resolution.py \
@@ -78,6 +79,13 @@ description: >
   --dry-run-file <initial-dry-run-output> \
   --verification-dry-run-file <fixed-command-dry-run-output>
 ```
+
+戻り値:
+- `agent_kind` → `herdr agent start --kind <kind>`
+- `native_agent_args` → JSON配列、`herdr agent start --` の各個別argv
+- `native_agent_args_joined` → 表示用のshlex.join文字列
+- `agent_command` → cagentラッパー（参照用）
+- `delegation_metadata` → `null` または完全な3キーJSON
 
 固定後の例:
 
@@ -90,7 +98,9 @@ preflight用の`--dry-run`は実際の`agent-command`に含めない。Modelま�
 
 ## 5. 呼び出し側へ返す
 
-`base-agent-type`、`resolved`、`agent-command`、`delegation-metadata`を分離して返す。呼び出し側は`agent-command`をpaneで起動し、readiness・依頼送信・完了判定には`base-agent-type`を使う。
+`agent-kind`、`resolved`、`native-agent-args`、`agent-command`、`delegation-metadata`を分離して返す。
+呼び出し側は`herdr-agent-delegate`のAgent起動手順へ固定済みの`agent-kind`と
+`native-agent-args`を渡す。起動helperが`herdr agent start`を実行し、exit/stdout/stderrを伝播する。
 
 `delegation-metadata`は、表示用Agent名、Model、Effortがすべて非空で、同じagent ID、Model、Effortが`agent-command`へ明示され、再dry-runで一致した場合だけ次の形で返す。
 

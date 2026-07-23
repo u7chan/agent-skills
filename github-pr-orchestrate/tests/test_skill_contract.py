@@ -16,8 +16,10 @@ class SkillContractTest(unittest.TestCase):
         review_step = self.skill.index("### 5. 指定されたレビュー工程を行う")
         self.assertLess(commit_step, create_step)
         self.assertLess(create_step, review_step)
-        self.assertIn("../git-changes-commit/SKILL.md", self.skill)
-        self.assertIn("../github-pr-create/SKILL.md", self.skill)
+        self.assertIn("`git-changes-commit`", self.skill)
+        self.assertIn("`github-pr-create`", self.skill)
+        self.assertNotIn("../git-changes-commit/", self.skill)
+        self.assertNotIn("../github-pr-create/", self.skill)
 
     def test_unrelated_changes_are_not_committed(self):
         self.assertIn("対象path、除外path", self.skill)

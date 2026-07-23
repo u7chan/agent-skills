@@ -1,0 +1,8 @@
+---
+name: flow-parent-validate
+description: fixture parent
+---
+
+# Parent
+
+Use `git-child-validate`.

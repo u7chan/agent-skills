@@ -2,6 +2,7 @@
 """Phase 1: 全スキルの棚卸し — 配布対象 + .claude/skills/ 保守専用スキルを走査し、
 責務・参照関係・外部依存・本文量・重複候補を YAML として inventory/ に出力する。"""
 
+import argparse
 import hashlib
 import os
 import re
@@ -10,8 +11,12 @@ import yaml
 from collections import OrderedDict
 from pathlib import Path
 
+from skill_validation.external import CANONICAL_DEPENDENCY_ALIASES, normalize_dependency_name
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = REPO_ROOT / "inventory"
+CANONICAL_CATEGORIES = REPO_ROOT / ".rules/skill-categories.yaml"
+CANONICAL_RULES = REPO_ROOT / ".rules/skill-rules.yaml"
 
 # ── スコープ定義 ──────────────────────────────────────────
 EXCLUDE_DIRS = {".git", ".archive", ".codex", ".system", ".github", ".agents",
@@ -24,31 +29,7 @@ SKILL_FILE_EXCLUDES = {"agents/openai.yaml"}  # agent設定は走査対象外
 DEP_TYPES = ("required", "conditional", "optional", "fallback")
 
 # ── 外部依存の別名正規化マップ（canonical → 別名集合） ───
-DEP_ALIAS_MAP = {
-    "python": {"python", "python3", "python 3", "python3 -c", "command -v python3"},
-    "node": {"node", "node.js", "nodejs"},
-    "gh": {"gh", "github cli", "gh cli"},
-    "npx": {"npx", "node.js / npx"},
-    "tailwind": {"tailwind", "tailwind css", "tailwindcss"},
-    "playwright": {"playwright", "playwright cli"},
-    "librsvg": {"librsvg"},
-    "inkscape": {"inkscape"},
-    "browser": {"browser"},
-    "herdr": {"herdr", "herdr cli"},
-    "cagent": {"cagent"},
-    "bun": {"bun"},
-    "npm": {"npm"},
-    "jq": {"jq"},
-    "git": {"git"},
-    "uv": {"uv"},
-    "rg": {"rg", "ripgrep"},
-    "posix shell": {"posix shell", "posix"},
-    "github api": {"github api", "github"},
-    "agent cli": {"agent cli", "agent", "selected agent cli", "selected agent"},
-    "web access": {"web access"},
-    "coreutils": {"coreutils"},
-    "github": {"github"},  # GitHub platform, distinct from gh CLI
-}
+DEP_ALIAS_MAP = {name: set(aliases) for name, aliases in CANONICAL_DEPENDENCY_ALIASES.items()}
 
 # ── 明示的レイヤー定義 ────────────────────────────────────
 # prefix → layer index。ここにない prefix は unclassified (index=-1)
@@ -89,12 +70,7 @@ def _find_line_number(lines: list[str], match_text: str) -> int:
 
 def normalize_dep_name(name: str) -> str:
     """別名を正規形に変換。例: 'python 3' → 'python', 'node.js' → 'node'."""
-    name = name.strip().lower().rstrip(".")
-    name = re.sub(r"[`'\"]", "", name)
-    for canonical, aliases in DEP_ALIAS_MAP.items():
-        if name in aliases:
-            return canonical
-    return name
+    return normalize_dependency_name(name)
 
 
 def normalize_dep_name_no_map(name: str) -> str:
@@ -138,6 +114,15 @@ def find_skill_files() -> list[Path]:
             rel = Path(root).relative_to(REPO_ROOT)
             if str(rel) != ".":
                 skills.append(rel / "SKILL.md")
+    public_roots = [path for path in REPO_ROOT.iterdir() if not path.name.startswith(".")]
+    maintenance_root = REPO_ROOT / MAINTENANCE_PREFIX
+    if maintenance_root.is_dir():
+        public_roots.extend(maintenance_root.iterdir())
+    for directory in public_roots:
+        candidate = directory / "SKILL.md"
+        relative = candidate.relative_to(REPO_ROOT)
+        if directory.is_symlink() and candidate.is_file() and relative not in skills:
+            skills.append(relative)
     return sorted(skills)
 
 
@@ -212,7 +197,7 @@ def extract_responsibility(skill_name: str, frontmatter: dict) -> str:
     desc = frontmatter.get("description", "")
     if desc:
         desc = desc.strip()
-        first_sentence = re.split(r"[.。]", desc.replace("\n", " "))[0].strip()
+        first_sentence = re.split(r"。|(?<!\d)\.(?=\s|$)", desc.replace("\n", " "))[0].strip()
         if first_sentence:
             return first_sentence
     return f"unknown: {skill_name}"
@@ -367,145 +352,81 @@ def extract_path_references(file_contents: list[dict],
 def parse_readme_deps() -> dict[str, list[dict]]:
     """README.md の Available Skills テーブルから外部依存を取得する。
 
-    / 区切りを個別依存へ分割、別名正規化、種別注記を解析する。
+    README の External Dependencies 列を直接の正本として扱い、
+    R/C/O/F grammar を解析する。実装中の import・command はここへ混ぜない。
     """
     readme_path = REPO_ROOT / "README.md"
     if not readme_path.exists():
         return {}
 
-    with open(readme_path) as f:
+    with open(readme_path, encoding="utf-8") as f:
         content = f.read()
 
     deps: dict[str, list[dict]] = {}
-    for m in re.finditer(
-        r"\[([^\]]+)\]\(([^)]+/SKILL\.md)\)\s*\|[^|]*\|(.+?)\|",
-        content
-    ):
-        name = m.group(1)
-        dep_text = m.group(3).strip()
-
-        if dep_text in ("—", "—", ""):
+    row = re.compile(r"^\|\s*\[([^]]+)\]\(([^)]+/SKILL\.md)\)\s*\|[^|]*\|\s*(.*?)\s*\|\s*$")
+    type_by_symbol = {"R": "required", "C": "conditional", "O": "optional", "F": "fallback"}
+    for line in content.splitlines():
+        match = row.match(line)
+        if not match:
             continue
-
-        dep_list = []
-        # まずカンマで大分類し、各パート内の / 区切りも展開する
-        # 例: "Node.js / npm, `rg`, POSIX shell" → Node.js, npm, rg, POSIX shell
-        # 例: "librsvg / Inkscape / browser (one required)" → librsvg, Inkscape, browser
-        if "," in dep_text:
-            raw_parts = [p.strip() for p in dep_text.split(",")]
-        else:
-            raw_parts = [dep_text.strip()]
-
-        parts = []
-        for rp in raw_parts:
-            if not rp or rp in ("—", "—"):
-                continue
-            # / 区切りを含むが、カンマを含まない場合のみ分割（ネストした / は分割しない）
-            if "/" in rp and "," not in rp:
-                parts.extend(_split_alternatives(rp))
-            else:
-                parts.append(rp)
-
-        for part in parts:
-            part = part.strip()
-            if not part or part in ("—", "—"):
-                continue
-
-            dep_type = "required"
-            # 種別注記を抽出: (conditional), (one required), (fallback)
-            type_match = re.search(r'\(([^)]+)\)', part)
-            if type_match:
-                anno = type_match.group(1).strip().lower()
-                if anno in DEP_TYPES:
-                    dep_type = anno
-                elif anno in ("one required", "any required", "required one"):
-                    dep_type = "optional"  # 代替手段なので個々は optional
-                elif anno in ("fallback",):
-                    dep_type = "fallback"
-                part = part[:type_match.start()].strip() + " " + part[type_match.end():].strip()
-
-            # バッククォート除去、正規化
-            part = re.sub(r"[`]", "", part).strip()
-            if not part:
-                continue
-
-            dep_list.append({
-                "name": part,
-                "type": dep_type,
-                "source": "README",
-            })
-
+        name, dep_text = match.group(1), match.group(3).strip()
+        dep_list: list[dict] = []
+        if dep_text not in ("—", ""):
+            for part in _split_dependency_items(dep_text):
+                annotation = re.search(r"\(\s*([RCOF])\s*\)\s*$", part, re.IGNORECASE)
+                dep_type = type_by_symbol.get(annotation.group(1).upper(), "required") if annotation else "required"
+                if annotation:
+                    part = part[:annotation.start()].strip()
+                part = part.replace("`", "").strip()
+                if part and part != "—":
+                    dep_list.append({"name": part, "type": dep_type, "source": "README"})
         deps[name] = dep_list
 
     return deps
 
 
-def _split_alternatives(text: str) -> list[str]:
-    """/ 区切りの代替構文を個別要素へ分割する。
+def _split_dependency_items(text: str) -> list[str]:
+    """カンマ区切りを基本に、旧来の ``A / B (O)`` も個別化する。"""
+    items: list[str] = []
+    for raw in text.split(","):
+        raw = raw.strip()
+        if not raw or raw == "—":
+            continue
+        annotation = re.search(r"(\(\s*[RCOF]\s*\))\s*$", raw, re.IGNORECASE)
+        suffix = annotation.group(1) if annotation else ""
+        body = raw[:annotation.start()].strip() if annotation else raw
+        alternatives = [value.strip() for value in re.split(r"\s+/\s+", body) if value.strip()]
+        items.extend(f"{alternative} {suffix}".strip() for alternative in alternatives)
+    return items
 
-    例:
-      "librsvg / Inkscape / browser (one required)" → ["librsvg", "Inkscape", "browser (one required)"]
-      "Node.js / npm" → ["Node.js", "npm"]
+
+def extract_external_dependency_evidence(file_contents: list[dict]) -> list[dict]:
+    """import・command の静的証拠を確認材料として収集する。
+
+    これは README の直接依存へ自動追加しない。宣言との差分判定は
+    Phase 3 validator に委ね、inventory には証拠としてのみ保存する。
     """
-    # 種別注記がある場合は本体と種別を分離
-    type_anno = ""
-    anno_match = re.search(r'\(([^)]+)\)$', text.strip())
-    if anno_match:
-        type_anno = anno_match.group(0)
-        text = text[:anno_match.start()].strip()
+    evidence: list[dict] = []
+    seen: set[tuple[str, str, str]] = set()
 
-    # / で分割
-    alternatives = [a.strip() for a in text.split("/") if a.strip()]
-
-    if len(alternatives) <= 1:
-        return [text + " " + type_anno] if type_anno else [text]
-
-    # (one required) などの注記は全代替要素に付与（個々が optional 扱い）
-    result = []
-    for alt in alternatives:
-        if type_anno:
-            result.append(alt + " " + type_anno)
-        else:
-            result.append(alt)
-    return result
-
-
-def extract_external_deps(skill_name: str,
-                          file_contents: list[dict],
-                          readme_deps: dict[str, list[dict]]) -> list[dict]:
-    """外部依存を抽出。README の External Dependencies 列を優先し、スキル配下ファイルから補完。
-    別名正規化により重複を排除する。
-    """
-    deps: list[dict] = []
-    seen_canonical: set[str] = set()
-
-    def add_dep(name: str, dtype: str, source: str) -> None:
+    def add_evidence(name: str, evidence_type: str, source: str) -> None:
         canonical = normalize_dep_name(name)
-        if canonical not in seen_canonical:
-            deps.append({
-                "name": canonical,
-                "type": dtype,
-                "source": source,
-            })
-            seen_canonical.add(canonical)
+        key = (canonical, evidence_type, source)
+        if canonical and key not in seen:
+            seen.add(key)
+            evidence.append({"name": canonical, "evidence_type": evidence_type, "source": source})
 
-    # README からの依存（優先）
-    if skill_name in readme_deps:
-        for rd in readme_deps[skill_name]:
-            add_dep(rd["name"], rd["type"], "README")
-
-    # スキル配下ファイルから補完
     for file_info in file_contents:
         content = file_info["content"]
         rel_path = file_info["rel_path"]
 
         # `command -v <cmd>` パターン
         for cmd_match in re.finditer(r"`command -v (\w+)`", content):
-            add_dep(cmd_match.group(1), "required", f"{rel_path} (command -v)")
+            add_evidence(cmd_match.group(1), "command-v", rel_path)
 
         # `which <cmd>` パターン
         for which_match in re.finditer(r"`which (\w+)`", content):
-            add_dep(which_match.group(1), "required", f"{rel_path} (which)")
+            add_evidence(which_match.group(1), "which", rel_path)
 
         # 全コードブロックから import 文を抽出（Python / JS / TS）
         for code in re.findall(r"```[^\n]*\n(.*?)```", content, re.DOTALL):
@@ -517,14 +438,14 @@ def extract_external_deps(skill_name: str,
                                     "hashlib", "collections", "dataclasses", "importlib",
                                     "__future__", "argparse", "logging", "tempfile"):
                     continue
-                add_dep(mod, "required", f"{rel_path} (code-import)")
+                add_evidence(mod, "python-import", rel_path)
             # JS/TS: import { ... } from '...' / import ... from '...'
             for imp in re.finditer(r"(?:^|\n)\s*import\s+(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+['\"]([^'\"]+)['\"]", code):
                 mod = imp.group(1)
                 if mod.startswith(".") or mod.startswith("node:"):
                     continue
                 pkg = mod.split("/")[0] if mod.startswith("@") else mod.split("/")[0]
-                add_dep(pkg, "required", f"{rel_path} (code-import)")
+                add_evidence(pkg, "module-import", rel_path)
 
         # 実ファイルの import 文（.py ファイルの直接解析）
         if rel_path.endswith(".py"):
@@ -535,7 +456,7 @@ def extract_external_deps(skill_name: str,
                                    "hashlib", "collections", "dataclasses", "importlib",
                                    "__future__", "argparse", "logging", "tempfile"):
                     continue
-                add_dep(mod, "required", f"{rel_path} (import)")
+                add_evidence(mod, "python-import", rel_path)
 
         # .sh ファイルのコマンド参照
         if rel_path.endswith(".sh"):
@@ -546,9 +467,20 @@ def extract_external_deps(skill_name: str,
                          "dir", "ls", "test", "unset", "export", "local", "readonly",
                          "shift", "return", "source", "trap", "wait", "exec", "eval"):
                     continue
-                add_dep(c, "required", f"{rel_path} (shell-cmd)")
+                add_evidence(c, "shell-command", rel_path)
 
-    return deps
+    return sorted(evidence, key=lambda item: (item["name"], item["evidence_type"], item["source"]))
+
+
+def extract_external_deps(skill_name: str,
+                          file_contents: list[dict],
+                          readme_deps: dict[str, list[dict]]) -> list[dict]:
+    """READMEの直接宣言だけをinventory形式へ変換する互換ヘルパー。"""
+    del file_contents
+    return [
+        {"name": normalize_dep_name(dependency["name"]), "type": dependency["type"], "source": "README"}
+        for dependency in readme_deps.get(skill_name, [])
+    ]
 
 
 # ====================================================================
@@ -601,126 +533,184 @@ def tarjan_scc(adj: dict[str, set[str]]) -> list[list[str]]:
     return sccs
 
 
-def build_dependency_graph(skills_meta: list[dict]) -> dict:
-    """依存グラフを構築し、循環参照・逆方向依存・物理パス参照を検出する。"""
+def load_yaml_document(path: Path) -> dict:
+    """正本YAMLを読み込む。壊れた正本でも棚卸しの他項目は出力する。"""
+    try:
+        with open(path, encoding="utf-8") as handle:
+            document = yaml.safe_load(handle) or {}
+    except (OSError, yaml.YAMLError):
+        return {}
+    return document if isinstance(document, dict) else {}
+
+
+def canonical_line(path: Path, name: str) -> int:
+    """正本内のSkill宣言行を返す。"""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return 0
+    return _find_line_number(lines, f"- name: {name}")
+
+
+def canonical_relations(document: dict, active_names: set[str]) -> dict[str, dict]:
+    """skill-categories.yaml の依存・経路関係を正規化する。"""
+    result: dict[str, dict] = {}
+    for entry in document.get("skills", []):
+        if not isinstance(entry, dict) or entry.get("name") not in active_names:
+            continue
+        name = entry["name"]
+        depends = entry.get("depends_on", [])
+        routes = entry.get("routes_to", [])
+        conditions = entry.get("depends_on_edge_condition", {})
+        result[name] = {
+            "depends_on": sorted({value for value in depends if isinstance(value, str)} if isinstance(depends, list) else set()),
+            "routes_to": sorted({value for value in routes if isinstance(value, str)} if isinstance(routes, list) else set()),
+            "depends_on_edge_condition": conditions if isinstance(conditions, dict) else {},
+            "category": entry.get("category"),
+        }
+
+    notes = document.get("dependency_notes", {})
+    routes_notes = notes.get("routes_to_not_depends", {}) if isinstance(notes, dict) else {}
+    for item in routes_notes.get("items", []) if isinstance(routes_notes, dict) else []:
+        if not isinstance(item, dict) or item.get("from") not in active_names:
+            continue
+        source = item["from"]
+        targets = item.get("to", [])
+        if not isinstance(targets, list):
+            targets = [targets]
+        relation = item.get("relation", "mention")
+        result.setdefault(source, {"depends_on": [], "routes_to": [], "depends_on_edge_condition": {}, "category": None})
+        if relation == "routes_to":
+            result[source]["routes_to"].extend(value for value in targets if isinstance(value, str))
+    for relation in result.values():
+        relation["routes_to"] = sorted(set(relation["routes_to"]))
+    return result
+
+
+def build_dependency_graph(skills_meta: list[dict], categories_document: dict, rules_document: dict) -> dict:
+    """正本のdepends_onだけでグラフを構築する。自然言語抽出は循環判定に使わない。"""
+    name_to_skill = {skill["name"]: skill for skill in skills_meta}
+    active_names = set(name_to_skill)
+    relations = canonical_relations(categories_document, active_names)
+    canonical_skills = {entry.get("name"): entry for entry in categories_document.get("skills", []) if isinstance(entry, dict)}
+    category_defs = {entry.get("id"): entry for entry in rules_document.get("categories", []) if isinstance(entry, dict)}
+
     graph: dict = {
+        "schema_version": 2,
         "nodes": [],
         "edges": [],
         "other_references": [],
         "cycles": [],
         "reverse_dependency_candidates": [],
         "physical_path_refs": [],
-        "layer_definition": [{"layer": name, "index": idx, "prefixes": sorted(
-            [p for p, i in LAYER_DEF.items() if i == idx]
-        )} for name, idx in [("primitive", 0), ("utility", 1), ("orchestration", 2)]],
+        "canonical_source": ".rules/skill-categories.yaml",
+        "layer_definition": [
+            {"layer": category, "index": definition.get("order"), "skills": sorted(
+                name for name, relation in relations.items() if relation.get("category") == category
+            )}
+            for category, definition in sorted(category_defs.items(), key=lambda item: (item[1].get("order", 999), item[0]))
+        ],
     }
 
-    name_to_skill: dict[str, dict] = {}
-    for s in skills_meta:
-        name = s["name"]
-        node = {
-            "name": name,
-            "current_path": s["current_path"],
-            "classification": s["classification"],
-            "line_count": s["line_count"],
-        }
-        graph["nodes"].append(node)
-        name_to_skill[name] = s
+    for skill in skills_meta:
+        graph["nodes"].append({
+            "name": skill["name"],
+            "current_path": skill["current_path"],
+            "classification": skill["classification"],
+            "line_count": skill["line_count"],
+        })
 
-    # depends_on エッジのみを有向依存グラフに含める
     dep_edges: list[dict] = []
-    other_refs: list[dict] = []
-
-    for s in skills_meta:
-        from_name = s["name"]
-        for ref in s["skill_references"]:
-            ref_name = ref["name"]
-            if ref_name not in name_to_skill:
+    for source in sorted(relations):
+        relation = relations[source]
+        for target in relation["depends_on"]:
+            if target not in active_names:
                 continue
-            edge = {
-                "from": from_name,
-                "to": ref_name,
-                "relation": ref["relation"],
-                "source_file": ref["source_file"],
-                "source_line": ref["source_line"],
-            }
-            if ref["relation"] == "depends_on":
-                dep_edges.append(edge)
-            else:
-                other_refs.append(edge)
-
+            condition = relation["depends_on_edge_condition"].get(target, "unconditional")
+            dep_edges.append({
+                "from": source,
+                "to": target,
+                "relation": "depends_on",
+                "edge_condition": condition,
+                "source_file": ".rules/skill-categories.yaml",
+                "source_line": canonical_line(CANONICAL_CATEGORIES, source),
+            })
     graph["edges"] = dep_edges
-    graph["other_references"] = other_refs
 
-    # SCC による循環参照の検出（depends_on エッジのみ）
-    adj: dict[str, set[str]] = {}
+    other_refs: dict[tuple[str, str, str], dict] = {}
+    for source in sorted(relations):
+        for target in relations[source]["routes_to"]:
+            if target in active_names:
+                other_refs[(source, target, "routes_to")] = {
+                    "from": source, "to": target, "relation": "routes_to",
+                    "source_file": ".rules/skill-categories.yaml",
+                    "source_line": canonical_line(CANONICAL_CATEGORIES, source),
+                }
+    # 自動抽出は観測用。depends_on辺には昇格させない。
+    for skill in skills_meta:
+        for reference in skill.get("skill_references", []):
+            target = reference["name"]
+            if target not in active_names or reference["relation"] == "depends_on":
+                continue
+            key = (skill["name"], target, reference["relation"])
+            other_refs.setdefault(key, {
+                "from": skill["name"],
+                "to": target,
+                "relation": reference["relation"],
+                "source_file": reference["source_file"],
+                "source_line": reference["source_line"],
+            })
+    graph["other_references"] = sorted(other_refs.values(), key=lambda item: (item["from"], item["to"], item["relation"]))
+
+    adj: dict[str, set[str]] = {name: set() for name in active_names}
     for edge in dep_edges:
-        adj.setdefault(edge["from"], set()).add(edge["to"])
-        adj.setdefault(edge["to"], set())
+        adj[edge["from"]].add(edge["to"])
+    for component in tarjan_scc(adj):
+        cyclic = len(component) > 1 or component[0] in adj.get(component[0], set())
+        if not cyclic:
+            continue
+        members = set(component)
+        start = component[0]
+        path = [start]
+        current = start
+        seen = {start}
+        while True:
+            target = next((value for value in sorted(adj[current]) if value in members), None)
+            if target is None:
+                break
+            path.append(target)
+            if target == start:
+                break
+            if target in seen:
+                break
+            seen.add(target)
+            current = target
+        graph["cycles"].append({"members": component, "example_path": path})
 
-    sccs = tarjan_scc(adj)
-    for scc in sccs:
-        if len(scc) > 1:
-            # 循環パスを構築（SCC内のノードから最小限の辺を抽出）
-            cycle_members: set[str] = set(scc)
-            sub_adj: dict[str, set[str]] = {v: adj.get(v, set()) & cycle_members for v in scc}
-            # 最初のノードからDFSでサイクルパスを構築
-            cycle_path: list[str] = []
-            visited_cycle: set[str] = set()
-
-            def find_cycle_path(v: str, start: str, path: list[str]) -> list[str] | None:
-                if v in visited_cycle:
-                    return None
-                visited_cycle.add(v)
-                new_path = path + [v]
-                for w in sorted(sub_adj.get(v, set())):
-                    if w == start and len(new_path) > 1:
-                        return new_path + [w]
-                    if w not in visited_cycle:
-                        result = find_cycle_path(w, start, new_path)
-                        if result:
-                            return result
-                visited_cycle.discard(v)
-                return None
-
-            cycle_path = find_cycle_path(scc[0], scc[0], []) or scc
-            if len(cycle_path) > 1:
-                graph["cycles"].append({
-                    "members": scc,
-                    "example_path": cycle_path,
-                })
-
-    # 逆方向依存候補（明示的レイヤー定義に基づく）
+    # category order を正本から読み、下位カテゴリから上位カテゴリへの辺だけを候補化する。
     for edge in dep_edges:
-        from_prefix = edge["from"].split("-")[0]
-        to_prefix = edge["to"].split("-")[0]
-        from_layer_idx, from_layer_name = get_layer(from_prefix)
-        to_layer_idx, to_layer_name = get_layer(to_prefix)
-
-        # 上位レイヤーから下位レイヤーへの参照は、アーキテクチャ上期待される方向
-        # 下位→上位の depends_on は潜在的なレイヤー違反候補
-        if from_layer_idx >= 0 and to_layer_idx >= 0 and from_layer_idx < to_layer_idx:
+        source_category = category_defs.get(canonical_skills.get(edge["from"], {}).get("category"), {})
+        target_category = category_defs.get(canonical_skills.get(edge["to"], {}).get("category"), {})
+        source_order = source_category.get("order")
+        target_order = target_category.get("order")
+        if isinstance(source_order, int) and isinstance(target_order, int) and source_order > target_order:
             graph["reverse_dependency_candidates"].append({
-                "from": edge["from"],
-                "to": edge["to"],
-                "from_layer": from_layer_name,
-                "to_layer": to_layer_name,
-                "reason": f"{from_prefix}({from_layer_name}) → {to_prefix}({to_layer_name}): lower depends on higher layer",
-                "source_file": edge["source_file"],
-                "source_line": edge["source_line"],
+                "from": edge["from"], "to": edge["to"],
+                "from_layer": source_category.get("id"), "to_layer": target_category.get("id"),
+                "reason": f"{source_category.get('id')} → {target_category.get('id')}: lower depends on higher category",
+                "source_file": edge["source_file"], "source_line": edge["source_line"],
             })
 
-    # 物理パス参照の収集
-    for s in skills_meta:
-        for path_ref in s.get("path_references", []):
+    for skill in skills_meta:
+        for path_ref in skill.get("path_references", []):
             graph["physical_path_refs"].append({
-                "skill": s["name"],
+                "skill": skill["name"],
                 "path": path_ref["path"],
                 "type": path_ref["type"],
                 "source_file": path_ref["source_file"],
                 "source_line": path_ref["source_line"],
             })
-
+    graph["physical_path_refs"].sort(key=lambda item: (item["skill"], item["path"], item["source_file"], item["source_line"]))
     return graph
 
 
@@ -731,13 +721,18 @@ def build_dependency_graph(skills_meta: list[dict]) -> dict:
 def analyze_findings(skills_meta: list[dict]) -> list[dict]:
     """自動検出可能な所見（肥大化・行数超過）を返す。"""
     findings = []
-    fid = 0
+    stable_ids = {
+        "bun-dependency-update": "F001",
+        "herdr-agent-delegate": "F002",
+        "herdr-github-pr-orchestrate": "F003",
+        "npm-dependency-update": "F004",
+        "uv-dependency-update": "F005",
+    }
 
     for s in skills_meta:
         if s["line_count"] > 180:
-            fid += 1
             findings.append({
-                "id": f"F{fid:03d}",
+                "id": stable_ids.get(s["name"], f"F-LINE-{s['name']}"),
                 "type": "oversize",
                 "skill": s["name"],
                 "line_count": s["line_count"],
@@ -746,9 +741,8 @@ def analyze_findings(skills_meta: list[dict]) -> list[dict]:
                 "auto_detected": True,
             })
         elif s["line_count"] > 150:
-            fid += 1
             findings.append({
-                "id": f"F{fid:03d}",
+                "id": stable_ids.get(s["name"], f"F-LINE-{s['name']}"),
                 "type": "near_limit",
                 "skill": s["name"],
                 "line_count": s["line_count"],
@@ -764,19 +758,14 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
     """人手判断による所見を追加する。"""
     name_map = {s["name"]: s for s in skills_meta}
     findings = []
-    fid = auto_count
-
-    def fid_next():
-        nonlocal fid
-        fid += 1
-        return f"F{fid:03d}"
+    del auto_count
 
     # ── 重複責務候補 ──
     gwt = name_map.get("git-worktree-create")
     hwt = name_map.get("herdr-worktree-create")
     if gwt and hwt:
         findings.append({
-            "id": fid_next(),
+            "id": "F006",
             "type": "duplication_candidate",
             "skills": [gwt["name"], hwt["name"]],
             "reason": "両者とも独立したworktree作成が責務。git-worktree-create は純粋なgit操作、herdr-worktree-create はHerdrコマンドによる作成。責務が重複しているが、利用コンテキストが異なるため統合には慎重な判断が必要。",
@@ -788,7 +777,7 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
     dpg = name_map.get("design-plan-grill")
     if gr and dpg:
         findings.append({
-            "id": fid_next(),
+            "id": "F007",
             "type": "duplication_candidate",
             "skills": [gr["name"], dpg["name"]],
             "reason": "grilling は領域非依存の壁打ち、design-plan-grill は設計に特化した壁打ち。責務が重複しており、design-plan-grill は grilling の特殊化。grilling の SKILL.md 内でも design-plan-grill への委譲を指示している。",
@@ -800,7 +789,7 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
     hgo = name_map.get("herdr-github-pr-orchestrate")
     if gpo and hgo:
         findings.append({
-            "id": fid_next(),
+            "id": "F008",
             "type": "duplication_candidate",
             "skills": [gpo["name"], hgo["name"]],
             "reason": "両者ともPR作成の統括フロー。github-pr-orchestrate は非Herdr環境、herdr-github-pr-orchestrate はHerdr環境向け。herdr版はgithub版の共通スキルを参照している。",
@@ -812,7 +801,7 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
     asr = name_map.get("agent-skill-refine")
     if asd and asr:
         findings.append({
-            "id": fid_next(),
+            "id": "F009",
             "type": "duplication_candidate",
             "skills": [asd["name"], asr["name"]],
             "reason": "agent-skill-design は新規作成・要件追加・全面再設計、agent-skill-refine は挙動を変えずに短文化・高密度化。責務は明確に分離されているが、密接に関連しており、参照関係も強い。",
@@ -824,7 +813,7 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
     had = name_map.get("herdr-agent-delegate")
     if had and had["line_count"] > 170:
         findings.append({
-            "id": fid_next(),
+            "id": "F010",
             "type": "oversize_detail",
             "skill": had["name"],
             "line_count": had["line_count"],
@@ -835,7 +824,7 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
 
     if hgo and hgo["line_count"] > 150:
         findings.append({
-            "id": fid_next(),
+            "id": "F011",
             "type": "near_limit_detail",
             "skill": hgo["name"],
             "line_count": hgo["line_count"],
@@ -847,7 +836,7 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
     car = name_map.get("cagent-agent-command-resolve")
     if car and car.get("has_scripts"):
         findings.append({
-            "id": fid_next(),
+            "id": "F012",
             "type": "complexity",
             "skill": car["name"],
             "reason": "cagent の解決ロジックと Agent Command の生成を1スキルで扱っている。scripts/ に実装があり、SKILL.md はそれらの使い方を説明する構成。責務は明確だが、cagent 自体のバージョンアップに追従が必要。",
@@ -865,7 +854,7 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
     for (dname, dtype), count in sorted(deps_summary.items(), key=lambda x: -x[1]):
         if count >= len(skills_meta) * 0.5:
             findings.append({
-                "id": fid_next(),
+                "id": f"F-COMMON-{normalize_dep_name(dname).replace(' ', '-').upper()}",
                 "type": "common_dependency",
                 "dependency": dname,
                 "type_class": dtype,
@@ -874,20 +863,26 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
                 "auto_detected": False,
             })
 
-    return (findings, fid)
+    return findings
 
 
 # ====================================================================
 # メイン
 # ====================================================================
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Generate deterministic skill inventory YAML.")
+    parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
+    args = parser.parse_args(argv)
+    output_dir = args.output_dir if args.output_dir.is_absolute() else REPO_ROOT / args.output_dir
     print(f"Scanning {REPO_ROOT} ...")
 
     skill_files = find_skill_files()
     print(f"Found {len(skill_files)} SKILL.md files (distributable + maintenance)")
 
     readme_deps = parse_readme_deps()
+    categories_document = load_yaml_document(CANONICAL_CATEGORIES)
+    rules_document = load_yaml_document(CANONICAL_RULES)
 
     # 全スキル名を収集（依存抽出用）
     all_skill_names: set[str] = set()
@@ -924,7 +919,9 @@ def main() -> None:
         subdirs = check_subdirs(skill_dir)
         skill_refs = extract_skill_references(file_contents, all_skill_names, name)
         path_refs = extract_path_references(file_contents, all_skill_names)
+        # 外部依存の直接宣言は README のみ。実装証拠は別フィールドに保存する。
         ext_deps = extract_external_deps(name, file_contents, readme_deps)
+        ext_evidence = extract_external_dependency_evidence(file_contents)
 
         meta = {
             "name": name,
@@ -940,18 +937,19 @@ def main() -> None:
             "skill_references": skill_refs,
             "path_references": path_refs,
             "external_dependencies": ext_deps,
+            "external_dependency_evidence": ext_evidence,
             "disposition": "keep",
             "findings": [],
         }
         skills_meta.append(meta)
 
     # 依存グラフ構築
-    dep_graph = build_dependency_graph(skills_meta)
+    dep_graph = build_dependency_graph(skills_meta, categories_document, rules_document)
 
     # 所見の分析
     auto_findings = analyze_findings(skills_meta)
     auto_count = len(auto_findings)
-    manual_findings, _ = add_manual_findings(skills_meta, auto_count)
+    manual_findings = add_manual_findings(skills_meta, auto_count)
     all_findings = auto_findings + manual_findings
 
     # 各スキルの findings に該当する finding ID を設定
@@ -967,10 +965,11 @@ def main() -> None:
         s["findings"] = sorted(finding_by_skill.get(s["name"], []))
 
     # 出力ディレクトリ作成
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # スキルメタデータ出力
     skills_yaml = {
+        "schema_version": 2,
         "generated_by": ".scripts/inventory.py",
         "scope": "distributable + .claude/skills/ (maintenance-only)",
         "total_count": len(skills_meta),
@@ -979,29 +978,31 @@ def main() -> None:
         "skills": skills_meta,
     }
 
-    with open(OUTPUT_DIR / "skills.yaml", "w") as f:
+    with open(output_dir / "skills.yaml", "w", encoding="utf-8") as f:
         yaml.dump(skills_yaml, f, allow_unicode=True, sort_keys=False, width=160)
-    print(f"Wrote {OUTPUT_DIR / 'skills.yaml'}")
+    print(f"Wrote {output_dir / 'skills.yaml'}")
 
     # 依存グラフ出力
-    with open(OUTPUT_DIR / "dependency-graph.yaml", "w") as f:
+    with open(output_dir / "dependency-graph.yaml", "w", encoding="utf-8") as f:
         yaml.dump(dep_graph, f, allow_unicode=True, sort_keys=False, width=160)
-    print(f"Wrote {OUTPUT_DIR / 'dependency-graph.yaml'}")
+    print(f"Wrote {output_dir / 'dependency-graph.yaml'}")
 
     # 所見出力
     findings_yaml = {
+        "schema_version": 2,
         "generated_by": ".scripts/inventory.py",
         "total_findings": len(all_findings),
         "auto_detected": sum(1 for f in all_findings if f.get("auto_detected")),
         "manual": sum(1 for f in all_findings if not f.get("auto_detected")),
         "findings": all_findings,
     }
-    with open(OUTPUT_DIR / "findings.yaml", "w") as f:
+    with open(output_dir / "findings.yaml", "w", encoding="utf-8") as f:
         yaml.dump(findings_yaml, f, allow_unicode=True, sort_keys=False, width=160)
-    print(f"Wrote {OUTPUT_DIR / 'findings.yaml'}")
+    print(f"Wrote {output_dir / 'findings.yaml'}")
 
     # サマリ出力
     summary = {
+        "schema_version": 2,
         "generated_by": ".scripts/inventory.py",
         "scope": "distributable + .claude/skills/ (maintenance-only)",
         "total_skills": len(skills_meta),
@@ -1017,13 +1018,13 @@ def main() -> None:
         "near_limit_skills": sum(1 for f in all_findings if f.get("type") == "near_limit"),
         "duplication_candidates": sum(1 for f in all_findings if f.get("type") == "duplication_candidate"),
     }
-    with open(OUTPUT_DIR / "summary.yaml", "w") as f:
+    with open(output_dir / "summary.yaml", "w", encoding="utf-8") as f:
         yaml.dump(summary, f, allow_unicode=True, sort_keys=False, width=160)
-    print(f"Wrote {OUTPUT_DIR / 'summary.yaml'}")
+    print(f"Wrote {output_dir / 'summary.yaml'}")
 
     # MD5ハッシュ計算（再現性検証用）
     print("\n=== MD5 Checksums ===")
-    for yaml_file in sorted(OUTPUT_DIR.glob("*.yaml")):
+    for yaml_file in sorted(output_dir.glob("*.yaml")):
         with open(yaml_file, "rb") as f:
             h = hashlib.md5(f.read()).hexdigest()
         print(f"  {yaml_file.name}: {h}")

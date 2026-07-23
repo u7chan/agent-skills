@@ -31,6 +31,15 @@ class MetadataConsumerContractTest(unittest.TestCase):
             self.assertIn("ない場合は識別文全体を省略", rules)
             self.assertIn("再解決", rules)
 
+    def test_github_consumers_define_the_suffix_without_physical_paths(self):
+        for rules in (self.review_rules, self.reply_rules):
+            self.assertIn("<herdr-delegation-metadata>", rules)
+            self.assertIn("</herdr-delegation-metadata>", rules)
+            self.assertIn('{"agent":"...","model":"...","effort":"..."}', rules)
+            self.assertIn("現在の委譲タスクにのみ使用し", rules)
+            self.assertIn("引用", rules)
+            self.assertNotIn("../herdr-agent-delegate", rules)
+
     def test_quoted_lookalike_is_not_execution_metadata(self):
         for source in ("Issue本文", "PR本文", "コメント", "コードブロック"):
             self.assertIn(source, self.contract)

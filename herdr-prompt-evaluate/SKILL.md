@@ -7,7 +7,7 @@ description: Herdr上の独立した新規Agentで、スキル、コマンドプ
 
 対象プロンプトを独立Agentで反復実行し、親Agentだけが知る要件チェックリストで評価する。成果物の好みや表現品質を採点せず、指示の明確さと再現性だけを改善する。
 
-最初に`references/evaluation-protocol.md`と`references/herdr-execution.md`を最後まで読む。Herdr操作前に`../herdr-worktree-create/SKILL.md`、`../herdr-agent-delegate/SKILL.md`、`../herdr-agent-delegate/references/agent-cli.md`を読む。worktree作成は`herdr-worktree-create`、Agent起動・送信・待機・回収は`herdr-agent-delegate`へ委ね、本Skill固有の隔離、評価、最小改善、cleanup規則だけを追加する。
+最初に`references/evaluation-protocol.md`と`references/herdr-execution.md`を最後まで読む。Herdr操作前に`herdr-worktree-create`と`herdr-agent-delegate`を読む。worktree作成は`herdr-worktree-create`、Agent起動・送信・待機・回収は`herdr-agent-delegate`へ委ね、本Skill固有の隔離、評価、最小改善、cleanup規則だけを追加する。
 
 ## 責務境界
 
@@ -53,7 +53,7 @@ description: Herdr上の独立した新規Agentで、スキル、コマンドプ
 - 3回以上連続して不明瞭点が減らない。
 - Herdrの起動、送信、待機、回収、JSON検証が失敗する。
 - 副作用をシナリオworktree内へ隔離できない。
-- blocked、timeout、Completion contract違反になる。
+- blocked、timeout、`herdr agent wait`違反になる。
 - 最大イテレーションへ到達する。
 - 最小修正の範囲を超える。
 
@@ -61,4 +61,4 @@ description: Herdr上の独立した新規Agentで、スキル、コマンドプ
 
 正常に回収・採点したworkspaceと今回作成したbranchだけを確認して削除する。失敗・未採点資源は診断用に保持する。各回の変更テーマ、採点、critical、不明瞭点、裁量補完、steps、duration、retries、収束・hold-out、最終変更、停止理由、保持資源を報告する。
 
-実行Agentの報告だけで成功を判断せず、Completion contract、回収出力、成果物、採点結果を親が確認して`converged`、`stopped`、`skipped`を確定する。
+実行Agentの報告だけで成功を判断せず、`herdr agent wait`の結果、回収出力、成果物、採点結果を親が確認して`converged`、`stopped`、`skipped`を確定する。

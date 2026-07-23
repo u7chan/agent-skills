@@ -32,7 +32,7 @@
 | total | 全チェック項目数 |
 | accuracy | `100 * sum(requirement_scores) / total`。小数第1位まで保持する |
 | critical | critical項目ごとのpass/fail。`1`だけをpassとし、`0.5`と`0`はfailにする |
-| success | Completion contract、回収、採点が成功し、全criticalが`1`ならtrue |
+| success | `herdr agent wait`、回収、採点が成功し、全criticalが`1`ならtrue |
 | ambiguities | 実行から新たに観測した、プロンプトだけでは一意に決められない判断点の重複除外一覧 |
 | discretion | 指示にないため実行Agentが裁量で補完した判断の重複除外一覧 |
 | steps | タスク開始後の観測可能なAgent行動数。ツール呼出し、コマンド実行、ファイル変更、明示的判断を各1とし、待機・画面描画・親の操作は数えない |

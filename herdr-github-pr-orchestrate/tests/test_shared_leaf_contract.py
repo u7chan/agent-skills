@@ -30,8 +30,10 @@ class SharedLeafContractTest(unittest.TestCase):
 
     def test_commit_and_pr_creation_use_shared_leaf_skills(self):
         for text in (self.skill, self.delegation):
-            self.assertIn("git-changes-commit/SKILL.md", text)
-            self.assertIn("github-pr-create/SKILL.md", text)
+            self.assertIn("`git-changes-commit`", text)
+            self.assertIn("`github-pr-create`", text)
+            self.assertNotIn("git-changes-commit/SKILL.md", text)
+            self.assertNotIn("github-pr-create/SKILL.md", text)
         self.assertIn("共通手順を再定義しない", self.skill)
 
     def test_herdr_contract_does_not_embed_leaf_commands(self):

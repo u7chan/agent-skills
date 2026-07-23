@@ -1,173 +1,114 @@
 ---
 name: herdr-agent-delegate
-description: Herdr上でCLI Agentへタスクを委譲し、公式プリミティブによる1タブあたり最大4paneの配置、送信、完了待機、出力回収を行う。「別Agentに任せて」「複数Agentへ並列委譲」「子Agentの結果を回収」などで使う。
+description: Herdr 0.7.5公式APIでCLI Agentを配置し、任意の委譲メタ情報付きで送信・待機・出力回収を行う。「別Agentに任せて」「複数Agentへ並列委譲」「子Agentの結果を回収」などで使う。
 ---
 
 # Herdr Agent Delegate
 
-このスキルのディレクトリを `<skill-dir>` として絶対パスで解決する。Agent別の起動・入力可能条件は `references/agent-cli.md` を読む。
-
-新規Agentの起動契約は次の2値を分けて扱う。
-
-- `base-agent-type`: 入力可能判定・送信・完了判定に使う基礎Agent種別（`codex` / `claude` / `opencode` など）
-- `agent-command`: paneで実行する対話起動コマンド。直接CLIに限らず、基礎Agentを起動するラッパーコマンドも受け取れる
-
-`agent-command` の実行ファイル名から `base-agent-type` を推測しない。
-
-呼び出し側が新規paneの起動値を確定した場合だけ、任意の`delegation-metadata`（Agent / Model / Effortの完全なJSON）も受け取る。1値でも欠ける場合は受け取らず、`send_request.py`へ渡さない。
-
-## 1. プリフライト
-
-1. `HERDR_ENV=1` と空でない `HERDR_PANE_ID` を確認する。満たさなければHerdr外から対象を推測せず終了する。
-2. `command -v herdr`、`command -v jq`、`agent-command` の起動プログラムを確認する。自動インストールしない。
-3. `herdr pane current --current` から現在の `pane_id`、`workspace_id`、`tab_id`、`cwd` を取得する。IDは応答から都度読み、推測・永続化しない。
-4. ユーザー指定がなければ現在の基礎Agent種別とcwdを引き継ぐ。`base-agent-type` が不明なら確認する。`agent-command` が別の解決処理から渡された場合は書き換えず、未指定の場合だけ基礎Agent種別の既定の直接起動コマンドを使う。起動オプションは明示されたものだけを使う。
-
-## 2. 宛先を解決する
-
-明示的な宛先がある場合だけ既存Agentの再利用を試す。
-
-1. `herdr agent get <target>` で操作直前に解決する。
-2. 解決した `pane_id` が自分自身なら拒否する。
-3. `agent_status=idle` の時だけ再利用する。`working`、`blocked`、`done`、`unknown` には送信せず報告する。
-4. 既存paneへメタ情報を渡せるのは、そのpaneの起動時snapshotを呼び出し側が保持している場合だけとする。出自不明なら省略する。
-
-宛先がない、または存在しない場合は新規Agentを起動する。idleでない明示宛先を無断で新規Agentへ置き換えない。
-
-## 3. 新規paneを配置する
-
-`MAX_PANES_PER_TAB = 4` とし、実Agent数として数える。親と今回この親が作った子だけを配置対象にする。分割順序は次に固定する。
-
-1. 子1（新規タブ）: `tab create` のroot paneをAgent起動先として使う（splitしない）
-2. 子2: 子1（root pane）を下分割
-3. 子3: 子2を右分割
-4. 子4: 子3を下分割
-5. 子5以降: 新規タブで子1から繰り返す
-
-既存groupに追加する場合:
-
-1. 子1: 親を右分割
-2. 子2: 子1を下分割
-3. 子3: 子2を右分割
-4. 子4: 子3を下分割
-5. 子5以降: 新規タブで子1から繰り返す
-
-起動数が事前に分かる場合、4体以下は同一タブ、5体以上は `layout_planner.py` の4体単位の結果に従って必要な新規タブを最初に用意する。現在タブに親と今回の子以外のpaneがあれば、体数にかかわらず新規タブを使う。
-
-通常は、現在のgroupで作成済みの子を `--child` で順に渡す。
-
-```bash
-<skill-dir>/scripts/split_scoped_pane.py \
-  --parent-pane-id "$HERDR_PANE_ID" \
-  --cwd <cwd> \
-  --child <child-pane-id>
-```
-
-事前配置で新しいgroupを始める場合は `--new-tab` を付ける。返却JSONの `pane_id`（= `group_parent_pane_id`）を子1兼そのgroupの親として保持し、以後はそのgroup内で同じ固定順序を繰り返す。互換用に `anchor_pane_id` も同じpane IDを指す。新規タブではroot paneを直接Agent起動先として使うため、Agent未起動の空Bashアンカーpaneを生成しない。
-
-スクリプトは最小サイズ不足、4pane超過、無関係pane混在時に新規タブへフォールバックする。分割後は `herdr pane get` で新規paneの `workspace_id` / `tab_id` を検証する。検証失敗時にcloseできるのは今回のsplitが返した新規paneだけで、親・既存の子・無関係paneは操作しない。
-
-## 4. Agentを起動して入力可能まで待つ
-
-1. 分割レスポンスの `pane_id` に対して `herdr pane run <pane-id> '<agent-command>'` を実行する。`agent-command` は1つのコマンド文字列として渡し、後ろに引数を追加しない。
-2. `herdr wait agent-status <pane-id> --status idle --timeout 30000` を別コマンドで実行する。このidleだけでは入力可能と判定しない。
-3. ラッパーコマンドの有無にかかわらず、`base-agent-type` がCodex、Claude Code、OpenCodeなら次で入力欄を確認する。
-
-```bash
-<skill-dir>/scripts/wait_for_input_ready.py \
-  --target <pane-id> --agent <codex|claude|opencode>
-```
-
-4. その他の基礎Agent種別は `references/agent-cli.md` の条件を使う。条件が未定義、またはtrust/login/初期設定画面なら自動承認せず停止する。
-5. セッション名が指定されていれば `herdr agent rename <pane-id> '<name>'` を実行する。
-
-起動、semantic検出、入力可能確認は別々に行う。pane 配置（`herdr pane split` や `herdr tab create`）には必要に応じて `--no-focus` を使い、親クライアントのフォーカスを奪わない。Agent 起動・依頼送信に使う `herdr pane run <pane-id> '<agent-command>'` には `--no-focus` を追加しない。`--no-focus` は pane 配置コマンドのフォーカス制御オプションであり、`pane run` の引数に混入すると `codex --no-focus` など未対応引数エラーで起動に失敗する。
-
-## 5. 依頼を直接送る
-
-入力可能を確認した新規Agentには、依頼本文をEnter込みで原子的に送る。`herdr agent send <pane-id> "<文字列>"` は文字列入力のみを行いEnterを送らないため、依頼の実行開始が必要な送信には使わない。基礎Agent種別ごとの差異は `send_request.py` で吸収し、`--agent` には `base-agent-type` を渡す。
-
-```bash
-<skill-dir>/scripts/send_request.py \
-  --target <pane-id> \
-  --agent <codex|claude|opencode> \
-  --prompt "<依頼本文>" \
-  --metadata-json '{"agent":"Codex","model":"gpt-5.6-sol","effort":"high"}'
-```
-
-既存idle Agentの再利用時も同じく `send_request.py` を使う。依頼ファイル、replyファイル、完了markerは作らない。
-
-`--metadata-json`は任意で、`agent`、`model`、`effort`の3キーがすべて非空の場合だけ渡す。`send_request.py`が依頼末尾へ標準ブロックと利用制約を1回追加する。呼び出し側はブロックを手書きしない。部分値、`—`、現在paneやprocess infoからの補完、Codex Config fallbackは禁止する。
-
-同じpaneで再チェックする場合は初回起動時の同じsnapshotだけを再送できる。ネスト委譲では現在のメタ情報を子へ転用せず、各hopが委譲先を新たに解決する。
-
-`send_request.py` は `herdr pane run` で依頼を送信し、30秒以内の `working` 遷移を待つ。Claude Code のみ、長文ペーストが `[Pasted text #1]` として入力欄に留まり実行されない場合があるため、活性化用の短いプロンプトを `herdr pane run` で追加送信し、再び `working` を待つ。同じ依頼本文の `pane run` による再送信やEnter追送は二重実行の可能性があるため自動で行わない。
-
-送信が失敗した場合、読み取り専用で状態を取得し、異常を報告してこの依頼の送信を中止する。以降の完了待機や出力回収も行わず、人間の判断を待つ。
-
-```bash
-herdr pane get <pane-id>
-herdr pane read <pane-id> --source recent-unwrapped --lines 80
-```
-
-## 6. 完了を待って出力を回収する
-
-対象tabのattention stateを確認し、公式のイベント駆動待機を直接使う。`<pane-id>` は回収対象の実際のpane IDへ置き換える。
-
-<!-- completion-wait-contract:start -->
-```bash
-(
-target_pane_id="<pane-id>"
-target_pane_json="$(herdr pane get "$target_pane_id")"
-target_tab_id="$(printf '%s' "$target_pane_json" | jq -r '.result.pane.tab_id // empty')"
-tab_list_json="$(herdr tab list)"
-tab_focused="$(printf '%s' "$tab_list_json" | jq -r --arg tab_id "$target_tab_id" \
-  '.result.tabs[] | select(.tab_id == $tab_id) | .focused')"
-
-case "$tab_focused" in
-  true) wait_status=idle ;;
-  false) wait_status=done ;;
-  *) exit 1 ;;
-esac
-
-wait_rc=0
-herdr wait agent-status "$target_pane_id" --status "$wait_status" --timeout 1800000 || wait_rc=$?
-final_pane_json="$(herdr pane get "$target_pane_id")"
-final_status="$(printf '%s' "$final_pane_json" | jq -r '.result.pane.agent_status // empty')"
-
-case "$final_status" in
-  idle|done) ;;
-  *)
-    if [ "$wait_rc" -ne 0 ]; then
-      exit "$wait_rc"
-    fi
-    exit 1
-    ;;
-esac
-)
-```
-<!-- completion-wait-contract:end -->
-
-foreground tabは `idle`、background tabは `done` を最大30分待つ。イベント駆動待機のため、完了時は上限を待たずに戻る。待機中にattention stateが変わる可能性があるため、waitがtimeoutしても直ちに未完了とせず、最後の `pane get` では `idle` と `done` の双方を完了扱いにする。最終状態が `working`、`blocked`、`unknown`、または取得不能なら完了扱いしない。
-
-完了後は公式の読み取りを直接使う。
-
-```bash
-herdr pane read <pane-id> --source recent-unwrapped --lines 120
-```
-
-`recent-unwrapped` はソフトラップを結合する。必要な結果を親が統合し、paneは既定で保持する。ユーザーの明示がない限りcloseしない。
-
-## ネストと並列委譲
-
-- 各Agentは直下の子だけを管理する。孫の結果は子が統合して直上の親へ返す。
-- 複数の子へ先に依頼を送り、その後に各paneを個別に待つ。
-- 追加調査は新しいpaneで行い、既存のworking Agentへ割り込まない。
-- 子や孫からrootへ直接通知しない。失敗も直上へ要約して伝播する。
-- 親の`delegation-metadata`を孫へ転用しない。孫の起動値を新たに解決できなければメタ情報なしで委譲する。
+`agent-kind`（`codex`/`claude`/`opencode`）と `native-agent-args`（JSON配列）は `cagent-agent-command-resolve` が解決し本Skillは書き換えない。
+Agent名は `^[a-z][a-z0-9_-]{0,31}$`、同一workspace内一意必須。委譲メタ情報は3キーが揃った場合だけ `references/delegation-metadata.md` に従い付与。Agent CLIの詳細は`references/agent-cli.md`を読む。
 
 ## 禁止事項
 
-- JSON Payload、ファイル交換プロトコル、独自watchdogや完了待機ラッパーを追加しない。
-- 自分が作っていないworkspace、tab、pane、sessionをcloseしない。
-- 変更操作後のIDを推測せず、JSON応答またはgetコマンドから再取得する。
+- `herdr pane run` でAgent起動しない。`herdr wait agent-status`(旧API)を使わない。
+- `herdr agent wait` に `--status` 指定しない。本フローでは `--timeout` のみ。
+- working Agentへ追加prompt禁止。1 pane=1 agent、1 agent=1 active task。
+- ID推測・キャッシュ・独自watchdog禁止。自分の作ってない資源をcloseしない。
+
+## 1. プリフライト
+
+1. `HERDR_ENV=1`・空でない `HERDR_PANE_ID` 確認
+2. `herdr` `jq` `python3` 確認。非インストール
+3. `herdr pane current --current` でID/cwd取得。都度読み
+
+## 2. 宛先解決
+
+1. `herdr agent get <target>` で都度解決。自分自身拒否
+2. `agent_status=idle` のみ再利用。`working/blocked/done` は報告のみ
+
+## 3. pane配置
+
+`MAX_PANES_PER_TAB=4`(root込み)。初回・再取得ともレイアウトは同一コマンド:
+
+```bash
+herdr pane layout --pane <root-pane-id> \
+  | <skill-dir>/scripts/layout_planner.py --root-pane-id <root> [--child <child-id>...] [--new-tab]
+```
+
+`layout_planner.py` は stdin から Herdr 0.7.5 envelope を受け付け、全ID存在・最小size(40x10)・無関係paneを検証し `use_new_tab` を返す。
+
+`use_new_tab=true` の場合:
+1. `herdr tab create --workspace <ws-id> --cwd <cwd> --no-focus`
+2. 応答 `result.root_pane.pane_id` を新root、child_ids空リセット
+3. `herdr pane layout --pane <new-root>` で再取得、`layout_planner.py` を再実行（--new-tab非付与で無限作成回避）
+
+`use_new_tab=false` の場合、`direction` と `split_target` で分割:
+
+```bash
+herdr pane split <split_target> --direction <right|down> --ratio 0.5 --cwd <cwd> --no-focus
+```
+
+子1=右、子2=下、子3=右。split失敗は返却paneのみclose後 new-tab fallback。
+
+## 4. Agent起動
+
+`launch_agent.py` が `subprocess.run` で `herdr agent start` を実行し、exit/stdout/stderrを伝播:
+
+```bash
+<skill-dir>/scripts/launch_agent.py --name <name> --kind <codex|claude|opencode> \
+  --pane-id <pane-id> [--native-args-file <args.json>]
+```
+
+`--print-argv` を付けると実行せずJSON argvを出力（検証用）。`native_agent_args` は個別argvとして安全に渡される（eval/@sh禁止）。
+
+## 5. 依頼送信
+
+1. 本文を一時ファイルへ書く。メタ情報完全時は `build_prompt.py` で組立・stdout結果を保存:
+
+```bash
+<skill-dir>/scripts/build_prompt.py --prompt-file <tmp> --metadata-json '<JSON>' > <built>
+```
+
+不完全時は `--metadata-json` 省略。3キー・非空・`—`拒否検証、失敗時非0。
+
+2. 組立済promptを二重引用符でHerdrへ渡す（単一引用符直接禁止）:
+
+```bash
+BUILT="$(cat <built>)"
+herdr agent prompt <target> "$BUILT" --wait --until working --timeout 30000
+```
+
+`--wait --until working` でworking遷移待機。失敗時は `herdr agent read <target> --source recent-unwrapped --lines 80` で状態取得し停止。
+
+## 6. 完了待機
+
+```bash
+herdr agent wait <target> --timeout 1800000
+```
+
+standalone waitは `--timeout` のみ（本フロー）。待機後 `herdr agent get <target>` で最終状態:
+- `idle`/`done` → 完了
+- `blocked` → 中断（停止）
+- `working`/`unknown`/取得不能 → 未完了
+
+## 7. 出力回収
+
+```bash
+herdr agent read <target> --source recent-unwrapped --lines 120
+```
+
+1MB超はファイル保存。pane既定保持。
+
+## 8. 追加操作
+
+```bash
+herdr agent send-keys <target> 'Enter'
+```
+
+## 9. ネスト・並列委譲
+
+- 各Agentは直下子のみ管理。孫結果は子が統合
+- 複数子へ先に `prompt` 送信、後で個別 `wait`
+- 並列は同一ファイル非変更時のみ
+- 追加調査は新規pane。working Agentへ割込禁止
+- 親のメタ情報を孫へ転用しない

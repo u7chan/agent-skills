@@ -1,0 +1,4 @@
+interface:
+  display_name: Child validator
+  short_description: xxxxxxxxxxxxxxxxxxxxxxxxx
+  default_prompt: Use $git-child-validate.

@@ -469,10 +469,10 @@ structure:
       エージェントおよび利用者から見える公開構造。
 
     included:
-      - scope: "トップレベルディレクトリ直下の SKILL.md を持つ全スキル"
+      - scope: "トップレベルの <name>/SKILL.md を持つ全スキル（これより深いnested Skillは禁止）"
         label: "配布対象スキル"
         catalog: "README.md Available Skills 表"
-      - scope: ".claude/skills/ 配下の SKILL.md を持つスキル"
+      - scope: ".claude/skills/<name>/SKILL.md を持つスキル（これより深いnested Skillは禁止）"
         label: "保守専用スキル"
         catalog: "README には掲載しない。スキル数バッジにも計上しない。"
         note: "品質検証（validate-skills.sh）の対象には含める"
@@ -510,7 +510,32 @@ validation:
     validate-skills.sh の既存チェックに加えて実施する。
     各項目は ERROR（CI を fail させる必須修正）か WARNING（通知のみ）かを指定する。
 
+  exception_policy:
+    description: >
+      例外は検証結果を恒久的に隠蔽するための仕組みではない。
+      WARNING と明示的に許可された V-STR-002 のみ、個別の記録を伴う場合に限り認める。
+  exception_schema:
+    required_fields: [check_id, target, reason]
+    suppressible_levels: [WARNING]
+    suppressible_error_check_ids: [V-STR-002]
+  exceptions: []
+
   checks:
+    # --- 設定・正本形式 ---
+    - id: V-CFG-001
+      level: ERROR
+      subject: "設定・正本の形式"
+      description: "skill-rules.yaml、skill-categories.yaml、および各Skillのfront matterが一意なキーを持つ有効なYAMLである"
+      mechanical_check: "PyYAMLの重複キー検出付きローダーで読み込み、必須トップレベルキーとマッピング形式を確認"
+
+    - id: V-CFG-002
+      level: ERROR
+      subject: "検証例外設定"
+      description: "例外設定がschemaに従い、WARNINGまたはV-STR-002だけを対象とする"
+      mechanical_check: >
+        validation.exceptions の check_id・target・非空reason、重複、未知ID、
+        対象外ERROR、存在しないtargetを検証する。有効な抑制も理由付きWARNINGとして出力する。
+
     # --- カテゴリ ---
     - id: V-CAT-001
       level: ERROR
@@ -563,7 +588,7 @@ validation:
         2. 全 SKILL.md および references/ 内ファイルから Markdown リンク・コードブロック内パス・
            インライン相対パスを抽出し、ファイル位置を基点に実パスへ解決
         3. 解決パスが自スキル以外のスキルroot配下を示す場合を ERROR として報告
-        4. 解決不能なパス（シンボリックな参照、動的パス）は WARNING として報告
+        4. 他Skillを指す可能性があるが真に解決不能な動的パスだけを WARNING として報告
         allowed_patterns に該当するパス（.claude/skills, worktree 出力先, 自スキル内参照）は除外する。
 
     - id: V-DEP-004
@@ -577,11 +602,27 @@ validation:
     - id: V-DEP-005
       level: WARNING
       subject: "正本と自動抽出の一致"
-      description: "skill-categories.yaml の depends_on と SKILL.md からの自動抽出結果が一致する"
+      description: "skill-categories.yaml の depends_on と SKILL.md からの自動抽出結果の差分を通知する（正本は変更しない）"
       mechanical_check: >
         SKILL.md から抽出したスキル名参照と
         skill-categories.yaml の depends_on の diff をとり、不一致を報告。
-        正本が常に優先されるが、不一致はメンテナンス漏れを示唆する。
+        routes_to_not_depends に routes_to / mention / used_by として記録された組は候補から除外する。
+        自動抽出は確認材料に限り、depends_on グラフや循環判定には使用しない。
+
+    - id: V-DEP-006
+      level: ERROR
+      subject: "依存・経路参照の正当性"
+      description: "depends_on と routes_to の配列が有効なSkill名だけを一意に参照する"
+      mechanical_check: >
+        各配列の型、空要素、重複、存在しないSkill、archive内Skillへの参照を確認する。
+        dependency_notes.routes_to_not_depends の from/to も同じ規則で確認する。
+
+    - id: V-DEP-007
+      level: ERROR
+      subject: "依存エッジ条件"
+      description: "depends_on_edge_condition が depends_on の対象だけを unconditional または conditional として記録する"
+      mechanical_check: >
+        マッピング形式、対象のdepends_on包含、および値が unconditional / conditional のいずれかであることを確認する。
 
     # --- 外部依存 ---
     - id: V-EXT-001
@@ -611,14 +652,41 @@ validation:
       description: "README の External Dependencies 列と inventory の記録に齟齬がない"
       mechanical_check: "README から抽出した依存情報と inventory/skills.yaml の diff"
 
+    - id: V-EXT-004
+      level: ERROR
+      subject: "外部依存の実装証拠"
+      description: "Python/JS/TS importおよび外部コマンドの証拠が分類ごとの直接依存元に宣言されている"
+      mechanical_check: >
+        Python ASTのimport・subprocess/os exec、JS/TSのimport/require、文書・shellの外部コマンドを確認する。
+        配布SkillはREADME、保守Skillはskill-categories.yamlのexternal_dependenciesを宣言元とし、
+        宣言元欠落または別名正規化後の未宣言をERRORとする。標準ライブラリ・builtin・repo内scriptは除外する。
+
+    - id: V-EXT-005
+      level: ERROR
+      subject: "公開Skillの外部依存セル"
+      description: "全配布SkillがREADMEのAvailable Skills表に重複のないExternal Dependenciesセルを持つ"
+      mechanical_check: "配布対象のSKILL.mdパスごとにセルの存在、重複、空欄を確認し、R/C/O/F grammarで解析する"
+
     # --- 命名 ---
     - id: V-NAM-001
       level: WARNING
       subject: "命名規則適合"
       description: "命名例外に該当しないスキルが service-target-action パターンに従っている"
       mechanical_check: >
-        正規表現 `^[a-z]+-[a-z]+-[a-z]+(-[a-z]+)*$` にマッチしないスキル名を報告。
+        正規表現 `^[a-z0-9]+(?:-[a-z0-9]+){2,}$` にマッチしないスキル名を報告。
         naming.exceptions または naming.borderline に記載があれば除外。
+
+    - id: V-NAM-002
+      level: ERROR
+      subject: "Skill名の存在・一意性"
+      description: "各Skillのfront matterにnameがあり、リポジトリ内で重複しない"
+      mechanical_check: "front matterのname欠落と同名Skillの重複を検出"
+
+    - id: V-NAM-003
+      level: ERROR
+      subject: "Skill名とディレクトリ名"
+      description: "front matterのnameがSkillディレクトリ名と一致する"
+      mechanical_check: "各SKILL.mdの親ディレクトリ名とfront matter nameを比較"
 
     # --- 構造 ---
     - id: V-STR-001
@@ -631,13 +699,35 @@ validation:
       level: ERROR
       subject: "SKILL.md 行数"
       description: "SKILL.md の行数が 180 以下である"
-      mechanical_check: "wc -l カウント（validate-skills.sh 既存）。例外リスト照合。"
+      mechanical_check: >
+        SKILL.md を行単位で数え、181行以上をERRORとして報告する。
+        validation.exceptions に有効な個別記録がある場合だけ理由付きWARNINGへ抑制する。
 
     - id: V-STR-003
       level: ERROR
       subject: "references/ 参照整合性"
       description: "SKILL.md 内の references/ 参照が実ファイルと一致する"
       mechanical_check: "references/... 記法を抽出し、実ファイル存在を確認（validate-skills.sh 既存）"
+
+    - id: V-STR-004
+      level: ERROR
+      subject: "ローカルMarkdownリンク整合性"
+      description: "Skill配下のローカルMarkdownリンクが存在するファイルを指す"
+      mechanical_check: "SKILL.md と references/ のMarkdownリンクを解決し、外部URL・アンカー・動的パスを除いて存在確認"
+
+    - id: V-STR-005
+      level: ERROR
+      subject: "補助ファイルの所有境界"
+      description: "referencesはSKILL.md、scriptsはSKILL.mdまたはreferencesから参照され、未参照ファイルがない"
+      mechanical_check: >
+        各Skill内のreferencesファイルをSKILL.mdの直接参照と照合し、scriptsファイルを
+        SKILL.mdおよびreferencesの参照と照合する。他Skillからの物理参照はV-DEP-003で拒否する。
+
+    - id: V-STR-006
+      level: ERROR
+      subject: "Agent metadata整合性"
+      description: "各Skillの agents/openai.yaml が有効で、interface必須項目とSkill名参照を満たす"
+      mechanical_check: "重複キー検出付きYAML解析、display_name、25〜64文字のshort_description、default_promptのSkill名参照を確認"
 
     # --- アーカイブ境界 ---
     - id: V-ARC-001
@@ -657,3 +747,50 @@ validation:
       subject: "スキル数バッジ"
       description: "README の Shields.io バッジ数値が配布対象スキル数と一致する"
       mechanical_check: "badgen.net バッジの数値抽出と distributable カウントの比較（validate-skills.sh 既存）"
+
+    - id: V-PUB-001
+      level: ERROR
+      subject: "公開カタログ整合性"
+      description: "README Available Skills が配布対象Skillを漏れなく一度ずつ掲載し、表形式と依存セルを満たす"
+      mechanical_check: "READMEのSkillリンクを実体・除外範囲・重複・表ヘッダー・External Dependenciesセルと照合"
+
+    - id: V-PUB-002
+      level: ERROR
+      subject: "公開Skill配置・symlink整合性"
+      description: "配布Skillと保守Skillが許可深度にあり、公開symlinkが破損・重複・衝突していない"
+      mechanical_check: >
+        配布Skillは<name>/SKILL.md、保守Skillは.claude/skills/<name>/SKILL.mdだけを許可し、
+        lstatとresolveで公開rootのsymlink破損および同一実体への重複を検出する。
+
+    - id: V-INV-001
+      level: ERROR
+      subject: "inventory鮮度"
+      description: "checked-inされた4つのinventory YAMLが現在の入力から得る期待値と一致する"
+      mechanical_check: >
+        inventory.pyを一時出力先へ実行し、skills.yaml、dependency-graph.yaml、
+        findings.yaml、summary.yamlをbyte単位で比較して差分ファイルを報告する。
+
+    # --- 複雑性 ---
+    - id: V-CMP-001
+      level: WARNING
+      subject: "依存深度"
+      description: "depends_on の最長深度が3を超えない"
+      mechanical_check: "正本のdepends_on DAGで最長深度を算出し、depth > 3 を通知"
+
+    - id: V-CMP-002
+      level: WARNING
+      subject: "直接依存数"
+      description: "1 Skillあたりの直接depends_onが7を超えない"
+      mechanical_check: "正本のdepends_on配列を数え、direct > 7 を通知"
+
+    - id: V-CMP-003
+      level: WARNING
+      subject: "被依存数"
+      description: "1 Skillが直接参照される数が5を超えない"
+      mechanical_check: "正本のdepends_onの入次数を数え、referenced-by > 5 を通知"
+
+    - id: V-CMP-004
+      level: WARNING
+      subject: "本文量"
+      description: "SKILL.md本文が150行を超えない"
+      mechanical_check: "各SKILL.mdを数え、本文150行超をWARNINGとして通知する"

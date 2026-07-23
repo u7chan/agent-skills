@@ -69,8 +69,10 @@ README の説明文は `SKILL.md` の front matter と本文冒頭から短く�
 - `SKILL.md` だけでなく、直接参照する `references/`、`scripts/`、プログラムの import・subprocess 呼び出しも確認する
 - リポジトリ内の別スキルは外部依存に含めない
 - Python 標準ライブラリは個別名ではなく `Python 3` と記載し、外部ライブラリだけをパッケージ名で記載する
-- 特定フローだけで必要な依存は `(conditional)`、代替手段は `(optional)`、fallback は `(fallback)` と記載する
-- 必須の外部依存がない場合は `—` とする
+- 特定フローだけで必要な依存は `(C)`、代替手段は `(O)`、fallback は `(F)`、必須依存は `(R)` と記載する
+- README の依存注記は R/C/O/F の1文字 grammar に揃え、`—` は外部依存が1件もない場合だけ使う
+- 複数候補のうち1つで足りる場合は各候補を `(O)` とし、README の説明で少なくとも1つ必要である旨を明記する
+- 外部依存が1件もない場合だけ `—` とする
 - 表の列は `Skill | Description | External Dependencies` に揃える
 
 ### Step 3: README の一覧を同期する
