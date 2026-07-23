@@ -5,7 +5,7 @@ total_skills: 34
 distributable: 33
 maintenance: 1
 total_dependency_edges: 19
-total_other_references: 33
+total_other_references: 17
 cycles_found: 0
 reverse_dependency_candidates: 0
 physical_path_refs_found: 4

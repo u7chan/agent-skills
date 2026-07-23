@@ -25,17 +25,7 @@ edges:
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
   source_line: 15
-other_references:
-- from: flow-parent-validate
-  to: git-child-validate
-  relation: mention
-  source_file: SKILL.md
-  source_line: 8
-- from: git-child-validate
-  to: tool-leaf-validate
-  relation: mention
-  source_file: SKILL.md
-  source_line: 8
+other_references: []
 cycles: []
 reverse_dependency_candidates: []
 physical_path_refs:

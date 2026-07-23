@@ -275,7 +275,7 @@ skills:
   has_evaluation_samples: false
   skill_references:
   - name: git-branch-create
-    relation: used_by
+    relation: depends_on
     source_file: SKILL.md
     source_line: 10
   - name: herdr-github-pr-orchestrate
@@ -481,11 +481,11 @@ skills:
   has_evaluation_samples: false
   skill_references:
   - name: git-changes-commit
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 16
   - name: github-pr-create
-    relation: routes_to
+    relation: depends_on
     source_file: SKILL.md
     source_line: 15
   - name: github-pr-feedback-address
@@ -493,7 +493,7 @@ skills:
     source_file: SKILL.md
     source_line: 76
   - name: github-pr-review
-    relation: mention
+    relation: routes_to
     source_file: SKILL.md
     source_line: 16
   - name: herdr-github-pr-orchestrate
@@ -586,7 +586,7 @@ skills:
   has_evaluation_samples: false
   skill_references:
   - name: design-plan-grill
-    relation: depends_on
+    relation: routes_to
     source_file: SKILL.md
     source_line: 53
   path_references: []
@@ -642,15 +642,15 @@ skills:
   has_evaluation_samples: false
   skill_references:
   - name: cagent-agent-command-resolve
-    relation: routes_to
+    relation: depends_on
     source_file: SKILL.md
     source_line: 16
   - name: github-issue-create-from-plan
-    relation: routes_to
+    relation: depends_on
     source_file: SKILL.md
     source_line: 16
   - name: herdr-agent-delegate
-    relation: routes_to
+    relation: depends_on
     source_file: SKILL.md
     source_line: 16
   path_references: []
@@ -694,35 +694,35 @@ skills:
   has_evaluation_samples: false
   skill_references:
   - name: cagent-agent-command-resolve
-    relation: depends_on
+    relation: routes_to
     source_file: SKILL.md
     source_line: 79
   - name: git-branch-create
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 32
   - name: git-changes-commit
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 25
   - name: github-pr-create
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 25
   - name: github-pr-feedback-address
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 37
   - name: github-pr-review
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 36
   - name: herdr-agent-delegate
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 24
   - name: herdr-worktree-create
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 31
   path_references: []
@@ -767,19 +767,19 @@ skills:
   has_evaluation_samples: false
   skill_references:
   - name: agent-skill-design
-    relation: depends_on
+    relation: routes_to
     source_file: SKILL.md
     source_line: 15
   - name: agent-skill-refine
-    relation: depends_on
+    relation: routes_to
     source_file: SKILL.md
     source_line: 16
   - name: herdr-agent-delegate
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 10
   - name: herdr-worktree-create
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 10
   path_references: []

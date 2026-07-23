@@ -258,11 +258,6 @@ other_references:
   source_file: SKILL.md
   source_line: 25
 - from: git-worktree-create
-  to: git-branch-create
-  relation: used_by
-  source_file: SKILL.md
-  source_line: 10
-- from: git-worktree-create
   to: herdr-github-pr-orchestrate
   relation: used_by
   source_file: SKILL.md
@@ -303,25 +298,10 @@ other_references:
   source_file: SKILL.md
   source_line: 89
 - from: github-pr-orchestrate
-  to: git-changes-commit
-  relation: mention
-  source_file: SKILL.md
-  source_line: 16
-- from: github-pr-orchestrate
-  to: github-pr-create
-  relation: routes_to
-  source_file: SKILL.md
-  source_line: 15
-- from: github-pr-orchestrate
   to: github-pr-feedback-address
   relation: mention
   source_file: SKILL.md
   source_line: 76
-- from: github-pr-orchestrate
-  to: github-pr-review
-  relation: mention
-  source_file: SKILL.md
-  source_line: 16
 - from: github-pr-orchestrate
   to: github-pr-review
   relation: routes_to
@@ -337,61 +317,11 @@ other_references:
   relation: routes_to
   source_file: .rules/skill-categories.yaml
   source_line: 365
-- from: herdr-github-create-issue
-  to: cagent-agent-command-resolve
-  relation: routes_to
-  source_file: SKILL.md
-  source_line: 16
-- from: herdr-github-create-issue
-  to: github-issue-create-from-plan
-  relation: routes_to
-  source_file: SKILL.md
-  source_line: 16
-- from: herdr-github-create-issue
-  to: herdr-agent-delegate
-  relation: routes_to
-  source_file: SKILL.md
-  source_line: 16
 - from: herdr-github-pr-orchestrate
   to: cagent-agent-command-resolve
   relation: routes_to
   source_file: .rules/skill-categories.yaml
   source_line: 135
-- from: herdr-github-pr-orchestrate
-  to: git-branch-create
-  relation: mention
-  source_file: SKILL.md
-  source_line: 32
-- from: herdr-github-pr-orchestrate
-  to: git-changes-commit
-  relation: mention
-  source_file: SKILL.md
-  source_line: 25
-- from: herdr-github-pr-orchestrate
-  to: github-pr-create
-  relation: mention
-  source_file: SKILL.md
-  source_line: 25
-- from: herdr-github-pr-orchestrate
-  to: github-pr-feedback-address
-  relation: mention
-  source_file: SKILL.md
-  source_line: 37
-- from: herdr-github-pr-orchestrate
-  to: github-pr-review
-  relation: mention
-  source_file: SKILL.md
-  source_line: 36
-- from: herdr-github-pr-orchestrate
-  to: herdr-agent-delegate
-  relation: mention
-  source_file: SKILL.md
-  source_line: 24
-- from: herdr-github-pr-orchestrate
-  to: herdr-worktree-create
-  relation: mention
-  source_file: SKILL.md
-  source_line: 31
 - from: herdr-prompt-evaluate
   to: agent-skill-design
   relation: routes_to
@@ -402,16 +332,6 @@ other_references:
   relation: routes_to
   source_file: .rules/skill-categories.yaml
   source_line: 158
-- from: herdr-prompt-evaluate
-  to: herdr-agent-delegate
-  relation: mention
-  source_file: SKILL.md
-  source_line: 10
-- from: herdr-prompt-evaluate
-  to: herdr-worktree-create
-  relation: mention
-  source_file: SKILL.md
-  source_line: 10
 - from: herdr-worktree-create
   to: herdr-github-pr-orchestrate
   relation: used_by
