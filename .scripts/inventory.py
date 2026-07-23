@@ -770,7 +770,7 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
             "skills": [gwt["name"], hwt["name"]],
             "reason": "両者とも独立したworktree作成が責務。git-worktree-create は純粋なgit操作、herdr-worktree-create はHerdrコマンドによる作成。責務が重複しているが、利用コンテキストが異なるため統合には慎重な判断が必要。",
             "auto_detected": False,
-            "recommendation": "統合候補。共通のworktree作成ロジックを抽出し、ラッパーとしてgit/herdr版を提供する構成を検討。",
+            "recommendation": "Phase 4 で境界確認済み。git-worktree-create は純粋な git 操作、herdr-worktree-create は Herdr ラッパー。利用コンテキストが異なるため統合不要。",
         })
 
     gr = name_map.get("grilling")
