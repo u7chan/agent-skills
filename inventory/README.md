@@ -1,6 +1,6 @@
-# Skill Inventory (Phase 1)
+# Skill Inventory
 
-全スキルの現状棚卸し結果。配布対象スキル（33件）と `.claude/skills/` 保守専用スキル（1件）の計34件を対象とする。
+全スキルの現状棚卸し結果。配布対象スキルと `.claude/skills/` 保守専用スキルを対象とする。
 
 ## Files
 
@@ -44,7 +44,7 @@ python3 .scripts/inventory.py
 - `path_references`: 本文中の`../`相対パス参照
 - `external_dependencies`: 外部依存とその種別（required/conditional/optional/fallback）、宣言元（配布SkillはREADME、保守Skillは正本）
 - `external_dependency_evidence`: import・静的commandの確認証拠（宣言を自動上書きしない）
-- `disposition`: 維持判断（Phase 2で決定。現時点では全件`keep`）
+- `disposition`: 維持判断（`keep` または `archive`）
 - `findings`: 当該スキルに関する所見
 
 ### dependency-graph.yaml
@@ -58,7 +58,7 @@ python3 .scripts/inventory.py
 ### findings.yaml
 
 - `auto_detected`: スクリプトが自動検出した所見（行数超過、近接など）
-- `manual`: 人手判断で追加した所見（重複責務、分割統合候補、共通依存など）
+- 人手判断で追加した所見（重複責務、分割統合候補、共通依存など）
 
 ## Key Findings Summary
 
@@ -89,4 +89,4 @@ python3 .scripts/inventory.py
 
 - スキル参照の自動抽出は正規表現ベースであり、自然言語での間接的な参照や「上位移譲」のような概念的な依存は捉えられない
 - 外部依存の証拠はPython AST、JS/TSの静的import/require、文書・shellの静的commandを対象とし、動的に組み立てられる依存は解析しない
-- `disposition` はPhase 2で決定するため、現時点では全件 `keep`
+- `disposition` は正本（skill-categories.yaml）の分類に従う

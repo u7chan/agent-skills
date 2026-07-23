@@ -2,7 +2,7 @@
 
 Only ``skills[*].depends_on`` in ``skill-categories.yaml`` forms the graph
 used by ERROR checks and complexity calculations.  Text extraction and the
-Phase 1 inventory are deliberately advisory.
+inventory snapshots are deliberately advisory.
 """
 
 from __future__ import annotations

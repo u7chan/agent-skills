@@ -1,20 +1,18 @@
 # Skill Categories — 全スキルのカテゴリ分類と依存関係
 #
-# Phase 2 成果物。全 34 スキルのカテゴリ分類、依存関係、命名適合性を記録する。
 # 依存関係の正本はこのファイルの depends_on フィールドとする。
 #
 # 関連ファイル:
 #   .rules/skill-rules.yaml       — カテゴリ定義・ルールの詳細
-#   inventory/skills.yaml       — Phase 1 棚卸しデータ（外部依存、行数、disposition 等）
+#   inventory/skills.yaml         — 全スキルのメタデータ
 #   inventory/dependency-graph.yaml — 自動抽出された依存グラフ
 
 meta:
   version: "1.0.0"
-  phase: 2
   total_skills: 34
   distributable: 33
   maintenance: 1
-  generated: "2026-07-21"
+  generated: "2026-07-24"
 
 # ============================================================
 # カテゴリ別サマリ
@@ -562,8 +560,7 @@ skills:
 dependency_notes:
   reverse_violations:
     description: >
-      既知のカテゴリ逆方向依存。Phase 3 で GitHub 側へ consumer 規則を局所化し、
-      現在は該当なし。
+      既知のカテゴリ逆方向依存。現在は該当なし。
     items: []
 
   routes_to_not_depends:

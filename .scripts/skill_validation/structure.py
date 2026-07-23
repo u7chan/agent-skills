@@ -1,4 +1,4 @@
-"""Phase 2 structure, repository-publication, and naming checks."""
+"""Structure, repository-publication, and naming checks."""
 
 from __future__ import annotations
 

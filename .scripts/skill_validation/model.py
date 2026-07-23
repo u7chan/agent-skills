@@ -1,7 +1,7 @@
 """Repository loading and source locations for skill validation.
 
 This module deliberately does no policy validation.  It provides a small,
-immutable-ish view which Phase 3 graph checks can consume directly.
+immutable-ish view which graph checks can consume directly.
 """
 
 from __future__ import annotations

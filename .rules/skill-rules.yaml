@@ -1,17 +1,15 @@
 # Skill Rules — 全スキルの設計・ガバナンス正本
 #
-# Phase 2 成果物。Phase 3 以降の機械的検証および再編の判断基準となる。
 # このファイルの変更は意図的なルール改定を意味し、レビューを要する。
 #
 # 関連ファイル:
 #   .rules/skill-categories.yaml — 全スキルのカテゴリ分類と依存関係
-#   inventory/skills.yaml       — Phase 1 棚卸しデータ（外部依存、行数等）
+#   inventory/skills.yaml       — 全スキルのメタデータ
 #   AGENTS.md                   — エージェント向け保守手順
 
 meta:
   version: "1.0.0"
-  phase: 2
-  generated: "2026-07-21"
+  generated: "2026-07-24"
   repository: "agent-skills"
 
 # ============================================================
@@ -372,7 +370,7 @@ external_dependencies:
         multiple_annotations: "1 依存名に複数の type 注記がある場合は ERROR とする。"
 
     canonical_source: "README.md 各スキルの External Dependencies 列"
-    parser_spec: "Phase 3 の検証スクリプトはこの grammar に従って README をパースし、V-EXT-001 で未知 type を検出する。"
+    parser_spec: "検証スクリプトはこの grammar に従って README をパースし、V-EXT-001 で未知 type を検出する。"
 
   # --- 5.3 Effective External Dependencies の算出 ---
   effective_calculation:
@@ -419,8 +417,7 @@ external_dependencies:
 
     source_of_truth: >
       直接依存の宣言元は各スキルの README.md（External Dependencies 列）とする。
-      inventory/skills.yaml は Phase 1 の静的スナップショットであり、
-      Phase 3 以降は動的検証に置き換える。
+      inventory/skills.yaml は検証により最新化される。
 
 # ============================================================
 # 6. 管理構造・公開構造・アーカイブ
@@ -502,11 +499,11 @@ structure:
       - ".archive/ にスキルを移動する際は README のスキル数バッジを更新する"
 
 # ============================================================
-# 7. 検証基準（Phase 3 機械判定項目）
+# 7. 検証基準
 # ============================================================
 validation:
   description: >
-    Phase 3 で実装する検証スクリプトの判定基準。
+    検証スクリプトの判定基準。
     validate-skills.sh の既存チェックに加えて実施する。
     各項目は ERROR（CI を fail させる必須修正）か WARNING（通知のみ）かを指定する。
 

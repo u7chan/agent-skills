@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """CLI entry point for repository skill validation.
 
-Phase 3 modules register additional checks via ``CHECKS`` and a graph renderer
-via ``register_graph_renderer``; this file intentionally remains the sole CLI.
+Extension modules register additional checks and a graph renderer via
+``register_check`` and ``register_graph_renderer``; this file remains the sole CLI.
 """
 
 from __future__ import annotations
@@ -36,12 +36,12 @@ EXTRA_CHECKS = []
 
 
 def load_optional_extensions() -> None:
-    """Load Phase 3 modules when they are present.
+    """Load extension modules when they are present.
 
     An extension module named ``skill_validation.dependencies`` or
     ``skill_validation.graph`` exposes ``register(register_check,
     register_graph_renderer)``.  This keeps additions out of the public Bash
-    entry point and makes absent Phase 3 code harmless.
+    entry point.
     """
     for module_name in ("skill_validation.dependencies", "skill_validation.inventory_check", "skill_validation.graph"):
         if importlib.util.find_spec(module_name) is None:
@@ -55,7 +55,7 @@ def load_optional_extensions() -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate agent-skill repository rules.")
-    parser.add_argument("--graph", metavar="PATH", help="write the dependency graph (registered by Phase 3)")
+    parser.add_argument("--graph", metavar="PATH", help="write the dependency graph")
     args = parser.parse_args(argv)
     load_optional_extensions()
     if args.graph and GRAPH_RENDERER is None:

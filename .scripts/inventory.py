@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Phase 1: 全スキルの棚卸し — 配布対象 + .claude/skills/ 保守専用スキルを走査し、
+"""全スキルの棚卸し — 配布対象 + .claude/skills/ 保守専用スキルを走査し、
 責務・参照関係・外部依存・本文量・重複候補を YAML として inventory/ に出力する。"""
 
 import argparse
@@ -404,7 +404,7 @@ def extract_external_dependency_evidence(file_contents: list[dict]) -> list[dict
     """import・command の静的証拠を確認材料として収集する。
 
     これは README の直接依存へ自動追加しない。宣言との差分判定は
-    Phase 3 validator に委ね、inventory には証拠としてのみ保存する。
+    検証モジュールに委ね、inventory には証拠としてのみ保存する。
     """
     evidence: list[dict] = []
     seen: set[tuple[str, str, str]] = set()
