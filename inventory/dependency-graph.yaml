@@ -19,7 +19,7 @@ nodes:
 - name: bun-dependency-update
   current_path: bun-dependency-update
   classification: distributable
-  line_count: 151
+  line_count: 150
 - name: cagent-agent-command-resolve
   current_path: cagent-agent-command-resolve
   classification: distributable
@@ -95,7 +95,7 @@ nodes:
 - name: herdr-github-pr-orchestrate
   current_path: herdr-github-pr-orchestrate
   classification: distributable
-  line_count: 157
+  line_count: 128
 - name: herdr-prompt-evaluate
   current_path: herdr-prompt-evaluate
   classification: distributable
@@ -119,7 +119,7 @@ nodes:
 - name: npm-dependency-update
   current_path: npm-dependency-update
   classification: distributable
-  line_count: 153
+  line_count: 150
 - name: playwright-cli
   current_path: playwright-cli
   classification: distributable
@@ -135,38 +135,38 @@ nodes:
 - name: uv-dependency-update
   current_path: uv-dependency-update
   classification: distributable
-  line_count: 161
+  line_count: 150
 edges:
 - from: git-changes-commit
   to: git-commit-message-suggest
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 312
+  source_line: 307
 - from: git-worktree-create
   to: git-branch-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 338
+  source_line: 333
 - from: github-pr-feedback-address
   to: github-pr-comment-reply
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 262
+  source_line: 257
 - from: github-pr-orchestrate
   to: git-changes-commit
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 193
+  source_line: 188
 - from: github-pr-orchestrate
   to: github-pr-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 193
+  source_line: 188
 - from: herdr-agent-delegate
   to: cagent-agent-command-resolve
   relation: depends_on
@@ -191,12 +191,6 @@ edges:
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
   source_line: 119
-- from: herdr-github-pr-orchestrate
-  to: cagent-agent-command-resolve
-  relation: depends_on
-  edge_condition: unconditional
-  source_file: .rules/skill-categories.yaml
-  source_line: 135
 - from: herdr-github-pr-orchestrate
   to: git-branch-create
   relation: depends_on
@@ -244,30 +238,25 @@ edges:
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 163
+  source_line: 158
 - from: herdr-prompt-evaluate
   to: herdr-worktree-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 163
+  source_line: 158
 - from: herdr-worktree-create
   to: git-branch-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 178
+  source_line: 173
 other_references:
 - from: cagent-agent-command-resolve
   to: herdr-agent-delegate
   relation: mention
   source_file: SKILL.md
   source_line: 25
-- from: git-worktree-create
-  to: git-branch-create
-  relation: used_by
-  source_file: SKILL.md
-  source_line: 10
 - from: git-worktree-create
   to: herdr-github-pr-orchestrate
   relation: used_by
@@ -277,7 +266,7 @@ other_references:
   to: design-plan-grill
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 212
+  source_line: 207
 - from: github-issue-create-from-plan
   to: html-artifact-format
   relation: mention
@@ -309,30 +298,15 @@ other_references:
   source_file: SKILL.md
   source_line: 89
 - from: github-pr-orchestrate
-  to: git-changes-commit
-  relation: mention
-  source_file: SKILL.md
-  source_line: 16
-- from: github-pr-orchestrate
-  to: github-pr-create
-  relation: routes_to
-  source_file: SKILL.md
-  source_line: 15
-- from: github-pr-orchestrate
   to: github-pr-feedback-address
   relation: mention
   source_file: SKILL.md
   source_line: 76
 - from: github-pr-orchestrate
   to: github-pr-review
-  relation: mention
-  source_file: SKILL.md
-  source_line: 16
-- from: github-pr-orchestrate
-  to: github-pr-review
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 193
+  source_line: 188
 - from: github-pr-orchestrate
   to: herdr-github-pr-orchestrate
   relation: mention
@@ -342,82 +316,22 @@ other_references:
   to: design-plan-grill
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 370
-- from: herdr-github-create-issue
-  to: cagent-agent-command-resolve
-  relation: routes_to
-  source_file: SKILL.md
-  source_line: 16
-- from: herdr-github-create-issue
-  to: github-issue-create-from-plan
-  relation: routes_to
-  source_file: SKILL.md
-  source_line: 16
-- from: herdr-github-create-issue
-  to: herdr-agent-delegate
-  relation: routes_to
-  source_file: SKILL.md
-  source_line: 16
+  source_line: 365
 - from: herdr-github-pr-orchestrate
   to: cagent-agent-command-resolve
-  relation: mention
-  source_file: SKILL.md
-  source_line: 36
-- from: herdr-github-pr-orchestrate
-  to: git-branch-create
-  relation: mention
-  source_file: SKILL.md
-  source_line: 32
-- from: herdr-github-pr-orchestrate
-  to: git-changes-commit
-  relation: mention
-  source_file: SKILL.md
-  source_line: 25
-- from: herdr-github-pr-orchestrate
-  to: github-pr-create
-  relation: mention
-  source_file: SKILL.md
-  source_line: 25
-- from: herdr-github-pr-orchestrate
-  to: github-pr-feedback-address
-  relation: mention
-  source_file: SKILL.md
-  source_line: 38
-- from: herdr-github-pr-orchestrate
-  to: github-pr-review
-  relation: mention
-  source_file: SKILL.md
-  source_line: 37
-- from: herdr-github-pr-orchestrate
-  to: herdr-agent-delegate
-  relation: mention
-  source_file: SKILL.md
-  source_line: 24
-- from: herdr-github-pr-orchestrate
-  to: herdr-worktree-create
-  relation: mention
-  source_file: SKILL.md
-  source_line: 31
+  relation: routes_to
+  source_file: .rules/skill-categories.yaml
+  source_line: 135
 - from: herdr-prompt-evaluate
   to: agent-skill-design
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 163
+  source_line: 158
 - from: herdr-prompt-evaluate
   to: agent-skill-refine
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 163
-- from: herdr-prompt-evaluate
-  to: herdr-agent-delegate
-  relation: mention
-  source_file: SKILL.md
-  source_line: 10
-- from: herdr-prompt-evaluate
-  to: herdr-worktree-create
-  relation: mention
-  source_file: SKILL.md
-  source_line: 10
+  source_line: 158
 - from: herdr-worktree-create
   to: herdr-github-pr-orchestrate
   relation: used_by

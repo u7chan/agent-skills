@@ -894,6 +894,18 @@ def main(argv: list[str] | None = None) -> None:
         if name:
             all_skill_names.add(name)
 
+    # 正本の依存関係を取得（自然言語ヒューリスティックの上書き用）
+    canonical_rels = canonical_relations(categories_document, all_skill_names)
+    # (source_name, target_name) → canonical_relation の上書きマップ
+    relation_overrides: dict[tuple[str, str], str] = {}
+    for src_name, rel in canonical_rels.items():
+        for target in rel.get("depends_on", []):
+            relation_overrides[(src_name, target)] = "depends_on"
+        for target in rel.get("routes_to", []):
+            if (src_name, target) in relation_overrides:
+                continue  # depends_on が優先
+            relation_overrides[(src_name, target)] = "routes_to"
+
     # 各スキルのメタデータを収集
     skills_meta: list[dict] = []
     for sf in skill_files:
@@ -918,6 +930,11 @@ def main(argv: list[str] | None = None) -> None:
         line_count = count_lines(skill_md)
         subdirs = check_subdirs(skill_dir)
         skill_refs = extract_skill_references(file_contents, all_skill_names, name)
+        # 正本の依存関係で自然言語ヒューリスティックの結果を上書き
+        for ref in skill_refs:
+            key = (name, ref["name"])
+            if key in relation_overrides and ref["relation"] != relation_overrides[key]:
+                ref["relation"] = relation_overrides[key]
         path_refs = extract_path_references(file_contents, all_skill_names)
         # 外部依存の直接宣言は README のみ。実装証拠は別フィールドに保存する。
         ext_deps = extract_external_deps(name, file_contents, readme_deps)

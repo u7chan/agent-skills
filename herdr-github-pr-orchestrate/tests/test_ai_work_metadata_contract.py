@@ -16,7 +16,10 @@ class AiWorkMetadataContractTest(unittest.TestCase):
         cls.review_loop = (ROOT / "references" / "review-loop.md").read_text(
             encoding="utf-8"
         )
-        template = re.search(r"```markdown\n(.*?)\n```", cls.skill, re.DOTALL)
+        cls.pr_template = (ROOT / "references" / "pr-template.md").read_text(
+            encoding="utf-8"
+        )
+        template = re.search(r"```markdown\n(.*?)\n```", cls.pr_template, re.DOTALL)
         assert template is not None
         cls.pr_body_template = template.group(1)
 

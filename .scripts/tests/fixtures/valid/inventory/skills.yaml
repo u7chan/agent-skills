@@ -17,7 +17,7 @@ skills:
   has_evaluation_samples: false
   skill_references:
   - name: git-child-validate
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 8
   path_references: []
@@ -40,7 +40,7 @@ skills:
   has_evaluation_samples: false
   skill_references:
   - name: tool-leaf-validate
-    relation: mention
+    relation: depends_on
     source_file: SKILL.md
     source_line: 8
   path_references: []
