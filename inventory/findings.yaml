@@ -17,9 +17,9 @@ findings:
   skills:
   - grilling
   - design-plan-grill
-  reason: grilling は領域非依存の壁打ち、design-plan-grill は設計に特化した壁打ち。責務が重複しており、design-plan-grill は grilling の特殊化。grilling の SKILL.md 内でも design-plan-grill への委譲を指示している。
+  reason: grilling は領域非依存の壁打ち、design-plan-grill は設計に特化した壁打ち。design-plan-grill は grilling の特殊化であり、grilling の SKILL.md で routes_to による条件付き委譲を指示。
   auto_detected: false
-  recommendation: 統合候補。design-plan-grill を grilling のサブモードとして統合するか、grilling を design-plan-grill に吸収。
+  recommendation: Phase 4 で境界確認済み。grilling（領域非依存）と design-plan-grill（設計特化・docs-backed モード）の責務分離は適切。統合不要。
 - id: F008
   type: duplication_candidate
   skills:
@@ -33,9 +33,9 @@ findings:
   skills:
   - agent-skill-design
   - agent-skill-refine
-  reason: agent-skill-design は新規作成・要件追加・全面再設計、agent-skill-refine は挙動を変えずに短文化・高密度化。責務は明確に分離されているが、密接に関連しており、参照関係も強い。
+  reason: agent-skill-design は新規作成・要件追加・全面再設計（挙動を変える）、agent-skill-refine は挙動を変えずに短文化・高密度化（表現を変える）。責務は明確に分離されている。
   auto_detected: false
-  recommendation: 分割統合は不要。責務境界が明確で適切に分離されている。
+  recommendation: Phase 4 で境界確認済み。design は挙動変更、refine は意味保存改善で責務分離は適切。分割統合不要。
 - id: F012
   type: complexity
   skill: cagent-agent-command-resolve
