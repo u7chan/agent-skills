@@ -183,7 +183,7 @@ skills:
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F006
-        note: "git-worktree-create との重複候補。共通ロジックの抽出を検討。"
+        note: "Phase 4 で境界確認済み。git-worktree-create は純粋な git 操作、herdr-worktree-create は Herdr ラッパー。利用コンテキストが異なるため統合不要。"
 
   - name: github-pr-orchestrate
     path: github-pr-orchestrate
@@ -343,7 +343,7 @@ skills:
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F006
-        note: "herdr-worktree-create との重複候補。"
+        note: "Phase 4 で境界確認済み。git-worktree-create は純粋な git 操作、herdr-worktree-create は Herdr ラッパー。利用コンテキストが異なるため統合不要。"
 
   # --- design (2) ---
   - name: design-plan-grill
