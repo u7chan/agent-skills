@@ -794,7 +794,7 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
             "skills": [gpo["name"], hgo["name"]],
             "reason": "両者ともPR作成の統括フロー。github-pr-orchestrate は非Herdr環境、herdr-github-pr-orchestrate はHerdr環境向け。herdr版はgithub版の共通スキルを参照している。",
             "auto_detected": False,
-            "recommendation": "統合候補。共通フローを抽出し、Herdr/非Herdrの差異だけを切り替え可能にする。",
+            "recommendation": "Phase 4 で境界確認済み。github-pr-orchestrate は非Herdr環境の直接統括、herdr-github-pr-orchestrate は Herdr Agent 委譲による統括。利用コンテキストが異なるため統合不要。共通スキル（github-pr-create 等）の参照は適切に共有。",
         })
 
     asd = name_map.get("agent-skill-design")
