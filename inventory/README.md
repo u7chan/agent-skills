@@ -25,7 +25,7 @@ python3 .scripts/inventory.py
 
 ## Scope
 
-- **配布対象 (distributable)**: `SKILL.md` を持つトップレベルディレクトリ（`.archive`, `.system`, `.codex`, `.claude/skills` を除く）
+- **配布対象 (distributable)**: `skills/` 配下のカテゴリディレクトリ内の `SKILL.md`（`.archive`, `.system`, `.codex`, `.claude/skills` を除く）
 - **保守専用 (maintenance)**: `.claude/skills/` 配下の `SKILL.md` を持つディレクトリ（リポジトリ保守専用、READMEのAvailable Skillsとスキル数バッジには含めない）
 
 ## How to Read

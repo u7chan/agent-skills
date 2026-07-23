@@ -4,253 +4,253 @@ nodes:
   current_path: .claude/skills/skills-readme-sync
   classification: maintenance
   line_count: 136
-- name: agent-skill-design
-  current_path: agent-skill-design
-  classification: distributable
-  line_count: 69
-- name: agent-skill-refine
-  current_path: agent-skill-refine
-  classification: distributable
-  line_count: 74
-- name: apple-interface-design
-  current_path: apple-interface-design
-  classification: distributable
-  line_count: 52
 - name: bun-dependency-update
-  current_path: bun-dependency-update
+  current_path: skills/dependency/bun-dependency-update
   classification: distributable
   line_count: 150
-- name: cagent-agent-command-resolve
-  current_path: cagent-agent-command-resolve
+- name: npm-dependency-update
+  current_path: skills/dependency/npm-dependency-update
   classification: distributable
-  line_count: 113
-- name: codex-skills-link
-  current_path: codex-skills-link
+  line_count: 150
+- name: uv-dependency-update
+  current_path: skills/dependency/uv-dependency-update
   classification: distributable
-  line_count: 104
+  line_count: 150
 - name: design-plan-grill
-  current_path: design-plan-grill
+  current_path: skills/design/design-plan-grill
   classification: distributable
   line_count: 56
+- name: grilling
+  current_path: skills/design/grilling
+  classification: distributable
+  line_count: 54
 - name: git-branch-create
-  current_path: git-branch-create
+  current_path: skills/git/git-branch-create
   classification: distributable
   line_count: 85
 - name: git-changes-commit
-  current_path: git-changes-commit
+  current_path: skills/git/git-changes-commit
   classification: distributable
   line_count: 70
 - name: git-commit-message-suggest
-  current_path: git-commit-message-suggest
+  current_path: skills/git/git-commit-message-suggest
   classification: distributable
   line_count: 41
 - name: git-worktree-create
-  current_path: git-worktree-create
+  current_path: skills/git/git-worktree-create
   classification: distributable
   line_count: 117
 - name: github-issue-create-from-plan
-  current_path: github-issue-create-from-plan
+  current_path: skills/github/github-issue-create-from-plan
   classification: distributable
   line_count: 62
 - name: github-issue-decompose
-  current_path: github-issue-decompose
+  current_path: skills/github/github-issue-decompose
   classification: distributable
   line_count: 109
 - name: github-pr-comment-reply
-  current_path: github-pr-comment-reply
+  current_path: skills/github/github-pr-comment-reply
   classification: distributable
   line_count: 37
 - name: github-pr-create
-  current_path: github-pr-create
+  current_path: skills/github/github-pr-create
   classification: distributable
   line_count: 86
 - name: github-pr-feedback-address
-  current_path: github-pr-feedback-address
+  current_path: skills/github/github-pr-feedback-address
   classification: distributable
   line_count: 116
-- name: github-pr-orchestrate
-  current_path: github-pr-orchestrate
-  classification: distributable
-  line_count: 90
 - name: github-pr-post-merge-cleanup
-  current_path: github-pr-post-merge-cleanup
+  current_path: skills/github/github-pr-post-merge-cleanup
   classification: distributable
   line_count: 53
 - name: github-pr-review
-  current_path: github-pr-review
+  current_path: skills/github/github-pr-review
   classification: distributable
   line_count: 116
-- name: grilling
-  current_path: grilling
+- name: cagent-agent-command-resolve
+  current_path: skills/orchestration/cagent-agent-command-resolve
   classification: distributable
-  line_count: 54
+  line_count: 113
+- name: github-pr-orchestrate
+  current_path: skills/orchestration/github-pr-orchestrate
+  classification: distributable
+  line_count: 90
 - name: herdr-agent-delegate
-  current_path: herdr-agent-delegate
+  current_path: skills/orchestration/herdr-agent-delegate
   classification: distributable
   line_count: 114
 - name: herdr-github-create-issue
-  current_path: herdr-github-create-issue
+  current_path: skills/orchestration/herdr-github-create-issue
   classification: distributable
   line_count: 91
 - name: herdr-github-pr-orchestrate
-  current_path: herdr-github-pr-orchestrate
+  current_path: skills/orchestration/herdr-github-pr-orchestrate
   classification: distributable
   line_count: 128
 - name: herdr-prompt-evaluate
-  current_path: herdr-prompt-evaluate
+  current_path: skills/orchestration/herdr-prompt-evaluate
   classification: distributable
   line_count: 64
 - name: herdr-worktree-create
-  current_path: herdr-worktree-create
+  current_path: skills/orchestration/herdr-worktree-create
   classification: distributable
   line_count: 122
+- name: agent-skill-design
+  current_path: skills/skill/agent-skill-design
+  classification: distributable
+  line_count: 69
+- name: agent-skill-refine
+  current_path: skills/skill/agent-skill-refine
+  classification: distributable
+  line_count: 74
+- name: apple-interface-design
+  current_path: skills/tool/apple-interface-design
+  classification: distributable
+  line_count: 52
+- name: codex-skills-link
+  current_path: skills/tool/codex-skills-link
+  classification: distributable
+  line_count: 104
 - name: html-artifact-format
-  current_path: html-artifact-format
+  current_path: skills/tool/html-artifact-format
   classification: distributable
   line_count: 56
 - name: image-to-svg
-  current_path: image-to-svg
+  current_path: skills/tool/image-to-svg
   classification: distributable
   line_count: 131
 - name: japanese-text-refine
-  current_path: japanese-text-refine
+  current_path: skills/tool/japanese-text-refine
   classification: distributable
   line_count: 63
-- name: npm-dependency-update
-  current_path: npm-dependency-update
-  classification: distributable
-  line_count: 150
 - name: playwright-cli
-  current_path: playwright-cli
+  current_path: skills/tool/playwright-cli
   classification: distributable
   line_count: 68
 - name: qa-test-design
-  current_path: qa-test-design
+  current_path: skills/tool/qa-test-design
   classification: distributable
   line_count: 51
 - name: tailwind-ui-compose
-  current_path: tailwind-ui-compose
+  current_path: skills/tool/tailwind-ui-compose
   classification: distributable
   line_count: 69
-- name: uv-dependency-update
-  current_path: uv-dependency-update
-  classification: distributable
-  line_count: 150
 edges:
 - from: git-changes-commit
   to: git-commit-message-suggest
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 305
+  source_line: 258
 - from: git-worktree-create
   to: git-branch-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 331
+  source_line: 281
 - from: github-pr-feedback-address
   to: github-pr-comment-reply
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 255
+  source_line: 212
 - from: github-pr-orchestrate
   to: git-changes-commit
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 186
+  source_line: 152
 - from: github-pr-orchestrate
   to: github-pr-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 186
+  source_line: 152
 - from: herdr-agent-delegate
   to: cagent-agent-command-resolve
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 104
+  source_line: 77
 - from: herdr-github-create-issue
   to: cagent-agent-command-resolve
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 117
+  source_line: 89
 - from: herdr-github-create-issue
   to: github-issue-create-from-plan
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 117
+  source_line: 89
 - from: herdr-github-create-issue
   to: herdr-agent-delegate
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 117
+  source_line: 89
 - from: herdr-github-pr-orchestrate
   to: git-branch-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 133
+  source_line: 104
 - from: herdr-github-pr-orchestrate
   to: git-changes-commit
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 133
+  source_line: 104
 - from: herdr-github-pr-orchestrate
   to: github-pr-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 133
+  source_line: 104
 - from: herdr-github-pr-orchestrate
   to: github-pr-feedback-address
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 133
+  source_line: 104
 - from: herdr-github-pr-orchestrate
   to: github-pr-review
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 133
+  source_line: 104
 - from: herdr-github-pr-orchestrate
   to: herdr-agent-delegate
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 133
+  source_line: 104
 - from: herdr-github-pr-orchestrate
   to: herdr-worktree-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 133
+  source_line: 104
 - from: herdr-prompt-evaluate
   to: herdr-agent-delegate
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 156
+  source_line: 125
 - from: herdr-prompt-evaluate
   to: herdr-worktree-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 156
+  source_line: 125
 - from: herdr-worktree-create
   to: git-branch-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 171
+  source_line: 138
 other_references:
 - from: cagent-agent-command-resolve
   to: herdr-agent-delegate
@@ -266,7 +266,7 @@ other_references:
   to: design-plan-grill
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 205
+  source_line: 167
 - from: github-issue-create-from-plan
   to: html-artifact-format
   relation: mention
@@ -306,7 +306,7 @@ other_references:
   to: github-pr-review
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 186
+  source_line: 152
 - from: github-pr-orchestrate
   to: herdr-github-pr-orchestrate
   relation: mention
@@ -316,22 +316,22 @@ other_references:
   to: design-plan-grill
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 363
+  source_line: 309
 - from: herdr-github-pr-orchestrate
   to: cagent-agent-command-resolve
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 133
+  source_line: 104
 - from: herdr-prompt-evaluate
   to: agent-skill-design
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 156
+  source_line: 125
 - from: herdr-prompt-evaluate
   to: agent-skill-refine
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 156
+  source_line: 125
 - from: herdr-worktree-create
   to: herdr-github-pr-orchestrate
   relation: used_by

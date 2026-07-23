@@ -40,7 +40,7 @@ description: >
 ### Step 1: 現在のスキル構成を確認する
 
 確認するもの:
-- リポジトリ直下の各スキルディレクトリ
+- `skills/` 配下のカテゴリ別スキルディレクトリ
 - `.claude/skills/` 配下のリポジトリ保守専用スキル
 - 各スキルの `SKILL.md`
 - 各スキルの `references/`、`scripts/`、プログラム内の import と外部コマンド参照

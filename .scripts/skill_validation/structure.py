@@ -257,9 +257,9 @@ def check_publication(model: RepositoryModel) -> None:
         target_skill = next((skill for skill in model.skills if skill.path.resolve(strict=False) == target.resolve(strict=False)), None)
         if target_skill is not None and entry.name != target_skill.name:
             model.diagnostics.error("V-PUB-001", "README.md", entry.line, f"link label {entry.name!r} does not match frontmatter name {target_skill.name!r}")
-        expected_link = f"{entry.name}/SKILL.md"
+        expected_link = target_skill.path.relative_to(model.root).as_posix() if target_skill is not None else f"{entry.name}/SKILL.md"
         if path != expected_link:
-            model.diagnostics.error("V-PUB-001", "README.md", entry.line, f"link path {path!r} does not match label {entry.name!r}; expected {expected_link!r}")
+            model.diagnostics.error("V-PUB-001", "README.md", entry.line, f"link path {path!r} does not match expected {expected_link!r}")
         if path.startswith(tuple(f"{item}/" for item in EXCLUDED_DIRS | {".claude"})):
             model.diagnostics.error("V-ARC-002", "README.md", entry.line, f"excluded or maintenance skill must not be public: {path}")
         if not entry.dependency:
@@ -285,6 +285,10 @@ def _check_public_layout(model: RepositoryModel) -> None:
         ) or (
             len(relative.parts) == 4
             and relative.parts[:2] == (".claude", "skills")
+            and relative.parts[3] == "SKILL.md"
+        ) or (
+            len(relative.parts) == 4
+            and relative.parts[0] == "skills"
             and relative.parts[3] == "SKILL.md"
         )
         if not valid:
