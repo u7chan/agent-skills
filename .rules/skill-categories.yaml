@@ -153,7 +153,7 @@ skills:
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F008
-        note: "github-pr-orchestrate との重複候補。共通フロー抽出を検討。"
+        note: "Phase 4 で境界確認済み。github-pr-orchestrate は非Herdr環境の直接統括、herdr-github-pr-orchestrate は Herdr Agent 委譲による統括。利用コンテキストが異なるため統合不要。共通スキル（github-pr-create 等）の参照は適切に共有。"
 
   - name: herdr-prompt-evaluate
     path: herdr-prompt-evaluate
@@ -201,7 +201,7 @@ skills:
     external_dependencies_ref: inventory/skills.yaml
     known_issues:
       - ref: F008
-        note: "herdr-github-pr-orchestrate との重複候補。"
+        note: "Phase 4 で境界確認済み。herdr-github-pr-orchestrate とは Herdr 利用の有無で責務が分離。Herdr 非使用の直接統括。共通スキル（github-pr-create 等）への委譲は適切。"
 
   # --- github (7) ---
   - name: github-issue-create-from-plan
