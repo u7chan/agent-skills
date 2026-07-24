@@ -25,9 +25,6 @@ MAINTENANCE_PREFIX = ".claude/skills"
 SKILL_FILE_EXTS = {".md", ".py", ".sh", ".yaml", ".yml"}
 SKILL_FILE_EXCLUDES = {"agents/openai.yaml"}  # agent設定は走査対象外
 
-# ── 外部依存の種別 ────────────────────────────────────────
-DEP_TYPES = ("required", "conditional", "optional", "fallback")
-
 # ── 外部依存の別名正規化マップ（canonical → 別名集合） ───
 DEP_ALIAS_MAP = {name: set(aliases) for name, aliases in CANONICAL_DEPENDENCY_ALIASES.items()}
 
@@ -349,55 +346,30 @@ def extract_path_references(file_contents: list[dict],
 # 外部依存抽出
 # ====================================================================
 
-def parse_readme_deps() -> dict[str, list[dict]]:
-    """README.md の Available Skills テーブルから外部依存を取得する。
-
-    README の External Dependencies 列を直接の正本として扱い、
-    R/C/O/F grammar を解析する。実装中の import・command はここへ混ぜない。
-    """
-    readme_path = REPO_ROOT / "README.md"
-    if not readme_path.exists():
+def parse_canonical_deps() -> dict[str, list[dict]]:
+    """skill-categories.yaml の external_dependencies フィールドから外部依存を取得する。"""
+    categories_path = REPO_ROOT / ".rules/skill-categories.yaml"
+    if not categories_path.exists():
         return {}
 
-    with open(readme_path, encoding="utf-8") as f:
-        content = f.read()
+    with open(categories_path, encoding="utf-8") as f:
+        document = yaml.safe_load(f) or {}
 
     deps: dict[str, list[dict]] = {}
-    row = re.compile(r"^\|\s*\[([^]]+)\]\(([^)]+/SKILL\.md)\)\s*\|[^|]*\|\s*(.*?)\s*\|\s*$")
-    type_by_symbol = {"R": "required", "C": "conditional", "O": "optional", "F": "fallback"}
-    for line in content.splitlines():
-        match = row.match(line)
-        if not match:
+    for entry in document.get("skills", []):
+        if not isinstance(entry, dict) or not isinstance(entry.get("name"), str):
             continue
-        name, dep_text = match.group(1), match.group(3).strip()
+        name = entry["name"]
+        raw = entry.get("external_dependencies", [])
+        if not isinstance(raw, list):
+            continue
         dep_list: list[dict] = []
-        if dep_text not in ("—", ""):
-            for part in _split_dependency_items(dep_text):
-                annotation = re.search(r"\(\s*([RCOF])\s*\)\s*$", part, re.IGNORECASE)
-                dep_type = type_by_symbol.get(annotation.group(1).upper(), "required") if annotation else "required"
-                if annotation:
-                    part = part[:annotation.start()].strip()
-                part = part.replace("`", "").strip()
-                if part and part != "—":
-                    dep_list.append({"name": part, "type": dep_type, "source": "README"})
+        for item in raw:
+            if isinstance(item, str):
+                dep_list.append({"name": item, "source": "skill-categories.yaml"})
         deps[name] = dep_list
 
     return deps
-
-
-def _split_dependency_items(text: str) -> list[str]:
-    """カンマ区切りを基本に、旧来の ``A / B (O)`` も個別化する。"""
-    items: list[str] = []
-    for raw in text.split(","):
-        raw = raw.strip()
-        if not raw or raw == "—":
-            continue
-        annotation = re.search(r"(\(\s*[RCOF]\s*\))\s*$", raw, re.IGNORECASE)
-        suffix = annotation.group(1) if annotation else ""
-        body = raw[:annotation.start()].strip() if annotation else raw
-        alternatives = [value.strip() for value in re.split(r"\s+/\s+", body) if value.strip()]
-        items.extend(f"{alternative} {suffix}".strip() for alternative in alternatives)
-    return items
 
 
 def extract_external_dependency_evidence(file_contents: list[dict]) -> list[dict]:
@@ -474,12 +446,12 @@ def extract_external_dependency_evidence(file_contents: list[dict]) -> list[dict
 
 def extract_external_deps(skill_name: str,
                           file_contents: list[dict],
-                          readme_deps: dict[str, list[dict]]) -> list[dict]:
-    """READMEの直接宣言だけをinventory形式へ変換する互換ヘルパー。"""
+                          canonical_deps: dict[str, list[dict]]) -> list[dict]:
+    """skill-categories.yamlの直接宣言だけをinventory形式へ変換するヘルパー。"""
     del file_contents
     return [
-        {"name": normalize_dep_name(dependency["name"]), "type": dependency["type"], "source": "README"}
-        for dependency in readme_deps.get(skill_name, [])
+        {"name": normalize_dep_name(dependency["name"]), "source": "skill-categories.yaml"}
+        for dependency in canonical_deps.get(skill_name, [])
     ]
 
 
@@ -845,19 +817,18 @@ def add_manual_findings(skills_meta: list[dict], auto_count: int) -> list[dict]:
         })
 
     # ── 共通依存 ──
-    deps_summary: dict[tuple[str, str], int] = {}
+    deps_summary: dict[str, int] = {}
     for s in skills_meta:
         for dep in s.get("external_dependencies", []):
-            key = (dep["name"], dep["type"])
+            key = dep["name"]
             deps_summary[key] = deps_summary.get(key, 0) + 1
 
-    for (dname, dtype), count in sorted(deps_summary.items(), key=lambda x: -x[1]):
+    for dname, count in sorted(deps_summary.items(), key=lambda x: -x[1]):
         if count >= len(skills_meta) * 0.5:
             findings.append({
                 "id": f"F-COMMON-{normalize_dep_name(dname).replace(' ', '-').upper()}",
                 "type": "common_dependency",
                 "dependency": dname,
-                "type_class": dtype,
                 "usage_count": count,
                 "reason": f"全スキルの {count}/{len(skills_meta)} が依存。共通依存として暗黙的に扱うことを検討。",
                 "auto_detected": False,
@@ -880,7 +851,7 @@ def main(argv: list[str] | None = None) -> None:
     skill_files = find_skill_files()
     print(f"Found {len(skill_files)} SKILL.md files (distributable + maintenance)")
 
-    readme_deps = parse_readme_deps()
+    canonical_deps = parse_canonical_deps()
     categories_document = load_yaml_document(CANONICAL_CATEGORIES)
     rules_document = load_yaml_document(CANONICAL_RULES)
 
@@ -936,8 +907,8 @@ def main(argv: list[str] | None = None) -> None:
             if key in relation_overrides and ref["relation"] != relation_overrides[key]:
                 ref["relation"] = relation_overrides[key]
         path_refs = extract_path_references(file_contents, all_skill_names)
-        # 外部依存の直接宣言は README のみ。実装証拠は別フィールドに保存する。
-        ext_deps = extract_external_deps(name, file_contents, readme_deps)
+        # 外部依存の正本は skill-categories.yaml。実装証拠は別フィールドに保存する。
+        ext_deps = extract_external_deps(name, file_contents, canonical_deps)
         ext_evidence = extract_external_dependency_evidence(file_contents)
 
         meta = {

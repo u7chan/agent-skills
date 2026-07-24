@@ -35,17 +35,13 @@ skills:
   path_references: []
   external_dependencies:
   - name: bun
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: rg
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: web access
-    type: conditional
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -63,20 +59,15 @@ skills:
   path_references: []
   external_dependencies:
   - name: node
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: npm
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: rg
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: web access
-    type: conditional
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -94,20 +85,15 @@ skills:
   path_references: []
   external_dependencies:
   - name: uv
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: python
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: rg
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: web access
-    type: conditional
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -163,11 +149,9 @@ skills:
   path_references: []
   external_dependencies:
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -189,11 +173,9 @@ skills:
   path_references: []
   external_dependencies:
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -211,11 +193,9 @@ skills:
   path_references: []
   external_dependencies:
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -253,11 +233,9 @@ skills:
     source_line: 67
   external_dependencies:
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings:
@@ -284,14 +262,11 @@ skills:
   path_references: []
   external_dependencies:
   - name: gh
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: github
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -317,14 +292,11 @@ skills:
   path_references: []
   external_dependencies:
   - name: gh
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: github
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -346,14 +318,11 @@ skills:
   path_references: []
   external_dependencies:
   - name: gh
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: github api
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -375,17 +344,13 @@ skills:
   path_references: []
   external_dependencies:
   - name: gh
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: github
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -411,17 +376,13 @@ skills:
   path_references: []
   external_dependencies:
   - name: gh
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: github api
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -439,14 +400,11 @@ skills:
   path_references: []
   external_dependencies:
   - name: gh
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -464,17 +422,13 @@ skills:
   path_references: []
   external_dependencies:
   - name: gh
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: jq
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: github api
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -496,20 +450,15 @@ skills:
   path_references: []
   external_dependencies:
   - name: herdr
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: cagent
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: python
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: agent cli
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence:
   - name: cagent
     evidence_type: command-v
@@ -560,20 +509,15 @@ skills:
   path_references: []
   external_dependencies:
   - name: gh
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: jq
-    type: conditional
-    source: README
+    source: skill-categories.yaml
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: github
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings:
@@ -596,20 +540,15 @@ skills:
   path_references: []
   external_dependencies:
   - name: herdr
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: jq
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: python
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: agent cli
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -639,29 +578,21 @@ skills:
   path_references: []
   external_dependencies:
   - name: herdr
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: cagent
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: gh
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: jq
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: python
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: agent cli
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -711,29 +642,21 @@ skills:
   path_references: []
   external_dependencies:
   - name: herdr
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: cagent
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: gh
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: jq
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: python
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: agent cli
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings:
@@ -768,23 +691,17 @@ skills:
   path_references: []
   external_dependencies:
   - name: herdr
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: jq
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: python
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: agent cli
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -810,14 +727,11 @@ skills:
   path_references: []
   external_dependencies:
   - name: herdr
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: git
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings:
@@ -893,11 +807,9 @@ skills:
     source_line: 56
   external_dependencies:
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: coreutils
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -915,8 +827,7 @@ skills:
   path_references: []
   external_dependencies:
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -934,14 +845,11 @@ skills:
   path_references: []
   external_dependencies:
   - name: librsvg
-    type: optional
-    source: README
+    source: skill-categories.yaml
   - name: inkscape
-    type: optional
-    source: README
+    source: skill-categories.yaml
   - name: browser
-    type: optional
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -975,20 +883,15 @@ skills:
   path_references: []
   external_dependencies:
   - name: playwright
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: browser
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: posix shell
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: node
-    type: fallback
-    source: README
+    source: skill-categories.yaml
   - name: npx
-    type: fallback
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -1022,8 +925,7 @@ skills:
   path_references: []
   external_dependencies:
   - name: tailwind css project
-    type: required
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []

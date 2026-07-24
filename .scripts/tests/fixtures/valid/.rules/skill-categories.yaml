@@ -12,6 +12,10 @@ skills:
     depends_on: []
     external_dependencies_ref: inventory/skills.yaml
     known_issues: []
+    external_dependencies:
+      - Leaf
+      - Shared
+      - Fallback
   - name: git-child-validate
     path: git-child-validate
     category: git
@@ -20,6 +24,10 @@ skills:
     depends_on: [tool-leaf-validate]
     external_dependencies_ref: inventory/skills.yaml
     known_issues: []
+    external_dependencies:
+      - Git
+      - Shared
+      - Optional
   - name: flow-parent-validate
     path: flow-parent-validate
     category: orchestration
@@ -30,6 +38,8 @@ skills:
       git-child-validate: conditional
     external_dependencies_ref: inventory/skills.yaml
     known_issues: []
+    external_dependencies:
+      - Parent
 dependency_notes:
   routes_to_not_depends:
     items: []

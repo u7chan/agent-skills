@@ -18,13 +18,13 @@ edges:
   relation: depends_on
   edge_condition: conditional
   source_file: .rules/skill-categories.yaml
-  source_line: 23
+  source_line: 31
 - from: git-child-validate
   to: tool-leaf-validate
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 15
+  source_line: 19
 other_references: []
 cycles: []
 reverse_dependency_candidates: []

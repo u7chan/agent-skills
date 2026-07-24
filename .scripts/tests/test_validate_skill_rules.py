@@ -394,7 +394,7 @@ class ValidationCliTest(unittest.TestCase):
 
         output = root / "preserve.md"
         output.write_text("old", encoding="utf-8")
-        self.replace(root / "README.md", "Parent (O)", "Parent (Z)")
+        self.replace(root / "README.md", "Parent", "")
         error = self.invoke(root, "--graph", str(output))
         self.assertEqual(error.returncode, 1, error.stderr)
         self.assertEqual(output.read_text(encoding="utf-8"), "old")
@@ -481,7 +481,7 @@ class ValidationCliTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         graph = (root / "graph.md").read_text(encoding="utf-8")
         self.assertIn("maint-tool-validate", graph)
-        self.assertIn("maint cli (R)", graph)
+        self.assertIn("maint cli", graph)
 
 
 if __name__ == "__main__":
