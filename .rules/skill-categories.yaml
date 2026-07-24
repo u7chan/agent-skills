@@ -74,6 +74,12 @@ skills:
   known_issues:
   - ref: F012
     note: cagent のバージョンアップ追従が必要。scripts/ への分離は適切。
+  external_dependencies:
+  - Herdr
+  - cagent
+  - Python 3
+  - selected Agent CLI
+  - POSIX shell
 - name: herdr-agent-delegate
   path: skills/orchestration/herdr-agent-delegate
   category: orchestration
@@ -86,6 +92,12 @@ skills:
   - cagent-agent-command-resolve
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - Herdr
+  - jq
+  - Python 3
+  - POSIX shell
+  - Agent CLI
 - name: herdr-github-create-issue
   path: skills/orchestration/herdr-github-create-issue
   category: orchestration
@@ -101,6 +113,15 @@ skills:
   - herdr-agent-delegate
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - Herdr
+  - cagent
+  - gh
+  - jq
+  - Git
+  - Python 3
+  - POSIX shell
+  - selected Agent CLI
 - name: herdr-github-pr-orchestrate
   path: skills/orchestration/herdr-github-pr-orchestrate
   category: orchestration
@@ -122,6 +143,15 @@ skills:
   known_issues:
   - ref: F008
     note: Phase 4 で境界確認済み。github-pr-orchestrate は非Herdr環境の直接統括、herdr-github-pr-orchestrate は Herdr Agent 委譲による統括。利用コンテキストが異なるため統合不要。共通スキル（github-pr-create 等）の参照は適切に共有。
+  external_dependencies:
+  - Herdr
+  - cagent
+  - gh
+  - jq
+  - Git
+  - Python 3
+  - POSIX shell
+  - Agent CLI
 - name: herdr-prompt-evaluate
   path: skills/orchestration/herdr-prompt-evaluate
   category: orchestration
@@ -135,6 +165,13 @@ skills:
   - herdr-worktree-create
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - Herdr
+  - jq
+  - Git
+  - Python 3
+  - POSIX shell
+  - Agent CLI
 - name: herdr-worktree-create
   path: skills/orchestration/herdr-worktree-create
   category: orchestration
@@ -149,6 +186,10 @@ skills:
   known_issues:
   - ref: F006
     note: Phase 4 で境界確認済み。git-worktree-create は純粋な git 操作、herdr-worktree-create は Herdr ラッパー。利用コンテキストが異なるため統合不要。
+  external_dependencies:
+  - Herdr
+  - Git
+  - POSIX shell
 - name: github-pr-orchestrate
   path: skills/orchestration/github-pr-orchestrate
   category: orchestration
@@ -164,6 +205,12 @@ skills:
   known_issues:
   - ref: F008
     note: Phase 4 で境界確認済み。herdr-github-pr-orchestrate とは Herdr 利用の有無で責務が分離。Herdr 非使用の直接統括。共通スキル（github-pr-create 等）への委譲は適切。
+  external_dependencies:
+  - gh
+  - jq
+  - Git
+  - GitHub
+  - POSIX shell
 - name: github-issue-create-from-plan
   path: skills/github/github-issue-create-from-plan
   category: github
@@ -176,6 +223,10 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - gh
+  - GitHub
+  - POSIX shell
 - name: github-issue-decompose
   path: skills/github/github-issue-decompose
   category: github
@@ -187,6 +238,10 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - gh
+  - GitHub
+  - POSIX shell
 - name: github-pr-comment-reply
   path: skills/github/github-pr-comment-reply
   category: github
@@ -198,6 +253,10 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - gh
+  - GitHub API
+  - POSIX shell
 - name: github-pr-create
   path: skills/github/github-pr-create
   category: github
@@ -209,6 +268,11 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - gh
+  - Git
+  - GitHub
+  - POSIX shell
 - name: github-pr-feedback-address
   path: skills/github/github-pr-feedback-address
   category: github
@@ -221,6 +285,11 @@ skills:
   - github-pr-comment-reply
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - gh
+  - Git
+  - GitHub API
+  - POSIX shell
 - name: github-pr-post-merge-cleanup
   path: skills/github/github-pr-post-merge-cleanup
   category: github
@@ -233,6 +302,10 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - gh
+  - Git
+  - POSIX shell
 - name: github-pr-review
   path: skills/github/github-pr-review
   category: github
@@ -244,6 +317,11 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - gh
+  - jq
+  - GitHub API
+  - POSIX shell
 - name: git-branch-create
   path: skills/git/git-branch-create
   category: git
@@ -255,6 +333,9 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - Git
+  - POSIX shell
 - name: git-changes-commit
   path: skills/git/git-changes-commit
   category: git
@@ -267,6 +348,9 @@ skills:
   - git-commit-message-suggest
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - Git
+  - POSIX shell
 - name: git-commit-message-suggest
   path: skills/git/git-commit-message-suggest
   category: git
@@ -278,6 +362,9 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - Git
+  - POSIX shell
 - name: git-worktree-create
   path: skills/git/git-worktree-create
   category: git
@@ -292,6 +379,9 @@ skills:
   known_issues:
   - ref: F006
     note: Phase 4 で境界確認済み。git-worktree-create は純粋な git 操作、herdr-worktree-create は Herdr ラッパー。利用コンテキストが異なるため統合不要。
+  external_dependencies:
+  - Git
+  - POSIX shell
 - name: design-plan-grill
   path: skills/design/design-plan-grill
   category: design
@@ -306,6 +396,7 @@ skills:
   known_issues:
   - ref: F007
     note: Phase 4 で境界確認済み。grilling の特殊化として責務分離は適切。routes_to で条件付き委譲。
+  external_dependencies: []
 - name: grilling
   path: skills/design/grilling
   category: design
@@ -320,6 +411,7 @@ skills:
   known_issues:
   - ref: F007
     note: Phase 4 で境界確認済み。design-plan-grill は設計特化、grilling は領域非依存。責務分離は適切。
+  external_dependencies: []
 - name: agent-skill-design
   path: skills/skill/agent-skill-design
   category: skill
@@ -333,6 +425,7 @@ skills:
   known_issues:
   - ref: F009
     note: Phase 4 で境界確認済み。design は挙動変更（新規作成・要件追加・再設計）、refine は意味保存改善。責務分離は適切。
+  external_dependencies: []
 - name: agent-skill-refine
   path: skills/skill/agent-skill-refine
   category: skill
@@ -346,6 +439,7 @@ skills:
   known_issues:
   - ref: F009
     note: Phase 4 で境界確認済み。design は挙動変更、refine は意味保存改善。責務分離は適切。
+  external_dependencies: []
 - name: skills-readme-sync
   path: .claude/skills/skills-readme-sync
   category: skill
@@ -370,6 +464,7 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies: []
 - name: codex-skills-link
   path: skills/tool/codex-skills-link
   category: tool
@@ -381,6 +476,9 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - POSIX shell
+  - coreutils
 - name: html-artifact-format
   path: skills/tool/html-artifact-format
   category: tool
@@ -392,6 +490,8 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - POSIX shell
 - name: image-to-svg
   path: skills/tool/image-to-svg
   category: tool
@@ -404,6 +504,10 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - librsvg
+  - Inkscape
+  - browser
 - name: japanese-text-refine
   path: skills/tool/japanese-text-refine
   category: tool
@@ -415,6 +519,7 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies: []
 - name: playwright-cli
   path: skills/tool/playwright-cli
   category: tool
@@ -427,6 +532,12 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - Playwright CLI
+  - browser
+  - POSIX shell
+  - Node.js
+  - npx
 - name: qa-test-design
   path: skills/tool/qa-test-design
   category: tool
@@ -438,6 +549,7 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies: []
 - name: tailwind-ui-compose
   path: skills/tool/tailwind-ui-compose
   category: tool
@@ -449,6 +561,8 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - Tailwind CSS project
 - name: bun-dependency-update
   path: skills/dependency/bun-dependency-update
   category: dependency
@@ -460,6 +574,11 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - Bun
+  - rg
+  - POSIX shell
+  - web access
 - name: npm-dependency-update
   path: skills/dependency/npm-dependency-update
   category: dependency
@@ -471,6 +590,12 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - Node.js
+  - npm
+  - rg
+  - POSIX shell
+  - web access
 - name: uv-dependency-update
   path: skills/dependency/uv-dependency-update
   category: dependency
@@ -482,6 +607,12 @@ skills:
   depends_on: []
   external_dependencies_ref: inventory/skills.yaml
   known_issues: []
+  external_dependencies:
+  - uv
+  - Python
+  - rg
+  - POSIX shell
+  - web access
 dependency_notes:
   reverse_violations:
     description: '既知のカテゴリ逆方向依存。現在は該当なし。
