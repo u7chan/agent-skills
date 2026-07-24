@@ -1,6 +1,12 @@
 schema_version: 2
 generated_by: .scripts/inventory.py
-total_findings: 0
+total_findings: 1
 auto_detected: 0
-manual: 0
-findings: []
+manual: 1
+findings:
+- id: F-COMMON-SHARED
+  type: common_dependency
+  dependency: shared
+  usage_count: 2
+  reason: 全スキルの 2/3 が依存。共通依存として暗黙的に扱うことを検討。
+  auto_detected: false

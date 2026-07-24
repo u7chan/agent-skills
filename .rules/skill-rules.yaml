@@ -316,63 +316,7 @@ dependencies:
 # ============================================================
 external_dependencies:
 
-  # --- 5.1 種別定義 ---
-  types:
-    - id: required
-      symbol: "R"
-      definition: >
-        スキルの主要機能が動作するために必須。
-        利用可能でない場合、スキルは機能しない。
-      example: "gh CLI（github-* スキル）"
-
-    - id: conditional
-      symbol: "C"
-      definition: >
-        特定のフロー・条件下でのみ必要。
-        該当フロー以外ではスキルは動作する。
-      example: "web access（bun-dependency-update の major update 調査時）"
-
-    - id: optional
-      symbol: "O"
-      definition: >
-        推奨だが必須ではない。代替手段が存在するか、
-        または複数候補のうち 1 つで十分。
-        この依存なしでもスキルは動作する（機能制限はありうる）。
-      example: "librsvg / inkscape / browser（image-to-svg、いずれか 1 つ）"
-
-    - id: fallback
-      symbol: "F"
-      definition: >
-        主たる手段が利用できない場合の最終代替。
-        通常フローでは使用されない。
-      example: "npx（playwright-cli、Playwright CLI 非存在時のフォールバック）"
-
-  # --- 5.2 入力形式（README セルからの機械抽出規則） ---
-  input_format:
-    description: >
-      各スキルの README.md の External Dependencies 列から機械的に type を抽出する規則。
-
-    grammar:
-      cell_format: "依存名1, 依存名2 (type), 依存名3"
-      type_annotation: >
-        依存名の直後に半角丸括弧で type 記号 1 文字を記述する。
-        記号は R / C / O / F のいずれか 1 文字。
-        例: `gh CLI (R)`, `web access (C)`, `librsvg (O)`, `npx (F)`
-      default:
-        when_absent: "type 注記がない依存は required (R) とみなす。既定値で問題ない場合も明示的な R 注記を推奨する。"
-      normalization:
-        rule: "依存名先頭・末尾の空白を除去し、連続する空白を 1 つに正規化する。type 注記内の空白も除去する。"
-      error_rules:
-        unknown_type: >
-          定義された 4 種別（R/C/O/F）以外の注記（typo 含む）は ERROR として報告する。
-          例: `(conditonal)` → ERROR（正しくは `(C)`）
-        unclosed_paren: "閉じ括弧のない注記 `(R` など）は ERROR とする。"
-        multiple_annotations: "1 依存名に複数の type 注記がある場合は ERROR とする。"
-
-    canonical_source: "README.md 各スキルの External Dependencies 列"
-    parser_spec: "検証スクリプトはこの grammar に従って README をパースし、V-EXT-001 で未知 type を検出する。"
-
-  # --- 5.3 Effective External Dependencies の算出 ---
+  # --- 5.1 Effective External Dependencies の算出 ---
   effective_calculation:
     description: >
       各スキルの effective external dependencies（実効外部依存）は以下で算出する。
@@ -402,22 +346,8 @@ external_dependencies:
       step_3:
         label: "結合"
         description: "Effective = Direct ∪ Transitive（依存名で dedup）"
-      step_4:
-        label: "type 解決（条件付き伝搬考慮）"
-        description: >
-          同一の依存名が異なる type で出現した場合、以下を優先順に適用して解決する。
-          1. conditional エッジのみを経由する推移依存は、元の type に関わらず自スキルの conditional として扱う
-          2. それ以外の重複は厳しさ順 required > conditional > optional > fallback で解決する
-      step_5:
-        label: "optional/fallback の伝搬抑制"
-        description: >
-          optional および fallback 依存は、conditional エッジの有無に関わらず推移伝搬しない。
-          依存先スキルが optional/fallback で動作するなら、
-          呼び出し元にとって必須ではないとみなす。
-
     source_of_truth: >
-      直接依存の宣言元は各スキルの README.md（External Dependencies 列）とする。
-      inventory/skills.yaml は検証により最新化される。
+      直接依存の宣言元は .rules/skill-categories.yaml の external_dependencies フィールドとする。
 
 # ============================================================
 # 6. 管理構造・公開構造・アーカイブ
@@ -624,15 +554,10 @@ validation:
     # --- 外部依存 ---
     - id: V-EXT-001
       level: ERROR
-      subject: "外部依存 type の有効性"
-      description: >
-        全スキルの外部依存 type が §5.1 の 4 種別（R/C/O/F）のいずれかであり、
-        §5.2 の入力形式 grammar に従ってパース可能であること。
-        未知の type 注記、不完全な注記、複数注記は ERROR とする。
+      subject: "外部依存セルの有効性"
+      description: "全スキルの外部依存セルが README に存在し空欄でないこと"
       mechanical_check: >
-        README の External Dependencies 列を §5.2 grammar でパースし、
-        各依存の type が required/conditional/optional/fallback に解決されることを確認。
-        未注記は required へ解決し、定義外の注記は ERROR として報告する。
+        README の External Dependencies 列の各セルが存在し、空欄でないことを確認。
 
     - id: V-EXT-002
       level: WARNING
@@ -640,7 +565,7 @@ validation:
       description: "各スキルの effective external dependencies が算出可能である"
       mechanical_check: >
         depends_on を辿って推移依存を収集し、
-        type 解決が完了することを確認。
+        解決が完了することを確認。
         循環参照があると算出不能になるため、V-DEP-001 の前提で実施。
 
     - id: V-EXT-003
@@ -662,7 +587,7 @@ validation:
       level: ERROR
       subject: "公開Skillの外部依存セル"
       description: "全配布SkillがREADMEのAvailable Skills表に重複のないExternal Dependenciesセルを持つ"
-      mechanical_check: "配布対象のSKILL.mdパスごとにセルの存在、重複、空欄を確認し、R/C/O/F grammarで解析する"
+      mechanical_check: "配布対象のSKILL.mdパスごとにセルの有無・空欄・重複を確認する"
 
     # --- 命名 ---
     - id: V-NAM-001

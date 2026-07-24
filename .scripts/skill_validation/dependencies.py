@@ -27,9 +27,7 @@ from .external import (
 CANONICAL_PATH = Path(".rules/skill-categories.yaml")
 INVENTORY_PATH = Path("inventory/skills.yaml")
 EDGE_CONDITIONS = {"unconditional", "conditional"}
-TYPE_BY_SYMBOL = {"R": "required", "C": "conditional", "O": "optional", "F": "fallback"}
-SYMBOL_BY_TYPE = {value: key for key, value in TYPE_BY_SYMBOL.items()}
-TYPE_PRIORITY = {"fallback": 0, "optional": 1, "conditional": 2, "required": 3}
+
 MARKDOWN_LINK = re.compile(r"!?\[[^]]*\]\(([^)]+)\)")
 INLINE_CODE = re.compile(r"(?<!`)`([^`\n]+)`(?!`)")
 DYNAMIC_PATH = re.compile(r"(?:\$\{?[^/\s}]+\}?|<[^>/\s]+>|\{[^}/\s]+\})")
@@ -80,7 +78,6 @@ SHELL_BUILTINS_AND_STANDARD = {
 @dataclass(frozen=True)
 class ExternalDependency:
     name: str
-    kind: str
 
 
 @dataclass(frozen=True)
@@ -463,11 +460,8 @@ def _normalize_dependency_name(value: str) -> str:
     return normalize_dependency_name(value)
 
 
-def _merge_dependency(target: dict[str, ExternalDependency], dependency: ExternalDependency) -> None:
-    key = _normalize_dependency_name(dependency.name)
-    existing = target.get(key)
-    if existing is None or TYPE_PRIORITY[dependency.kind] > TYPE_PRIORITY[existing.kind]:
-        target[key] = dependency
+def _merge_name(target: set[str], name: str) -> None:
+    target.add(_normalize_dependency_name(name))
 
 
 def _parse_external_cell(
@@ -476,8 +470,8 @@ def _parse_external_cell(
     cell: str,
     line: int,
     emit: bool,
-) -> dict[str, ExternalDependency]:
-    result: dict[str, ExternalDependency] = {}
+) -> set[str]:
+    result: set[str] = set()
     if cell.strip() == "—":
         return result
     for raw_item in cell.split(","):
@@ -486,44 +480,15 @@ def _parse_external_cell(
             if emit:
                 model.diagnostics.error("V-EXT-001", "README.md", line, f"{skill_name} has an empty dependency item")
             continue
-        annotations = re.findall(r"\(([^()]*)\)", item)
-        malformed = item.count("(") != item.count(")")
-        if malformed:
-            if emit:
-                model.diagnostics.error("V-EXT-001", "README.md", line, f"{skill_name} has an unclosed dependency annotation: {item}")
-            continue
-        if ("(" in item or ")" in item) and not annotations:
-            if emit:
-                model.diagnostics.error("V-EXT-001", "README.md", line, f"{skill_name} has a malformed dependency annotation: {item}")
-            continue
-        if len(annotations) > 1:
-            if emit:
-                model.diagnostics.error("V-EXT-001", "README.md", line, f"{skill_name} has multiple dependency annotations: {item}")
-            continue
-        kind = "required"
-        name = item
-        if annotations:
-            annotation = annotations[0].strip()
-            suffix = re.search(r"\(\s*([^()]*)\s*\)\s*$", item)
-            if suffix is None or annotation not in TYPE_BY_SYMBOL:
-                if emit:
-                    model.diagnostics.error("V-EXT-001", "README.md", line, f"{skill_name} has unknown dependency type annotation: {item}")
-                continue
-            kind = TYPE_BY_SYMBOL[annotation]
-            name = item[:suffix.start()].strip()
-        if not name or name == "—":
-            if emit:
-                model.diagnostics.error("V-EXT-001", "README.md", line, f"{skill_name} has an invalid dependency name: {item}")
-            continue
-        _merge_dependency(result, ExternalDependency(name, kind))
+        _merge_name(result, item)
     return result
 
 
-def _readme_dependencies(model: RepositoryModel, emit: bool) -> dict[str, dict[str, ExternalDependency]]:
+def _readme_dependencies(model: RepositoryModel, emit: bool) -> dict[str, set[str]]:
     entries: dict[str, list[Any]] = {}
     for entry in model.readme_entries:
         entries.setdefault(entry.path.removeprefix("./"), []).append(entry)
-    result: dict[str, dict[str, ExternalDependency]] = {name: {} for name in model.canonical_skills}
+    result: dict[str, set[str]] = {name: set() for name in model.canonical_skills}
     distributable = {skill.name for skill in model.distributable_skills if skill.name}
     for name in sorted(distributable):
         skill = model.skill_by_name[name]
@@ -544,66 +509,62 @@ def _readme_dependencies(model: RepositoryModel, emit: bool) -> dict[str, dict[s
     return result
 
 
+def _canonical_external_dependencies(model: RepositoryModel) -> dict[str, set[str]]:
+    result: dict[str, set[str]] = {}
+    for skill in model.skills:
+        if not skill.name or not isinstance(skill.canonical, dict):
+            continue
+        raw = skill.canonical.get("external_dependencies")
+        if isinstance(raw, list):
+            deps: set[str] = set()
+            for item in raw:
+                if isinstance(item, str):
+                    _merge_name(deps, item)
+            result[skill.name] = deps
+        elif skill.name not in result:
+            result[skill.name] = set()
+    return result
+
+
 def _external_dependency_views(
     model: RepositoryModel,
-    direct: dict[str, dict[str, ExternalDependency]],
+    direct: dict[str, set[str]],
     edges: dict[str, tuple[str, ...]],
 ) -> tuple[dict[str, ExternalDependencyView], set[str]]:
-    cache: dict[str, tuple[dict[str, ExternalDependency], dict[str, ExternalDependency]]] = {}
+    cache: dict[str, tuple[set[str], set[str]]] = {}
     unresolvable: set[str] = set()
 
-    def calculate(name: str, stack: tuple[str, ...]) -> tuple[dict[str, ExternalDependency], dict[str, ExternalDependency]]:
+    def calculate(name: str, stack: tuple[str, ...]) -> tuple[set[str], set[str]]:
         if name in cache:
             return cache[name]
         if name in stack:
             unresolvable.update(stack[stack.index(name):])
-            return {}, dict(direct.get(name, {}))
-        transitive: dict[str, ExternalDependency] = {}
+            return set(), set(direct.get(name, set()))
+        transitive: set[str] = set()
         for target in edges.get(name, ()):
             _, target_effective = calculate(target, (*stack, name))
-            conditional_edge = _edge_conditions(model, name).get(target, "unconditional") == "conditional"
-            for dependency in target_effective.values():
-                if dependency.kind in {"optional", "fallback"}:
-                    continue
-                inherited = ExternalDependency(dependency.name, "conditional" if conditional_edge else dependency.kind)
-                _merge_dependency(transitive, inherited)
-        effective = dict(transitive)
-        for dependency in direct.get(name, {}).values():
-            key = _normalize_dependency_name(dependency.name)
-            inherited = effective.get(key)
-            if inherited is None or TYPE_PRIORITY[dependency.kind] >= TYPE_PRIORITY[inherited.kind]:
-                effective[key] = dependency
+            transitive |= target_effective
+        effective = transitive | direct.get(name, set())
         cache[name] = transitive, effective
         return cache[name]
+
+    def ordered(values: set[str]) -> tuple[ExternalDependency, ...]:
+        return tuple(ExternalDependency(name) for name in sorted(values, key=_normalize_dependency_name))
 
     views: dict[str, ExternalDependencyView] = {}
     for name in sorted(edges):
         transitive, effective = calculate(name, ())
-        ordered = lambda values: tuple(sorted(values.values(), key=lambda item: (_normalize_dependency_name(item.name), item.kind)))
-        views[name] = ExternalDependencyView(ordered(direct.get(name, {})), ordered(transitive), ordered(effective))
+        views[name] = ExternalDependencyView(ordered(direct.get(name, set())), ordered(transitive), ordered(effective))
     return views, unresolvable
 
 
 def external_dependency_views(model: RepositoryModel) -> dict[str, ExternalDependencyView]:
-    """Build graph-renderer data without emitting a second set of diagnostics."""
-    direct = _readme_dependencies(model, emit=False)
-    for skill in model.skills:
-        if skill.classification != "maintenance" or not skill.name or not isinstance(skill.canonical, dict):
-            continue
-        raw = skill.canonical.get("external_dependencies")
-        if not isinstance(raw, list):
-            continue
-        deps: dict[str, ExternalDependency] = {}
-        for item in raw:
-            if isinstance(item, str):
-                name = _normalize_dependency_name(item)
-                _merge_dependency(deps, ExternalDependency(name, "required"))
-        direct.setdefault(skill.name, {}).update(deps)
+    direct = _canonical_external_dependencies(model)
     views, _ = _external_dependency_views(model, direct, _canonical_edges(model))
     return views
 
 
-def _inventory_dependencies(model: RepositoryModel) -> dict[str, dict[str, str]] | None:
+def _inventory_dependencies(model: RepositoryModel) -> dict[str, set[str]] | None:
     path = model.root / INVENTORY_PATH
     if not path.is_file():
         return None
@@ -614,51 +575,42 @@ def _inventory_dependencies(model: RepositoryModel) -> dict[str, dict[str, str]]
     items = document.get("skills", []) if isinstance(document, dict) else []
     if not isinstance(items, list):
         return None
-    result: dict[str, dict[str, str]] = {}
+    result: dict[str, set[str]] = {}
     for item in items:
         if not isinstance(item, dict) or not isinstance(item.get("name"), str):
             continue
-        dependencies: dict[str, str] = {}
+        deps: set[str] = set()
         raw = item.get("external_dependencies", [])
         if isinstance(raw, list):
             for dependency in raw:
-                if isinstance(dependency, dict) and isinstance(dependency.get("name"), str) and dependency.get("type") in SYMBOL_BY_TYPE:
-                    dependencies[_normalize_dependency_name(dependency["name"])] = dependency["type"]
-        result[item["name"]] = dependencies
+                if isinstance(dependency, dict) and isinstance(dependency.get("name"), str):
+                    deps.add(_normalize_dependency_name(dependency["name"]))
+        result[item["name"]] = deps
     return result
 
 
-def _check_inventory(model: RepositoryModel, direct: dict[str, dict[str, ExternalDependency]]) -> None:
+def _check_inventory(model: RepositoryModel, direct: dict[str, set[str]]) -> None:
     inventory = _inventory_dependencies(model)
     if inventory is None:
         model.diagnostics.warning("V-EXT-003", INVENTORY_PATH, 1, "inventory snapshot is missing or invalid")
         return
     for name in sorted(set(direct) | set(inventory)):
-        readme = {key: dependency.kind for key, dependency in direct.get(name, {}).items()}
-        snapshot = inventory.get(name, {})
-        if readme == snapshot:
+        canonical = direct.get(name, set())
+        snapshot = inventory.get(name, set())
+        if canonical == snapshot:
             continue
         parts: list[str] = []
-        if readme.keys() - snapshot.keys():
-            parts.append("README-only=" + ", ".join(sorted(readme.keys() - snapshot.keys())))
-        if snapshot.keys() - readme.keys():
-            parts.append("inventory-only=" + ", ".join(sorted(snapshot.keys() - readme.keys())))
-        mismatched = sorted(key for key in readme.keys() & snapshot.keys() if readme[key] != snapshot[key])
-        if mismatched:
-            parts.append("type mismatch=" + ", ".join(f"{key} ({readme[key]} != {snapshot[key]})" for key in mismatched))
+        if canonical - snapshot:
+            parts.append("canonical-only=" + ", ".join(sorted(canonical - snapshot)))
+        if snapshot - canonical:
+            parts.append("inventory-only=" + ", ".join(sorted(snapshot - canonical)))
         model.diagnostics.warning("V-EXT-003", INVENTORY_PATH, 1, f"{name}: " + "; ".join(parts))
 
 
 def _declared_external_text(model: RepositoryModel) -> dict[str, str]:
     result: dict[str, str] = {}
-    for entry in model.readme_entries:
-        chunks = [re.sub(r"\([^()]*\)", "", item) for item in entry.dependency.split(",")]
-        path = entry.path.removeprefix("./")
-        skill = next((item for item in model.distributable_skills if item.path.relative_to(model.root).as_posix() == path), None)
-        if skill and skill.name:
-            result[skill.name] = " ".join(_normalize_dependency_name(chunk) for chunk in chunks)
     for skill in model.skills:
-        if skill.classification != "maintenance" or not skill.name or not isinstance(skill.canonical, dict):
+        if not skill.name or not isinstance(skill.canonical, dict):
             continue
         raw = skill.canonical.get("external_dependencies")
         if isinstance(raw, list) and all(isinstance(item, str) for item in raw):
@@ -807,7 +759,8 @@ def check(model: RepositoryModel) -> None:
     _check_category_direction(model, edges)
     _check_physical_references(model)
     _check_extracted_relations(model)
-    direct = _readme_dependencies(model, emit=True)
+    _readme_dependencies(model, emit=True)
+    direct = _canonical_external_dependencies(model)
     _, unresolvable = _external_dependency_views(model, direct, edges)
     for name in sorted(unresolvable):
         model.diagnostics.warning("V-EXT-002", CANONICAL_PATH, _canonical_line(model, name), f"effective external dependencies are not calculable because {name!r} is cyclic")

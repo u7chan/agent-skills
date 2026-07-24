@@ -46,7 +46,6 @@ findings:
 - id: F-COMMON-POSIX-SHELL
   type: common_dependency
   dependency: posix shell
-  type_class: required
   usage_count: 24
   reason: 全スキルの 24/34 が依存。共通依存として暗黙的に扱うことを検討。
   auto_detected: false

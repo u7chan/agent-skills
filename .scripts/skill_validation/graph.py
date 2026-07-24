@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import tempfile
 
-from .dependencies import SYMBOL_BY_TYPE, ExternalDependency, external_dependency_views
+from .dependencies import ExternalDependency, external_dependency_views
 from .model import RepositoryModel
 
 
@@ -21,7 +21,7 @@ def _node_id(index: int) -> str:
 def _format_dependencies(dependencies: tuple[ExternalDependency, ...]) -> str:
     if not dependencies:
         return "—"
-    values = (f"{dependency.name.replace('|', '&#124;')} ({SYMBOL_BY_TYPE[dependency.kind]})" for dependency in dependencies)
+    values = (dependency.name.replace("|", "&#124;") for dependency in dependencies)
     return "<br>".join(values)
 
 
@@ -58,7 +58,6 @@ def _markdown(model: RepositoryModel) -> str:
         "",
         "## External dependencies",
         "",
-        "Types: R = required, C = conditional, O = optional, F = fallback.",
         "",
         "| Skill | Direct | Transitive | Effective |",
         "| --- | --- | --- | --- |",

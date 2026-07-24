@@ -142,115 +142,115 @@ edges:
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 258
+  source_line: 339
 - from: git-worktree-create
   to: git-branch-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 281
+  source_line: 368
 - from: github-pr-feedback-address
   to: github-pr-comment-reply
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 212
+  source_line: 276
 - from: github-pr-orchestrate
   to: git-changes-commit
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 152
+  source_line: 193
 - from: github-pr-orchestrate
   to: github-pr-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 152
+  source_line: 193
 - from: herdr-agent-delegate
   to: cagent-agent-command-resolve
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 77
+  source_line: 83
 - from: herdr-github-create-issue
   to: cagent-agent-command-resolve
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 89
+  source_line: 101
 - from: herdr-github-create-issue
   to: github-issue-create-from-plan
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 89
+  source_line: 101
 - from: herdr-github-create-issue
   to: herdr-agent-delegate
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 89
+  source_line: 101
 - from: herdr-github-pr-orchestrate
   to: git-branch-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 104
+  source_line: 125
 - from: herdr-github-pr-orchestrate
   to: git-changes-commit
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 104
+  source_line: 125
 - from: herdr-github-pr-orchestrate
   to: github-pr-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 104
+  source_line: 125
 - from: herdr-github-pr-orchestrate
   to: github-pr-feedback-address
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 104
+  source_line: 125
 - from: herdr-github-pr-orchestrate
   to: github-pr-review
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 104
+  source_line: 125
 - from: herdr-github-pr-orchestrate
   to: herdr-agent-delegate
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 104
+  source_line: 125
 - from: herdr-github-pr-orchestrate
   to: herdr-worktree-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 104
+  source_line: 125
 - from: herdr-prompt-evaluate
   to: herdr-agent-delegate
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 125
+  source_line: 155
 - from: herdr-prompt-evaluate
   to: herdr-worktree-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 125
+  source_line: 155
 - from: herdr-worktree-create
   to: git-branch-create
   relation: depends_on
   edge_condition: unconditional
   source_file: .rules/skill-categories.yaml
-  source_line: 138
+  source_line: 175
 other_references:
 - from: cagent-agent-command-resolve
   to: herdr-agent-delegate
@@ -266,7 +266,7 @@ other_references:
   to: design-plan-grill
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 167
+  source_line: 214
 - from: github-issue-create-from-plan
   to: html-artifact-format
   relation: mention
@@ -306,7 +306,7 @@ other_references:
   to: github-pr-review
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 152
+  source_line: 193
 - from: github-pr-orchestrate
   to: herdr-github-pr-orchestrate
   relation: mention
@@ -316,22 +316,22 @@ other_references:
   to: design-plan-grill
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 309
+  source_line: 400
 - from: herdr-github-pr-orchestrate
   to: cagent-agent-command-resolve
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 104
+  source_line: 125
 - from: herdr-prompt-evaluate
   to: agent-skill-design
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 125
+  source_line: 155
 - from: herdr-prompt-evaluate
   to: agent-skill-refine
   relation: routes_to
   source_file: .rules/skill-categories.yaml
-  source_line: 125
+  source_line: 155
 - from: herdr-worktree-create
   to: herdr-github-pr-orchestrate
   relation: used_by

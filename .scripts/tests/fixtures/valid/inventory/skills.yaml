@@ -23,8 +23,7 @@ skills:
   path_references: []
   external_dependencies:
   - name: parent
-    type: optional
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -46,14 +45,11 @@ skills:
   path_references: []
   external_dependencies:
   - name: git
-    type: conditional
-    source: README
+    source: skill-categories.yaml
   - name: shared
-    type: optional
-    source: README
+    source: skill-categories.yaml
   - name: optional
-    type: optional
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
@@ -75,14 +71,11 @@ skills:
     source_line: 1
   external_dependencies:
   - name: leaf
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: shared
-    type: required
-    source: README
+    source: skill-categories.yaml
   - name: fallback
-    type: fallback
-    source: README
+    source: skill-categories.yaml
   external_dependency_evidence: []
   disposition: keep
   findings: []
