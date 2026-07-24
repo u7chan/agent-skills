@@ -38,6 +38,10 @@ def setup(agent: str, home: Path, dry_run: bool = False) -> bool:
         print(f"ERROR: {skill_root.parent} does not exist", file=sys.stderr)
         return False
 
+    if skill_root.exists() and not skill_root.is_dir():
+        print(f"  [skip] {skill_root}: 同名のファイルが存在します", file=sys.stderr)
+        return False
+
     skill_root.mkdir(parents=True, exist_ok=True)
 
     ok = True
