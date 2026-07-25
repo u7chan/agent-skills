@@ -30,7 +30,7 @@ PR作成成功後に読む。pane配置、Agent起動、送信、待機、出力
 
 初回FBラウンドでは、同じ回の対応可能項目を新規のFB対応Agent 1体へまとめる。同一branchへの並列変更を禁止する。Agent種別はレビュー担当と同じ値をcagentへ明示し、実効3値を新たに固定して`fb-pr-<number>-r1`へrenameする。
 
-再チェックで確認不要な`partial` / `unresolved`が返った場合、親は前回のFB Agent・pane・sessionを再利用せず、次ラウンド専用の新規Agentを別paneへ起動する。ユーザーが次FB担当のAgentまたはtask levelを明示した場合はその値を優先し、未指定なら`agent=codex`、task level=`high`をcagentへ明示する。ModelとEffortは推測せずcagentで解決し、ラウンドごとに新しい`agent-kind`・`native-agent-args`・snapshotを固定して`fb-pr-<number>-r<round>`へrenameする。これは失敗時の自動再試行やAgent切替ではなく、再チェックで確認した対応可能な残件に対する規定の次FBラウンドである。
+再チェックで確認不要な`partial` / `unresolved`が返った場合、親は前回のFB Agent・pane・sessionを再利用せず、次ラウンド専用の新規Agentを別paneへ起動する。ユーザーが次FB担当のAgentまたはtask levelを明示した場合はその値を優先し、未指定なら`agent=opencode`、task level=`mid`をcagentへ明示する。ModelとEffortは推測せずcagentで解決し、ラウンドごとに新しい`agent-kind`・`native-agent-args`・snapshotを固定して`fb-pr-<number>-r<round>`へrenameする。これは失敗時の自動再試行やAgent切替ではなく、再チェックで確認した対応可能な残件に対する規定の次FBラウンドである。
 
 対象PR、実装cwd、対象コメント、ユーザー決定、`github-pr-feedback-address`の利用、差分・検証・commit・push・返信結果の返却を依頼する。FB担当は新たに解決した自身のsnapshotだけを受け取り、レビュー担当や親の値を転用しない。`question`、`blocked`、timeoutでは停止する。
 
