@@ -51,9 +51,9 @@ class AiWorkMetadataContractTest(unittest.TestCase):
         self.assertIn("出自不明の再利用paneならメタ情報を送らない", self.review_loop)
         self.assertIn("親の値を転用しない", self.review_loop)
 
-    def test_repeated_feedback_uses_fresh_codex_high_session_by_default(self):
+    def test_repeated_feedback_uses_fresh_opencode_mid_session_by_default(self):
         self.assertIn("前回のFB Agent・pane・sessionを再利用せず", self.review_loop)
-        self.assertIn("`agent=codex`、task level=`high`", self.review_loop)
+        self.assertIn("`agent=opencode`、task level=`mid`", self.review_loop)
         self.assertIn("fb-pr-<number>-r<round>", self.review_loop)
         self.assertIn("ユーザーが次FB担当のAgentまたはtask levelを明示", self.review_loop)
 
