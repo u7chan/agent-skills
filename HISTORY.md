@@ -15,8 +15,11 @@ flowchart TD
     E --> F["必要最小限のglobal-agent-skillsへ移行<br/>2026年7月26日"]
     C --> G["pane・workspace・worktree・Agent CLI・状態が増加"]
     D --> H["読み込むスキル・メタデータ・テストが増加"]
+    C --> I["workstation-configでセットアップ・更新を自動化"]
+    I --> J["作業中の差分・構造変更が構成管理へ波及"]
     G --> E
     H --> E
+    J --> F
 ```
 
 > [!IMPORTANT]
@@ -33,7 +36,7 @@ flowchart TD
 | 5 | 7月 | Herdr と複数のAgent CLIによる実装・レビュー・FB ループ | workspace、worktree、親子Agent、CLIごとの起動・状態管理 |
 | 6 | 6月〜7月 | Agent / Model / Effort の解決と記録 | 専用CLI、ラッパー、実行値の出所、所有権、伝播規則 |
 | 7 | 7月19日〜24日 | inventory・依存規則・35検証ルール | 正本、生成物、fixture、CI の同期 |
-| 8 | 7月25日〜26日 | `global-agent-skills` への移行 | 公開入口とロードコストの削減 |
+| 8 | 7月25日〜26日 | `global-agent-skills` へ移行し、構成管理から自動セットアップを削除 | 公開入口、リポジトリ間同期、ロードコストの削減 |
 
 > [!NOTE]
 > 本文では、**Git / GitHub で確認できる事実**、リポジトリ外の負荷を含む**運用者の回顧**、両者をつないだ**現在からの解釈**を区別します。日付は、特記がない限り Git 履歴上の merge 日を基準にしています。
@@ -147,6 +150,12 @@ Herdr 導入の翌日には、[PR #148「feat: github-implement-pr に Herdr レ
 
 [Issue #244「Herdrオーケストレーションスキルを別リポに切り出す」](https://github.com/u7chan/old-agent-skills/issues/244) では、「何でもこのリポジトリで管理すべきではない」という判断と、Herdr 関連をより小さな単位へ切り出す方針が記録されました。翌日の [PR #246「docs: global-agent-skillsへの移行経緯を記録する」](https://github.com/u7chan/old-agent-skills/pull/246) で、このリポジトリをメンテナンス対象から外し、新しい [global-agent-skills](https://github.com/u7chan/global-agent-skills) へ移行する方針が README に明記されました。README が移行先設計の正本として参照しているのは、[global-agent-skills Issue #8「[Epic] AI向けGitHub操作基盤 gh を構築する」](https://github.com/u7chan/global-agent-skills/issues/8) です。
 
+同じ7月、開発環境の構成を管理する [workstation-config](https://github.com/u7chan/workstation-config) でも、`agent-skills` の clone、Claude Code / Codex への symlink、自動更新を扱っていました。[PR #30「personalプロファイルでagent-skillsを共有する」](https://github.com/u7chan/workstation-config/pull/30) で7月6日に自動セットアップを導入しましたが、作業中の branch や dirty worktree を更新失敗として扱う問題が起き、[PR #77](https://github.com/u7chan/workstation-config/pull/77) で失敗ではなくスキップとして扱うように変更しました。さらに、このリポジトリのカテゴリ再配置に伴い、[PR #85](https://github.com/u7chan/workstation-config/pull/85) で symlink 方式を更新しています。
+
+それでも、[Issue #83「agent-skills にローカル変更があると bootstrap が失敗する」](https://github.com/u7chan/workstation-config/issues/83) では、`agent-skills` の開発中に構成管理の `./bootstrap` を再実行すると、未コミット変更があるだけで Ansible の clone 処理が失敗することが記録されました。運用者の回顧では、別の作業中にセットアップコマンドを実行すると、開発中の差分があるだけで処理が失敗し、更新失敗の表示も繰り返されたことが日常のストレスになっていました。
+
+最終的に [Issue #86「agent-skills のセットアップ定義を削除し手動管理へ移行」](https://github.com/u7chan/workstation-config/issues/86) と [PR #87](https://github.com/u7chan/workstation-config/pull/87) により、7月25日に clone、symlink、自動更新の全定義を `workstation-config` から削除し、手動管理へ戻しました。スキル集を使いやすくするための配布自動化が、開発中リポジトリの状態と構成管理を結合し、スキル側の構造変更へ別リポジトリで追従する負担まで生んだためです。
+
 運用者が新リポジトリで残そうとしている公開入口は、概ね次の3つです。
 
 - `gh`: GitHub CLI の低レベル操作を集約するラッパー
@@ -167,6 +176,7 @@ Herdr 導入の翌日には、[PR #148「feat: github-implement-pr に Herdr レ
 - 複数Agentを安全に動かすと、worktree、状態、timeout、失敗時資源の契約が必要になる
 - タスクごとにAgentを選ぶと、Model / Effort の解決と実行値の固定が必要になる
 - 実行結果を追跡すると、解決した Agent / Model / Effort の正確な伝播と記録が必要になる
+- セットアップと更新を構成管理へ組み込むと、branch、dirty worktree、ディレクトリ構造が別リポジトリの失敗条件になる
 - 密結合を整理すると、カテゴリ、依存方向、inventory、検証が必要になる
 
 1つずつを見ると、前段階で実際に起きた問題への対策です。問題は、それらが積み重なったときの全体コストが、個別 PR のレビュー単位では見えにくかったことでした。
@@ -194,7 +204,7 @@ Herdr 導入の翌日には、[PR #148「feat: github-implement-pr に Herdr レ
 | Python テスト | 18ファイル、2,094行 |
 | orchestration 配下の Markdown / Python | 3,025行 |
 
-この表は `old-agent-skills` だけの集計であり、`code-agent-launcher` 本体の実装、テスト、設定、リリース作業や、Claude Code 用ラッパーの管理は含みません。複雑さの一部を専用CLIやラッパーへ移したことで個々のスキルの責務は整理されましたが、運用者が保守するシステム全体の範囲は、このリポジトリの外側まで広がっていました。
+この表は `old-agent-skills` だけの集計であり、`code-agent-launcher` 本体の実装、テスト、設定、リリース作業、Claude Code 用ラッパーの管理、`workstation-config` のセットアップ・更新処理は含みません。複雑さの一部を専用CLI、ラッパー、構成管理へ移したことで個々のスキルの責務は整理されましたが、運用者が保守するシステム全体の範囲は、このリポジトリの外側まで広がっていました。
 
 これは「テストや規則を作るべきではなかった」という意味ではありません。むしろ、自然言語で書かれた分散ワークフローを安定させようとすれば、契約テストや静的検証が必要になることを示しています。問題は、個人用スキル集の価値を得るために、専用フレームワークに近い保守を必要とする状態へ達したことです。
 
@@ -225,6 +235,8 @@ Git 履歴だけから、実際のトークン数や Codex Usage は復元でき
 
 6. **移行は、抽象化の置き場所を変える判断である** — 旧リポジトリの知見があるからこそ、`gh` と `herdr` のような薄いラッパーへ共通処理を寄せ、公開スキルを絞れます。このリポジトリは、どの抽象化が自然言語スキルに向き、どれが CLI に向くかを示す実験記録として残します。
 
+7. **開発中リポジトリと環境構築のライフサイクルを分ける** — branch の切り替えや未コミット変更は、開発中には正常な状態です。それを構成管理の clone・更新処理へ直結すると、日常作業が環境構築の失敗条件になります。自動化の利便性だけでなく、作業中の状態を壊さず無視できるか、構造変更の追従先を増やさないかも評価する必要があります。
+
 ## 勉強会・テックブログに展開できる問い
 
 - 「Issue から PR まで全自動」の本当の運用コストをどう測るか
@@ -234,6 +246,7 @@ Git 履歴だけから、実際のトークン数や Codex Usage は復元でき
 - 複数の Agent CLI と異なる起動経路を一つのオーケストレーションへ収めると、複雑さはどこへ移るのか
 - Agent / Model / Effort の provenance を、親子Agent間でどう保持するか
 - 個人用自動化に、組織向けガバナンスを持ち込む境界はどこか
+- 開発中リポジトリの自動セットアップは、どこから構成管理との過剰な結合になるか
 - 「追加する PR」だけでなく「公開入口を減らす PR」をどう評価するか
 
 ## 終わりに
