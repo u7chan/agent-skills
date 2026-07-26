@@ -31,7 +31,7 @@ flowchart TD
 | 3 | 5月 | 単一Agentで Issue から PR まで完走 | 1つの入口が扱う責務と停止条件 |
 | 4 | 6月29日〜7月2日 | tmux による複数Agent化 | Agent間通信、pane、timeout、結合テスト |
 | 5 | 7月 | Herdr と複数のAgent CLIによる実装・レビュー・FB ループ | workspace、worktree、親子Agent、CLIごとの起動・状態管理 |
-| 6 | 6月〜7月 | Agent / Model / Effort の解決と記録 | 専用CLI、実行値の出所、所有権、伝播規則 |
+| 6 | 6月〜7月 | Agent / Model / Effort の解決と記録 | 専用CLI、ラッパー、実行値の出所、所有権、伝播規則 |
 | 7 | 7月19日〜24日 | inventory・依存規則・35検証ルール | 正本、生成物、fixture、CI の同期 |
 | 8 | 7月25日〜26日 | `global-agent-skills` への移行 | 公開入口とロードコストの削減 |
 
@@ -70,7 +70,7 @@ flowchart TD
 
 しかし tmux 固有スキルは、わずか数日後の [PR #142「chore: archive tmux skills」](https://github.com/u7chan/old-agent-skills/pull/142) で archive されました。そして [Issue #143「herdrで複数Agentへの委譲を統合するスキルを追加する」](https://github.com/u7chan/old-agent-skills/issues/143) と [PR #144「feat: add Herdr agent delegation skill」](https://github.com/u7chan/old-agent-skills/pull/144) により、Herdr ベースへ置き換わりました。
 
-ここで扱う状態は、一気に増えました。親子Agent、pane、tab、workspace、worktree、依頼送信、完了待機、出力回収、失敗時の資源保持などです。さらに、Codex、OpenCode、Claude Code という異なる Agent CLI を同じ委譲フローから起動する必要がありました。運用者の回顧では、Claude Code はサブスクリプション枠を使った運用ではありませんでしたが、対応する Agent CLI の一つとして、起動・送信・完了判定の差を吸収する対象に含まれていました。単一Agentの中だけで成立していた手順に、ターミナルマルチプレクサをまたぐ分散実行と、複数のCLIを共通に扱うための契約が加わりました。
+ここで扱う状態は、一気に増えました。親子Agent、pane、tab、workspace、worktree、依頼送信、完了待機、出力回収、失敗時の資源保持などです。さらに、Codex、OpenCode、Claude Code という異なる Agent CLI を同じ委譲フローから起動する必要がありました。ただし、起動経路まで完全に共通だったわけではありません。運用者の回顧では、Claude Code はサブスクリプション枠を使わず、Endpoint と API キーをフックするラッパー関数を介して起動していました。単一Agentの中だけで成立していた手順に、ターミナルマルチプレクサをまたぐ分散実行と、複数のCLI・起動経路を扱うための契約が加わりました。
 
 ### 5. Herdr による実装・レビュー・FB ループ（2026年7月）
 
@@ -110,9 +110,9 @@ Herdr 導入の翌日には、[PR #148「feat: github-implement-pr に Herdr レ
 
 ### 6. Agent / Model / Effort の解決と記録（2026年6月〜7月）
 
-複数の Agent CLI を扱うと、「どのAgentを起動するか」に加えて、「そのタスクをどのModelとEffortで実行するか」もオーケストレーションの責務になります。この選択を各 Herdr スキルへ個別に埋め込まず、タスクレベル、ユーザー指定、設定から実行値を解決するため、7月9日に専用CLI [code-agent-launcher](https://github.com/u7chan/code-agent-launcher) の開発が始まりました。CLI コマンド名は `cagent` です。
+複数の Agent CLI を扱うと、「どのAgentを起動するか」に加えて、「そのタスクをどのModelとEffortで実行するか」もオーケストレーションの責務になります。Codex と OpenCode では、この選択を各 Herdr スキルへ個別に埋め込まず、タスクレベル、ユーザー指定、設定から実行値を解決するため、7月9日に専用CLI [code-agent-launcher](https://github.com/u7chan/code-agent-launcher) の開発が始まりました。CLI コマンド名は `cagent` です。`cagent` の対応対象は Codex と OpenCode であり、Claude Code は含まれません。
 
-[Issue #161「Herdr 上で cagent を使う coding-agent-subagent Skill を追加する」](https://github.com/u7chan/old-agent-skills/issues/161) と [PR #181「feat: cagentを使うcoding-agent-subagent Skillを追加」](https://github.com/u7chan/old-agent-skills/pull/181) では、責務を二つに分けました。`cagent` と連携するスキルが Agent、`low` / `mid` / `high` のタスクレベル、Model、Effort、起動コマンドを解決し、Herdr 側が pane 配置、起動、送信、待機、回収を担当します。これにより選択規則の集約と再利用は進みましたが、Herdr スキルだけでなく、別リポジトリのCLI、その設定、Agentごとの `adapter`、両者をつなぐ契約までが動作条件になりました。
+[Issue #161「Herdr 上で cagent を使う coding-agent-subagent Skill を追加する」](https://github.com/u7chan/old-agent-skills/issues/161) と [PR #181「feat: cagentを使うcoding-agent-subagent Skillを追加」](https://github.com/u7chan/old-agent-skills/pull/181) では、Codex / OpenCode の起動について責務を二つに分けました。`cagent` と連携するスキルが Agent、`low` / `mid` / `high` のタスクレベル、Model、Effort、起動コマンドを解決し、Herdr 側が pane 配置、起動、送信、待機、回収を担当します。一方、Claude Code は `cagent` を経由せず、前述のラッパー関数を起動コマンドとして Herdr へ渡す経路でした。これにより Codex / OpenCode の選択規則は集約されましたが、システム全体では別リポジトリのCLI、その設定、Agentごとの `adapter`、Claude Code 固有のラッパー、各経路と Herdr をつなぐ契約が動作条件になりました。
 
 起動値の解決と並行して、作業した Agent と Model を PR 本文やレビューコメントへ残す仕組みも、次の順で発展しました。
 
@@ -125,7 +125,7 @@ Herdr 導入の翌日には、[PR #148「feat: github-implement-pr に Herdr レ
 | 7月15日〜16日 | runtime model と orchestrator の値を修正 | [#188](https://github.com/u7chan/old-agent-skills/pull/188)、[#192](https://github.com/u7chan/old-agent-skills/pull/192) |
 | 7月18日〜19日 | Effort と Herdr 委譲時 snapshot を追加 | [#201](https://github.com/u7chan/old-agent-skills/pull/201)、[#207](https://github.com/u7chan/old-agent-skills/pull/207) |
 
-履歴から確認できるのは、「実行時の Agent / Model / Effort を正しく選び、起動し、表示する」という横断的な関心に対し、短期間に複数の修正が必要だったことです。「だんだん期待どおり動かなくなった」という評価は運用者の回顧ですが、値の出所がユーザー指定、`cagent` の設定と解決結果、親Agent、子Agent、runtime にまたがり、起動値と表示値の契約が不安定になりやすかったことは変更の連続から読み取れます。
+履歴から確認できるのは、「実行時の Agent / Model / Effort を正しく選び、起動し、表示する」という横断的な関心に対し、短期間に複数の修正が必要だったことです。「だんだん期待どおり動かなくなった」という評価は運用者の回顧ですが、Codex / OpenCode ではユーザー指定と `cagent` の設定・解決結果、Claude Code ではラッパー関数と接続先の設定が関与し、さらに親Agent、子Agent、runtime へ値がまたがりました。起動経路によって正本が異なり、起動値と表示値の契約が不安定になりやすかったことは変更の連続から読み取れます。
 
 ### 7. 複雑さを統制するための inventory・規則・検証（2026年7月19日〜24日）
 
@@ -173,9 +173,9 @@ Herdr 導入の翌日には、[PR #148「feat: github-implement-pr に Herdr レ
 
 ### オーケストレーションは、読み込みと状態の組み合わせを増やした
 
-単一のプリミティブスキルでは、主に「入力、コマンド、出力」を考えれば済みます。Herdr 統括では、親Agentと複数の子Agent、GitHub、Git、pane、workspace、worktree、Codex・OpenCode・Claude Code の各CLI、`cagent` によるModel / Effort解決、レビュー状態が相互作用します。
+単一のプリミティブスキルでは、主に「入力、コマンド、出力」を考えれば済みます。Herdr 統括では、親Agentと複数の子Agent、GitHub、Git、pane、workspace、worktree、Codex・OpenCode・Claude Code の各CLI、Codex / OpenCode 用の `cagent`、Claude Code 用のラッパー関数、Model / Effort解決、レビュー状態が相互作用します。
 
-現在の正本では、`herdr-github-pr-orchestrate` は branch、commit、PR 作成、レビュー、FB 対応、Herdr 委譲、worktree の7スキルに依存します。加えて、新規Agentの起動時には `cagent` の解決スキルと外部CLIも関与します。再利用によって重複実装は減りますが、実行時には複数の `SKILL.md` と `references/` を読み、リポジトリをまたぐ境界条件を同時に守る必要があります。コードの関数呼び出しに似た依存関係を自然言語 prompt と外部CLIで構成したため、ロードする文脈、解釈の揺れ、バージョン間の契約が実行コストになりました。
+現在の正本では、`herdr-github-pr-orchestrate` は branch、commit、PR 作成、レビュー、FB 対応、Herdr 委譲、worktree の7スキルに依存します。加えて、Codex / OpenCode の新規起動時には `cagent` の解決スキルと外部CLIが、Claude Code の起動時には専用のラッパー関数が関与します。再利用によって重複実装は減りますが、実行時には複数の `SKILL.md` と `references/` を読み、リポジトリをまたぐ境界条件と起動経路ごとの契約を同時に守る必要があります。コードの関数呼び出しに似た依存関係を自然言語 prompt と外部CLIで構成したため、ロードする文脈、解釈の揺れ、バージョン間の契約が実行コストになりました。
 
 ### 品質保証が、個人用ツールの規模を越えた
 
@@ -194,7 +194,7 @@ Herdr 導入の翌日には、[PR #148「feat: github-implement-pr に Herdr レ
 | Python テスト | 18ファイル、2,094行 |
 | orchestration 配下の Markdown / Python | 3,025行 |
 
-この表は `old-agent-skills` だけの集計であり、`code-agent-launcher` 本体の実装、テスト、設定、リリース作業は含みません。複雑さの一部を専用CLIへ移したことで個々のスキルの責務は整理されましたが、運用者が保守するシステム全体の範囲は、このリポジトリの外側まで広がっていました。
+この表は `old-agent-skills` だけの集計であり、`code-agent-launcher` 本体の実装、テスト、設定、リリース作業や、Claude Code 用ラッパーの管理は含みません。複雑さの一部を専用CLIやラッパーへ移したことで個々のスキルの責務は整理されましたが、運用者が保守するシステム全体の範囲は、このリポジトリの外側まで広がっていました。
 
 これは「テストや規則を作るべきではなかった」という意味ではありません。むしろ、自然言語で書かれた分散ワークフローを安定させようとすれば、契約テストや静的検証が必要になることを示しています。問題は、個人用スキル集の価値を得るために、専用フレームワークに近い保守を必要とする状態へ達したことです。
 
@@ -219,7 +219,7 @@ Git 履歴だけから、実際のトークン数や Codex Usage は復元でき
 
 3. **「整理する仕組み」の予算を先に決める** — カテゴリ、inventory、依存グラフ、検証ルールは複雑さを可視化しますが、それぞれが新しい同期対象です。ガバナンスコードにも規模、変更頻度、修正時間の上限や廃止条件が必要でした。
 
-4. **モデル実行時情報は、起動前に出所を一意にする** — Agent / Model / Effort を表示する前に、ユーザー指定、ランチャーの解決値、親と子、設定値と実行値のどれを正本にするか決める必要があります。表示から着手すると、選択、起動、取得、伝播の規則が後追いになります。
+4. **モデル実行時情報は、起動前に出所を一意にする** — Agent / Model / Effort を表示する前に、ユーザー指定、`cagent` の解決値、Claude Code 用ラッパーの設定、親と子、設定値と実行値のどれを正本にするか決める必要があります。表示から着手すると、選択、起動、取得、伝播の規則が後追いになります。
 
 5. **並列化は速度だけでなく、消費量も並列化する** — 複数Agentは待ち時間を短縮する一方、背景説明、スキル読み込み、GitHub 情報取得、検証も複製します。独立性が高く、受け渡しが小さい仕事だけを並列化する基準が必要です。
 
@@ -231,7 +231,7 @@ Git 履歴だけから、実際のトークン数や Codex Usage は復元でき
 - Agent Skill を関数のように合成すると、どこでマイクロサービス的な複雑さが生まれるか
 - prompt の契約テストはどこまで有効で、いつ専用フレームワーク化するか
 - マルチAgentは何を並列化すると得で、何を並列化すると文脈の重複になるか
-- 複数の Agent CLI を共通化するとき、複雑さは減るのか、別の層へ移るだけなのか
+- 複数の Agent CLI と異なる起動経路を一つのオーケストレーションへ収めると、複雑さはどこへ移るのか
 - Agent / Model / Effort の provenance を、親子Agent間でどう保持するか
 - 個人用自動化に、組織向けガバナンスを持ち込む境界はどこか
 - 「追加する PR」だけでなく「公開入口を減らす PR」をどう評価するか
