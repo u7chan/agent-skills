@@ -4,29 +4,41 @@
 
 対象期間は、最初の commit が作られた 2026年1月19日から、[global-agent-skills への移行を明記した PR #246](https://github.com/u7chan/old-agent-skills/pull/246) が merge された 2026年7月26日までです。
 
-## この文書の読み方
+## 全体像
 
-この記録では、性質の異なる情報を分けて扱います。
-
-- **履歴で確認できる事実**: Git の commit、GitHub の Issue / PR、当時のファイルから確認できるもの
-- **運用者の回顧**: 日々使った本人の記憶。トークン消費量や認知負荷など、リポジトリだけでは観測できないもの
-- **現在からの解釈**: 事実と回顧を並べた上での振り返り。唯一の因果説明ではない
-
-以下の日付は、特記がない限り Git 履歴上の merge 日を基準にしています。
-
-## ひとことで振り返る
-
-```text
-個人用の単機能スキル
-  → 1体のAgentでIssueからPRまで完走
-  → tmux / Herdrで複数Agentへ実装・レビューを委譲
-  → 依存関係、契約、inventory、検証、CIで複雑さを統制
-  → 統制機構自体の保守費と実行コストが便益を上回り、最小構成へ移行
+```mermaid
+flowchart TD
+    A["単機能スキル<br/>2026年1月〜4月"] --> B["単一AgentでIssueからPRまで<br/>2026年5月"]
+    B --> C["tmux / Herdrで複数Agent化<br/>2026年6月〜7月"]
+    C --> D["実装・レビュー・FB・prompt評価まで自動化<br/>2026年7月"]
+    D --> E["カテゴリ・依存・inventory・CIで統制<br/>2026年7月"]
+    E --> F["必要最小限のglobal-agent-skillsへ移行<br/>2026年7月26日"]
+    C --> G["pane・workspace・worktree・状態が増加"]
+    D --> H["読み込むスキル・メタデータ・テストが増加"]
+    G --> E
+    H --> E
 ```
 
-このリポジトリは、機能を失って自然に衰退したわけではありません。自動化できる範囲は最後まで増えました。その一方で、安全かつ再現可能に動かすためのスキル、規則、検証、Agent間契約も増え続け、個人用ツールとしては全体を把握し、変更し、実行するコストが高くなりました。ここでいう「衰退」は、機能不足ではなく、保守可能性と費用対効果の低下です。
+> [!IMPORTANT]
+> このリポジトリは、機能を失って自然に衰退したわけではありません。自動化できる範囲は最後まで増えました。一方で、安全かつ再現可能に動かすための契約と検証も増え、個人用ツールとしての保守可能性と費用対効果が低下しました。
 
-## 時系列
+## 時系列サマリー
+
+| 期 | 時期 | 到達点 | 同時に増えたもの |
+| ---: | --- | --- | --- |
+| 1 | 1月〜2月 | 個人用の単機能スキル集 | 責務の粒度を探る試行錯誤 |
+| 2 | 3月〜4月 | Claude Code / Codex 両対応 | スキル数、命名・重複整理 |
+| 3 | 5月 | 単一Agentで Issue から PR まで完走 | 1つの入口が扱う責務と停止条件 |
+| 4 | 6月29日〜7月2日 | tmux による複数Agent化 | Agent間通信、pane、timeout、結合テスト |
+| 5 | 7月 | Herdr による実装・レビュー・FB ループ | workspace、worktree、親子Agentの状態管理 |
+| 6 | 6月〜7月 | Agent / Model / Effort の記録 | 実行値の出所、所有権、伝播規則 |
+| 7 | 7月19日〜24日 | inventory・依存規則・35検証ルール | 正本、生成物、fixture、CI の同期 |
+| 8 | 7月25日〜26日 | `global-agent-skills` への移行 | 公開入口とロードコストの削減 |
+
+> [!NOTE]
+> 本文では、**Git / GitHub で確認できる事実**、リポジトリ外の負荷を含む**運用者の回顧**、両者をつないだ**現在からの解釈**を区別します。日付は、特記がない限り Git 履歴上の merge 日を基準にしています。
+
+## 詳細な時系列
 
 ### 1. 小さな個人用スキル集（2026年1月〜2月）
 
@@ -66,13 +78,45 @@ Herdr 導入の翌日には、[PR #148「feat: github-implement-pr に Herdr レ
 
 到達したワークフローは強力でした。親Agentが Issue と作業領域を解決し、実装を子Agentへ委譲し、PR を作成し、別Agentにレビューさせ、対応可能な指摘をさらに別Agentへ渡し、再チェックを繰り返せます。従来の単一Agent用スキルも下位工程として読み込まれました。
 
-同時に、Herdr 周辺では pane 配置、入力 readiness、session 名、task exchange、timeout、長文 prompt などの修正が連続しました。[PR #153](https://github.com/u7chan/old-agent-skills/pull/153)、[PR #155](https://github.com/u7chan/old-agent-skills/pull/155)、[PR #157](https://github.com/u7chan/old-agent-skills/pull/157)、[PR #159](https://github.com/u7chan/old-agent-skills/pull/159)、[PR #165](https://github.com/u7chan/old-agent-skills/pull/165)、[PR #166](https://github.com/u7chan/old-agent-skills/pull/166)、[PR #168](https://github.com/u7chan/old-agent-skills/pull/168)、[PR #171](https://github.com/u7chan/old-agent-skills/pull/171)、[PR #173](https://github.com/u7chan/old-agent-skills/pull/173)、[PR #175](https://github.com/u7chan/old-agent-skills/pull/175)、[PR #179](https://github.com/u7chan/old-agent-skills/pull/179)、[PR #180](https://github.com/u7chan/old-agent-skills/pull/180) に、その安定化過程が残っています。
+同時に、Herdr 周辺では次の修正が連続しました。
 
-[PR #177](https://github.com/u7chan/old-agent-skills/pull/177) では、独立Agentを反復起動して prompt を実証評価する仕組みまで加わりました。自動化の対象が開発作業だけでなく、「Agent向け指示が再現可能に動くか」の評価へ広がった段階です。
+- **配置と起動**: pane 分割、grid layout、専用 tab、input readiness
+- **依頼と回収**: task exchange、長文 prompt、timeout
+- **資源管理**: root pane、workspace、`--no-focus` の扱い
+
+<details>
+<summary>Herdr の安定化に関する主な PR を表示</summary>
+
+| PR | タイトル |
+| ---: | --- |
+| [#153](https://github.com/u7chan/old-agent-skills/pull/153) | feat(herdr-agent-delegate): guarantee same-space pane split for delegated agents |
+| [#155](https://github.com/u7chan/old-agent-skills/pull/155) | fix(herdr): wait for agent input readiness |
+| [#157](https://github.com/u7chan/old-agent-skills/pull/157) | feat(herdr): add role-based session names for delegated agents |
+| [#159](https://github.com/u7chan/old-agent-skills/pull/159) | feat(herdr-agent-delegate): add constrained grid layout and plan-first batch delegation |
+| [#165](https://github.com/u7chan/old-agent-skills/pull/165) | feat(herdr-agent-delegate): move task exchange directory into workspace |
+| [#166](https://github.com/u7chan/old-agent-skills/pull/166) | feat(herdr-agent-delegate): 起動数に応じた専用タブ選択と容量不足フォールバック |
+| [#168](https://github.com/u7chan/old-agent-skills/pull/168) | refactor: simplify Herdr delegation primitives |
+| [#171](https://github.com/u7chan/old-agent-skills/pull/171) | fix(herdr-agent-delegate): 新規タブの空アンカーpaneを廃止しroot paneを直接Agent起動先にする |
+| [#173](https://github.com/u7chan/old-agent-skills/pull/173) | [herdr-agent-delegate] 依頼送信を pane run に統一して確実に実行開始する (#172) |
+| [#175](https://github.com/u7chan/old-agent-skills/pull/175) | fix(herdr-agent-delegate): Claude 長文依頼の [Pasted text #1] 発火対応 (#174) |
+| [#179](https://github.com/u7chan/old-agent-skills/pull/179) | fix(herdr-agent-delegate): prevent --no-focus from leaking into pane run |
+| [#180](https://github.com/u7chan/old-agent-skills/pull/180) | fix(herdr-agent-delegate): extend completion timeout to 30 minutes |
+
+</details>
+
+[PR #177「feat: add Herdr prompt evaluation loop」](https://github.com/u7chan/old-agent-skills/pull/177) では、独立Agentを反復起動して prompt を実証評価する仕組みまで加わりました。自動化の対象が開発作業だけでなく、「Agent向け指示が再現可能に動くか」の評価へ広がった段階です。
 
 ### 6. Agent / Model / Effort の記録をめぐる修正（2026年6月〜7月）
 
-PR 本文やレビューコメントへ、作業した Agent と Model を残す試みは [PR #59](https://github.com/u7chan/old-agent-skills/pull/59)、[PR #113](https://github.com/u7chan/old-agent-skills/pull/113)、[PR #129](https://github.com/u7chan/old-agent-skills/pull/129)、[PR #130](https://github.com/u7chan/old-agent-skills/pull/130) と段階的に進みました。Herdr 導入後は [PR #184](https://github.com/u7chan/old-agent-skills/pull/184) で PR の AI work metadata を追加し、[PR #188](https://github.com/u7chan/old-agent-skills/pull/188)、[PR #192](https://github.com/u7chan/old-agent-skills/pull/192)、[PR #201](https://github.com/u7chan/old-agent-skills/pull/201)、[PR #207](https://github.com/u7chan/old-agent-skills/pull/207) で取得元、優先順位、Effort、委譲先への伝播が修正されました。
+作業した Agent と Model を PR 本文やレビューコメントへ残す仕組みは、次の順で発展しました。
+
+| 時期 | 変更 | 主な記録 |
+| --- | --- | --- |
+| 3月〜5月 | レビューコメントへ Agent / Model を表示 | [#59](https://github.com/u7chan/old-agent-skills/pull/59)、[#113](https://github.com/u7chan/old-agent-skills/pull/113) |
+| 6月 | Codex 固定を外し、取得ルールを共通化 | [#129](https://github.com/u7chan/old-agent-skills/pull/129)、[#130](https://github.com/u7chan/old-agent-skills/pull/130) |
+| 7月14日 | PR 本文へ役割別の AI work metadata を追加 | [#184](https://github.com/u7chan/old-agent-skills/pull/184) |
+| 7月15日〜16日 | runtime model と orchestrator の値を修正 | [#188](https://github.com/u7chan/old-agent-skills/pull/188)、[#192](https://github.com/u7chan/old-agent-skills/pull/192) |
+| 7月18日〜19日 | Effort と Herdr 委譲時 snapshot を追加 | [#201](https://github.com/u7chan/old-agent-skills/pull/201)、[#207](https://github.com/u7chan/old-agent-skills/pull/207) |
 
 履歴から確認できるのは、「実行時の Agent / Model / Effort を正しく表示する」という横断的な関心に対し、短期間に複数の修正が必要だったことです。「だんだん期待どおり動かなくなった」という評価は運用者の回顧ですが、表示値の出所が親Agent、子Agent、設定、runtime と複数にまたがり、契約が不安定になりやすかったことは変更の連続から読み取れます。
 
@@ -82,11 +126,13 @@ PR 本文やレビューコメントへ、作業した Agent と Model を残す
 
 続いて、[Issue #206「[Epic] スキル構成の大規模な棚卸しと再編」](https://github.com/u7chan/old-agent-skills/issues/206) の下で、次の整備が行われました。Issue 本文は、責務の重複、依存関係の複雑化、SKILL.md の肥大化、外部依存の把握困難を再編理由として明示しています。
 
-- [PR #223「feat: add skill inventory scripts and data for Phase 1 (#214)」](https://github.com/u7chan/old-agent-skills/pull/223): skill inventory と依存関係データを追加
-- [PR #224「Phase 2: スキル構成・依存ルールの確定」](https://github.com/u7chan/old-agent-skills/pull/224): カテゴリ、依存方向、責務、命名などの正本を定義
-- [PR #226「feat(validation): add skill validation framework with 35 rule checks」](https://github.com/u7chan/old-agent-skills/pull/226): 35ルールの検証フレームワークを追加
-- [PR #240「[Epic] スキル構成の棚卸し・再編・カテゴリ再配置」](https://github.com/u7chan/old-agent-skills/pull/240): カテゴリ別ディレクトリへの再配置とセットアップ処理を実施
-- [PR #242「refactor: remove external dependency type annotations (R/C/O/F)」](https://github.com/u7chan/old-agent-skills/pull/242): 追加した外部依存種別をすぐに簡素化
+| 段階 | 整備内容 | 記録 |
+| --- | --- | --- |
+| Phase 1 | skill inventory と依存関係データを追加 | [PR #223「feat: add skill inventory scripts and data for Phase 1 (#214)」](https://github.com/u7chan/old-agent-skills/pull/223) |
+| Phase 2 | カテゴリ、依存方向、責務、命名などの正本を定義 | [PR #224「Phase 2: スキル構成・依存ルールの確定」](https://github.com/u7chan/old-agent-skills/pull/224) |
+| Phase 3 | 35ルールの検証フレームワークを追加 | [PR #226「feat(validation): add skill validation framework with 35 rule checks」](https://github.com/u7chan/old-agent-skills/pull/226) |
+| Phase 4 | カテゴリ別ディレクトリへの再配置とセットアップ処理 | [PR #240「[Epic] スキル構成の棚卸し・再編・カテゴリ再配置」](https://github.com/u7chan/old-agent-skills/pull/240) |
+| 再簡素化 | 外部依存種別を廃止し、正本を一本化 | [PR #242「refactor: remove external dependency type annotations (R/C/O/F)」](https://github.com/u7chan/old-agent-skills/pull/242) |
 
 これらは、既に存在する複雑さを可視化し、安全に整理するための対策でした。Phase 1 の初回棚卸しでは、34スキルに対して循環依存2件、逆方向依存の候補16件、物理パス参照22件が記録されています。ただし、対策によって `.rules/`、`inventory/`、生成スクリプト、検証コード、fixture、CI という新たな保守対象も生まれました。機能変更だけでなく、正本、生成物、README、依存グラフ、テストの同期が必要になり、整理のための仕組み自体が認知負荷へ加わりました。
 
@@ -156,29 +202,17 @@ Git 履歴だけから、実際のトークン数や Codex Usage は復元でき
 
 ## 得られた教訓
 
-### 1. 自動化できる範囲と、持続可能な範囲は違う
+1. **自動化できる範囲と、持続可能な範囲は違う** — Issue からレビュー FB ループまで自動化できたこと自体は成果です。ただし、「できる」ことと「毎日使って得をする」ことは別でした。1タスクのトークン、時間、失敗時の復旧負荷まで含めて評価する必要があります。
 
-Issue からレビュー FB ループまで自動化できたこと自体は成果です。ただし、「できる」ことと「毎日使って得をする」ことは別でした。自動化率だけでなく、1タスクのトークン、時間、失敗時の復旧負荷を含めて評価する必要があります。
+2. **自然言語の依存関係にも API 設計が要る** — スキル間参照が増えると、名前、責務、入力、出力、失敗状態、再試行、cleanup が API になります。公開する入口を少なくし、定型処理を CLI へ寄せる方が、モデルへ渡す契約を小さくできます。
 
-### 2. 自然言語の依存関係にも API 設計が要る
+3. **「整理する仕組み」の予算を先に決める** — カテゴリ、inventory、依存グラフ、検証ルールは複雑さを可視化しますが、それぞれが新しい同期対象です。ガバナンスコードにも規模、変更頻度、修正時間の上限や廃止条件が必要でした。
 
-スキル間参照が増えると、名前、責務、入力、出力、失敗状態、再試行、cleanup が API になります。契約が曖昧なら Agent が補完し、厳密にすれば指示と検証が増えます。公開する入口を少なくし、低レベルの定型処理を CLI へ寄せる方が、モデルへ渡す契約を小さくできます。
+4. **モデル実行時情報は、表示より先に出所を一意にする** — Agent / Model / Effort を表示する前に、親と子、設定値と実行値のどれを正本にするか決める必要があります。表示から着手すると、取得規則と伝播規則が後追いになります。
 
-### 3. 「整理する仕組み」の予算を先に決める
+5. **並列化は速度だけでなく、消費量も並列化する** — 複数Agentは待ち時間を短縮する一方、背景説明、スキル読み込み、GitHub 情報取得、検証も複製します。独立性が高く、受け渡しが小さい仕事だけを並列化する基準が必要です。
 
-カテゴリ、inventory、依存グラフ、検証ルールは複雑さの可視化に役立ちました。一方で、それぞれが同期対象です。機能コードだけでなく、ガバナンスコードの行数、変更頻度、修正時間にも上限や廃止条件を置くべきでした。
-
-### 4. モデル実行時情報は、表示より先に出所を一意にする
-
-Agent / Model / Effort の表示は便利ですが、親と子、設定値と実行値がある環境では、どの時点の値を正本にするかが先です。表示テンプレートから始めると、取得規則と伝播規則が後追いになり、横断修正が増えます。
-
-### 5. 並列化は速度だけでなく、消費量も並列化する
-
-複数Agentは待ち時間を短縮できますが、同じ背景説明、スキル読み込み、GitHub 情報取得、検証を複製します。並列数ではなく、「独立性が高く、受け渡しが小さい仕事だけを並列化する」という基準が必要です。
-
-### 6. 移行は敗北ではなく、抽象化の置き場所を変える判断である
-
-旧リポジトリで得た知見があるからこそ、新リポジトリでは `gh` と `herdr` のような薄いラッパーへ共通処理を寄せ、公開スキルを絞れます。このリポジトリは失敗作として消すより、どの抽象化が自然言語スキルに向き、どれが CLI に向くかを示す実験記録として残す価値があります。
+6. **移行は、抽象化の置き場所を変える判断である** — 旧リポジトリの知見があるからこそ、`gh` と `herdr` のような薄いラッパーへ共通処理を寄せ、公開スキルを絞れます。このリポジトリは、どの抽象化が自然言語スキルに向き、どれが CLI に向くかを示す実験記録として残します。
 
 ## 勉強会・テックブログに展開できる問い
 
