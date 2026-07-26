@@ -2,6 +2,8 @@
 
 > [!CAUTION]
 > ⚠️ このリポジトリのスキルは現在メンテナンスされていません。新しい共通スキルは [global-agent-skills](https://github.com/u7chan/global-agent-skills) で管理しています。
+>
+> 発展、複雑化、移行に至るまでの振り返りは [HISTORY.md](HISTORY.md) にまとめています。
 
 [![Skills](https://badgen.net/static/skills/33/2ea44f)](#available-skills)
 [![Validation](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml/badge.svg?branch=main)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
