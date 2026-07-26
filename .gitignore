@@ -4,4 +4,3 @@ __pycache__/
 
 # Codexが生成するシステム用生成物（Git管理対象外）
 /.system/
-# branch-protection-test
