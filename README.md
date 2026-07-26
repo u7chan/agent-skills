@@ -1,15 +1,20 @@
 # agent skills
 
+> [!CAUTION]
+> ⚠️ このリポジトリのスキルは現在メンテナンスされていません。新しい共通スキルは [global-agent-skills](https://github.com/u7chan/global-agent-skills) で管理しています。
+
 [![Skills](https://badgen.net/static/skills/33/2ea44f)](#available-skills)
 [![Validation](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml/badge.svg?branch=main)](https://github.com/u7chan/agent-skills/actions/workflows/validate-skills.yml)
 
 コーディングエージェント用のカスタムスキル集です。
 
-## 新リポジトリへの移行について
+## 🔄 新リポジトリへの移行について
 
 このリポジトリは、コーディングエージェント向けスキルを試行錯誤しながら整備してきた記録です。個々の追加には理由がありましたが、スキル、オーケストレーション、依存関係、inventory、検証スクリプト、CI、テスト、ドキュメントが積み重なった結果、全体を把握して安全に変更するための認知負荷が大きくなりました。
 
 特にGitHub操作では、対象解決、認証、pagination、投稿、検証などの共通処理と、文章生成、対応判断、コード修正などの上位判断が複数スキルへ分散・混在しました。責務の重複を避けるために規約や検証を増やすほど、実際の機能変更よりも整合性維持へ注意を使う状態になり、人間にもエージェントにも扱いづらい構成になっていました。
+
+さらに、長い指示や参照資料、大容量のraw JSON、複数スキルの読み込みによるトークン消費量も、無視できない運用コストになっていました。
 
 そこで、今後の共通スキルは [global-agent-skills](https://github.com/u7chan/global-agent-skills) で必要最小限から組み直します。新リポジトリでは次を優先します。
 
@@ -20,6 +25,8 @@
 - Git管理する検証文書は、再利用する手順と合格条件を示す短い文書に限定する
 
 このリポジトリは、移行前の実装と設計判断を参照できる記録として残します。新しい設計の背景と実装単位は、global-agent-skillsの [Issue #8](https://github.com/u7chan/global-agent-skills/issues/8) を正本とします。
+
+---
 
 スキルの命名・メンテナンス規約は [AGENTS.md](AGENTS.md) を参照してください。
 
